@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Quelldateien\Protega CPP Files">
+      <UniqueIdentifier>{20304cf0-80e6-4f34-b099-89584b5fc0aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -28,6 +31,15 @@
     </ClCompile>
     <ClCompile Include="GlobalStartFunctionTests.cpp">
       <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkTests.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Protega\Network\Network_Manager.cpp">
+      <Filter>Quelldateien\Protega CPP Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Protega\Network\Tcp_Connector.cpp">
+      <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
