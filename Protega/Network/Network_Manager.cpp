@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "../stdafx.h"
 #include "Network_Manager.h"
 
 Network_Manager::Network_Manager(string sIP, string iPort, std::function<void(string sMessage)> funcCallbackHandler)
@@ -43,6 +43,3 @@ void Network_Manager::OnReceiveConverter(string sMessage)
 	funcCallbackHandler(sMessage);
 
 }
-
-
-

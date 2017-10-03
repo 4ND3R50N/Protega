@@ -2,13 +2,12 @@
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
+#include <boost/algorithm/string.hpp>
 #include <memory>
 #include <iostream>
 
 using boost::asio::ip::tcp;
 using namespace std;
-
-
 
 class Tcp_Connector
 {

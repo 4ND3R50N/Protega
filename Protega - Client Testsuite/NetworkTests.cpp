@@ -13,7 +13,7 @@ namespace ProtegaClientTestsuite
 	TEST_CLASS(NetworkTests)
 	{
 	private:
-		string sCheckMessage = "Hello!面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面面";
+		string sCheckMessage = "Hello!";
 		Network_Manager *NetworkTestManager = new Network_Manager(TEST_IP, TEST_PORT, std::bind(&NetworkTests::ReceiveFunc, this, std::placeholders::_1));
 	public:
 		
