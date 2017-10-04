@@ -29,9 +29,6 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="GlobalStartFunctionTests.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="NetworkTests.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -40,6 +37,9 @@
     </ClCompile>
     <ClCompile Include="..\Protega\Network\Tcp_Connector.cpp">
       <Filter>Quelldateien\Protega CPP Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GlobalCoreFunctionTests.cpp">
+      <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
