@@ -9,15 +9,17 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Ressourcendateien">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Headerdateien\Network">
       <UniqueIdentifier>{504b4380-c9c4-4453-85cc-554d9500b8b3}</UniqueIdentifier>
     </Filter>
     <Filter Include="Quelldateien\Network">
       <UniqueIdentifier>{36ea4d9c-3d1d-49d1-88a4-f38493484398}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\Core">
+      <UniqueIdentifier>{2fe79100-f16b-4d1c-951d-334f215b3106}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\Core">
+      <UniqueIdentifier>{fdd88c28-ae73-4151-8634-e4804a9ab19e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -36,12 +38,12 @@
     <ClInclude Include="Network\Tcp_Connector.h">
       <Filter>Headerdateien\Network</Filter>
     </ClInclude>
+    <ClInclude Include="Core\ProtegaCore.h">
+      <Filter>Headerdateien\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Protega.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="dllmain.cpp">
@@ -52,6 +54,9 @@
     </ClCompile>
     <ClCompile Include="Network\Tcp_Connector.cpp">
       <Filter>Quelldateien\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ProtegaCore.cpp">
+      <Filter>Quelldateien\Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
