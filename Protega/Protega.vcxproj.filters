@@ -21,6 +21,24 @@
     <Filter Include="Quelldateien\Core">
       <UniqueIdentifier>{fdd88c28-ae73-4151-8634-e4804a9ab19e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headerdateien\Protection">
+      <UniqueIdentifier>{25ef5688-3431-4010-84bf-9cac3af2cc34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\Protection\Protega">
+      <UniqueIdentifier>{69cd544d-fc51-47fc-9d63-fed0daca8111}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\Protection">
+      <UniqueIdentifier>{694885e0-1c02-4daf-b4c2-ae5085fb80f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\Protection\Target Process">
+      <UniqueIdentifier>{24bbbd57-7901-4639-9f70-b7f6673266a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\Protection\Protega">
+      <UniqueIdentifier>{176431ff-aedb-4f86-9b13-0b3209eb4396}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\Protection\Target Process">
+      <UniqueIdentifier>{499af7be-7fff-49e8-9d25-7aaa2f7aeef8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -41,6 +59,9 @@
     <ClInclude Include="Core\ProtegaCore.h">
       <Filter>Headerdateien\Core</Filter>
     </ClInclude>
+    <ClInclude Include="Protection\Protega\WatchDog_Manager.h">
+      <Filter>Headerdateien\Protection\Protega</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -57,6 +78,9 @@
     </ClCompile>
     <ClCompile Include="Core\ProtegaCore.cpp">
       <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Protection\Protega\WatchDog_Manager.cpp">
+      <Filter>Quelldateien\Protection\Protega</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
