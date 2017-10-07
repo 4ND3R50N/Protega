@@ -11,7 +11,8 @@
 *.userprefs
 
 # Build results
-Client - Debug/
+Client-Debug-Win32/
+Client-Debug-x64/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
