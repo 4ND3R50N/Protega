@@ -6,7 +6,7 @@ void initAntihack();
 
 extern "C"
 {
-	int __declspec(dllexport) __cdecl PEntryMain()
+	int __declspec(dllexport) __cdecl ProcMainEntry()
 	{
 		
 		CreateThread(NULL, NULL, LPTHREAD_START_ROUTINE(initAntihack), NULL, 0, 0);
