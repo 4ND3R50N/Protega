@@ -5,10 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void Test()
-{
-	MessageBoxA(0, "Hello from injected DLL!\n", "Hi", MB_ICONINFORMATION);
-}
+	void Test()
+	{
+		MessageBoxA(0, "Hello from injected DLL!\n", "Hi", MB_ICONINFORMATION);
+	}
+
 
 
 BOOL APIENTRY DllMain( HMODULE hModule,

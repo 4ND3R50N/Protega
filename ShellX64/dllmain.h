@@ -8,8 +8,11 @@
 # define DLLIMPORT __declspec (dllimport)
 #endif /* Not BUILDING_DLL */
 
+extern "C"
+{
+	DLLIMPORT void Test(void);
 
-DLLIMPORT void Test(void);
+}
 
 
 #endif /* _DLL_H_ */
