@@ -39,6 +39,12 @@
     <Filter Include="Headerdateien\Protection\Target Process">
       <UniqueIdentifier>{499af7be-7fff-49e8-9d25-7aaa2f7aeef8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Quelldateien\Tools">
+      <UniqueIdentifier>{4af10ecf-95f6-4b23-bef8-a6d84f802789}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\Tools">
+      <UniqueIdentifier>{5d17991a-d909-4295-8ec2-6ae718d898cc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -62,6 +68,9 @@
     <ClInclude Include="Protection\Protega\WatchDog_Manager.h">
       <Filter>Headerdateien\Protection\Protega</Filter>
     </ClInclude>
+    <ClInclude Include="Tools\SplashDisplayer.h">
+      <Filter>Headerdateien\Tools</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -81,6 +90,9 @@
     </ClCompile>
     <ClCompile Include="Protection\Protega\WatchDog_Manager.cpp">
       <Filter>Quelldateien\Protection\Protega</Filter>
+    </ClCompile>
+    <ClCompile Include="Tools\SplashDisplayer.cpp">
+      <Filter>Quelldateien\Tools</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
