@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include <Windows.h>
 #include "CppUnitTest.h"
+#include "../Protega/Tools/SplashDisplayer.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -35,6 +36,7 @@ namespace ProtegaClientTestsuite
 			
 		}
 
+		//tests the 
 		TEST_METHOD(CompleteStartUpShell)
 		{
 			HINSTANCE hInstLibrary = LoadLibrary(L"ShellX64.dll");
@@ -48,6 +50,17 @@ namespace ProtegaClientTestsuite
 			Sleep(10000);
 
 		}
+
+		TEST_METHOD(DisplayBitmap)
+		{
+			SplashDisplayer Splashtest(TEXT(".\\test_image.bmp"), RGB(128, 128, 128));
+			Splashtest.ShowSplash();
+			Sleep(5000);
+			Splashtest.CloseSplash();
+			Splashtest.~SplashDisplayer();
+			Assert::IsTrue(true);
+		}
+
 
 	};
 }

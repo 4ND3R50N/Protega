@@ -41,5 +41,8 @@
     <ClCompile Include="GlobalCoreFunctionTests.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="..\Protega\Tools\SplashDisplayer.cpp">
+      <Filter>Quelldateien\Protega CPP Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
