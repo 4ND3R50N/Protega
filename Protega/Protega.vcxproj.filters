@@ -30,20 +30,20 @@
     <Filter Include="Quelldateien\Protection">
       <UniqueIdentifier>{694885e0-1c02-4daf-b4c2-ae5085fb80f7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Quelldateien\Protection\Target Process">
-      <UniqueIdentifier>{24bbbd57-7901-4639-9f70-b7f6673266a6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Quelldateien\Protection\Protega">
       <UniqueIdentifier>{176431ff-aedb-4f86-9b13-0b3209eb4396}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headerdateien\Protection\Target Process">
-      <UniqueIdentifier>{499af7be-7fff-49e8-9d25-7aaa2f7aeef8}</UniqueIdentifier>
     </Filter>
     <Filter Include="Quelldateien\Tools">
       <UniqueIdentifier>{4af10ecf-95f6-4b23-bef8-a6d84f802789}</UniqueIdentifier>
     </Filter>
     <Filter Include="Headerdateien\Tools">
       <UniqueIdentifier>{5d17991a-d909-4295-8ec2-6ae718d898cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\Protection\Target Enviorment">
+      <UniqueIdentifier>{499af7be-7fff-49e8-9d25-7aaa2f7aeef8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\Protection\Target Enviorment">
+      <UniqueIdentifier>{24bbbd57-7901-4639-9f70-b7f6673266a6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -65,11 +65,23 @@
     <ClInclude Include="Core\ProtegaCore.h">
       <Filter>Headerdateien\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Protection\Protega\WatchDog_Manager.h">
-      <Filter>Headerdateien\Protection\Protega</Filter>
-    </ClInclude>
     <ClInclude Include="Tools\SplashDisplayer.h">
       <Filter>Headerdateien\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="Protection\Protega\WatchDog_Engine.h">
+      <Filter>Headerdateien\Protection\Protega</Filter>
+    </ClInclude>
+    <ClInclude Include="Protection\Protection_Manager.h">
+      <Filter>Headerdateien\Protection</Filter>
+    </ClInclude>
+    <ClInclude Include="Protection\Target Enviorment\File_Protection_Engine.h">
+      <Filter>Headerdateien\Protection\Target Enviorment</Filter>
+    </ClInclude>
+    <ClInclude Include="Protection\Target Enviorment\Heuristic_Scan_Engine.h">
+      <Filter>Headerdateien\Protection\Target Enviorment</Filter>
+    </ClInclude>
+    <ClInclude Include="Protection\Target Enviorment\Virtual_Memory_Protection_Engine.h">
+      <Filter>Headerdateien\Protection\Target Enviorment</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -88,11 +100,23 @@
     <ClCompile Include="Core\ProtegaCore.cpp">
       <Filter>Quelldateien\Core</Filter>
     </ClCompile>
-    <ClCompile Include="Protection\Protega\WatchDog_Manager.cpp">
-      <Filter>Quelldateien\Protection\Protega</Filter>
-    </ClCompile>
     <ClCompile Include="Tools\SplashDisplayer.cpp">
       <Filter>Quelldateien\Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="Protection\Protega\WatchDog_Engine.cpp">
+      <Filter>Quelldateien\Protection\Protega</Filter>
+    </ClCompile>
+    <ClCompile Include="Protection\Protection_Manager.cpp">
+      <Filter>Quelldateien\Protection</Filter>
+    </ClCompile>
+    <ClCompile Include="Protection\Target Enviorment\File_Protection_Engine.cpp">
+      <Filter>Quelldateien\Protection\Target Enviorment</Filter>
+    </ClCompile>
+    <ClCompile Include="Protection\Target Enviorment\Heuristic_Scan_Engine.cpp">
+      <Filter>Quelldateien\Protection\Target Enviorment</Filter>
+    </ClCompile>
+    <ClCompile Include="Protection\Target Enviorment\Virtual_Memory_Protection_Engine.cpp">
+      <Filter>Quelldateien\Protection\Target Enviorment</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
