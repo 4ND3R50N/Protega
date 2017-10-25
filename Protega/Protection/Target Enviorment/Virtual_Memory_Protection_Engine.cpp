@@ -11,11 +11,13 @@ Virtual_Memory_Protection_Engine::Virtual_Memory_Protection_Engine(unsigned int 
 
 Virtual_Memory_Protection_Engine::Virtual_Memory_Protection_Engine(unsigned int iProcessID, std::list<std::pair<unsigned int, unsigned int>> kvpAddressList,
 	std::list<std::pair<const char*, unsigned int>> kvpValueInformation,
-	std::function<void(std::list<std::pair<unsigned int, unsigned int>>::iterator kvpDetectedAddress, const char* sActualValue, const char* sWantedCondition)> funcCallbackHandler)
+	std::function<void(std::list<std::pair<unsigned int, unsigned int>>::iterator kvpDetectedAddress, 
+		const char* sActualValue, const char* sWantedCondition)> funcCallbackHandler)
 {
 	this->iProcessID = iProcessID;
 	this->kvpAddressList = kvpAddressList;
 	this->kvpValueInformation = kvpValueInformation;
+	this->funcCallbackHandler = funcCallbackHandler;
 	hProcessHandle = NULL;
 	ActualAddress = NULL;
 	iProcessBaseAddress = 0;
@@ -57,9 +59,7 @@ void Virtual_Memory_Protection_Engine::ScanAllAddresses()
 
 		std::string sValue = itValueInformation->first;
 		unsigned int sType = itValueInformation->second;
-		ActualAddress = (LPCVOID)(iCurrentAddress + iCurrentOffset);
-
-
+	
 		//Read memory value ( the right value. Check which read function is needed
 		switch (sType)
 		{
@@ -177,7 +177,7 @@ int Virtual_Memory_Protection_Engine::ReadMemoryInt(HANDLE processHandle, LPCVOI
 	SIZE_T NumberOfBytesToRead = sizeof(buffer); //this is equal to 4
 	SIZE_T NumberOfBytesActuallyRead;
 	BOOL err = ReadProcessMemory(processHandle, address, &buffer, NumberOfBytesToRead, &NumberOfBytesActuallyRead);
-	if (err || NumberOfBytesActuallyRead != NumberOfBytesToRead)
+	//if (err || NumberOfBytesActuallyRead != NumberOfBytesToRead)
 		/*an error occured*/;
 	return buffer;
 }
@@ -187,7 +187,7 @@ float Virtual_Memory_Protection_Engine::ReadMemoryFloat(HANDLE processHandle, LP
 	SIZE_T NumberOfBytesToRead = sizeof(buffer); //this is equal to 4
 	SIZE_T NumberOfBytesActuallyRead;
 	BOOL err = ReadProcessMemory(processHandle, address, &buffer, NumberOfBytesToRead, &NumberOfBytesActuallyRead);
-	if (err || NumberOfBytesActuallyRead != NumberOfBytesToRead)
+	//if (err || NumberOfBytesActuallyRead != NumberOfBytesToRead)
 		/*an error occured*/;
 	return buffer;
 }
