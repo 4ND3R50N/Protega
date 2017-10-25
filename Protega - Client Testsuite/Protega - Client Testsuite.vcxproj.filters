@@ -44,5 +44,11 @@
     <ClCompile Include="..\Protega\Tools\SplashDisplayer.cpp">
       <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
+    <ClCompile Include="ProtectionTests.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Protega\Protection\Target Enviorment\Virtual_Memory_Protection_Engine.cpp">
+      <Filter>Quelldateien\Protega CPP Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
