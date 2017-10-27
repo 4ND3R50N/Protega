@@ -4,7 +4,7 @@
 class ProtegaCore
 {
 private:
-	void ServerAnswer(string sMessage);
+	void ServerAnswer(NetworkTelegram NetworkTelegramMessage);
 public:
 	ProtegaCore();
 	~ProtegaCore();

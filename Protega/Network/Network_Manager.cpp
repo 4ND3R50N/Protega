@@ -1,7 +1,7 @@
 #include "../stdafx.h"
 #include "Network_Manager.h"
 
-Network_Manager::Network_Manager(string sIP, string iPort, std::function<void(string sMessage)> funcCallbackHandler)
+Network_Manager::Network_Manager(string sIP, string iPort, std::function<void(NetworkTelegram Telegram)> funcCallbackHandler)
 {
 	this->sIP = sIP;
 	this->iPort = iPort;
@@ -12,7 +12,17 @@ Network_Manager::~Network_Manager()
 {
 }
 
+//Public
 bool Network_Manager::TestMessage_001()
+{	
+	if (!SendAndGet("#001"))
+	{
+		return false;
+	}	
+	return true;
+}
+
+bool Network_Manager::SendAndGet(const char * sMessage)
 {
 	try
 	{
@@ -23,23 +33,29 @@ bool Network_Manager::TestMessage_001()
 
 		Tcp_Connector Test(IO_Service, EndPointIterator, std::bind(&Network_Manager::OnReceiveConverter, this, std::placeholders::_1));
 		Test.Connect();
-		Test.SendAndReceive("#001");
+		Test.SendAndReceive(sMessage);
 		Test.Close();
 		Test.~Tcp_Connector();
 	}
-	catch (exception& e)
+	catch (const std::exception&e)
 	{
 		MessageBoxA(NULL, e.what(), "Protega antihack engine", NULL);
-	}
-
-
+		return false;
+	}	
 	return true;
 }
 
+//Private
 void Network_Manager::OnReceiveConverter(string sMessage)
 {
-	//Todo: Convert the string to a structure like a struct or list
+	std::vector<std::string> lParameters;
+	boost::split(lParameters, sMessage, boost::is_any_of(TELEGRAM_SPLIT_CHAR));
+	NetworkTelegramMessage.iTelegramNumber = atoi(lParameters[0].c_str());
+	lParameters.erase(lParameters.begin());
+	NetworkTelegramMessage.lParameters = lParameters;
 
-	funcCallbackHandler(sMessage);
+	funcCallbackHandler(NetworkTelegramMessage);
 
 }
+
+

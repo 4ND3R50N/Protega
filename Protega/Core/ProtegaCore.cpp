@@ -18,8 +18,8 @@ void ProtegaCore::StartAntihack()
 	NetworkTestManager->TestMessage_001();
 }
 
-void ProtegaCore::ServerAnswer(string sMessage)
+void ProtegaCore::ServerAnswer(NetworkTelegram NetworkTelegramMessage)
 {
-	MessageBoxA(NULL, sMessage.c_str(), "Protega antihack engine", NULL);
+	MessageBoxA(NULL, NetworkTelegramMessage.lParameters[0].c_str(), "Protega antihack engine", NULL);
 }
 
