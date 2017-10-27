@@ -13,7 +13,7 @@ namespace ProtegaClientTestsuite
 	TEST_CLASS(NetworkTests)
 	{
 	private:
-		string sCheckMessage = "Hello!";
+		std::string sCheckMessage = "Hello!";
 		Network_Manager *NetworkTestManager = new Network_Manager(TEST_IP, TEST_PORT, std::bind(&NetworkTests::ReceiveFunc, this, std::placeholders::_1));
 	public:
 		
@@ -23,9 +23,10 @@ namespace ProtegaClientTestsuite
 			NetworkTestManager->TestMessage_001();
 		}
 
-		void ReceiveFunc(string sMessage)
+		void ReceiveFunc(NetworkTelegram NetworkTelegramMessage)
 		{
-			Assert::AreEqual(sCheckMessage, sMessage);
+			Assert::AreEqual(NetworkTelegramMessage.iTelegramNumber, 1);
+			Assert::AreEqual(NetworkTelegramMessage.lParameters[0], sCheckMessage);
 		}
 
 
