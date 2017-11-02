@@ -53,7 +53,7 @@ namespace ProtegaClientTestsuite
 
 		TEST_METHOD(DisplayBitmap)
 		{
-			SplashDisplayer Splashtest(TEXT(".\\test_image.bmp"), RGB(128, 128, 128));
+			SplashDisplayer Splashtest(TEXT(".\\Protega_Logo.bmp"), RGB(128, 128, 128));
 			Splashtest.ShowSplash();
 			Sleep(5000);
 			Splashtest.CloseSplash();
