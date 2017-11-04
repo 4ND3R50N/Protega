@@ -57,7 +57,7 @@ void Virtual_Memory_Protection_Engine::ScanAllAddresses()
 		unsigned int iCurrentAddress = itAddress->first;
 		unsigned int iCurrentOffset = itAddress->second;
 
-		std::string sValue = itValueInformation->first;
+		const char* sCheckDefinition = itValueInformation->first;
 		unsigned int sType = itValueInformation->second;
 	
 		//Read memory value ( the right value. Check which read function is needed
@@ -78,7 +78,7 @@ void Virtual_Memory_Protection_Engine::ScanAllAddresses()
 		{
 			float fTargetValue = GetFloatViaLevel2Pointer((LPCVOID)iCurrentAddress, (LPCVOID)iCurrentOffset);
 			//Example Check token + definition (Adding the pair list for this later..)
-			if (!isValid(fTargetValue, eValueCheckToken::EQL, "450.0f"))
+			if (!isValid(fTargetValue, eValueCheckToken::EQL, sCheckDefinition))
 			{
 				funcCallbackHandler(itAddress, std::to_string(fTargetValue).c_str(), "450.0f");
 				return;
