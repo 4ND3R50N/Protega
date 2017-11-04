@@ -45,7 +45,7 @@ namespace ProtegaClientTestsuite
 
 		//This test emulates the usage of Virtual_Memory_Protection_Engine class.
 		//The speed value of cabal is the value that gets checked here
-		TEST_METHOD(VMP_S_Test)
+		TEST_METHOD(Protection_VMP_Test)
 		{
 			//Declare lists with address entries
 			bDetect = false;

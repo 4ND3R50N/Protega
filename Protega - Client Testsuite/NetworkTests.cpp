@@ -18,7 +18,7 @@ namespace ProtegaClientTestsuite
 	public:
 		
 		//tests normal Send/receive by repeating this process two times
-		TEST_METHOD(SendReceiveCheck)
+		TEST_METHOD(Network_SendReceiveCheck)
 		{		
 			NetworkTestManager->TestMessage_001();
 		}
