@@ -21,7 +21,7 @@ namespace ProtegaClientTestsuite
 		typedef void(*MainCallFunctionShell)();
 
 		//AES
-		const std::string sMessage = "Hello World!";
+		const std::string sMessage = "Katze";
 
 	public:
 	    //Triggers the main entry point of protega.dll -> maybe also get return
@@ -69,6 +69,7 @@ namespace ProtegaClientTestsuite
 		{
 			std::string sEncryptedData = CryptoPP_AES_Converter::Encrypt("0123456789abcdef", "aaaaaaaaaaaaaaaa", sMessage);
 			std::string sDecryptedData = CryptoPP_AES_Converter::Decrypt("0123456789abcdef", "aaaaaaaaaaaaaaaa", sEncryptedData);
+
 			Assert::AreEqual(sMessage.c_str(), sDecryptedData.c_str());
 		}
 
