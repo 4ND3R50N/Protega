@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
-#include "D:\Programme\Visual Studio Libs\cryptopp565\osrng.h"
-#include "D:\Programme\Visual Studio Libs\cryptopp565\modes.h"
+#include "osrng.h"
+#include "modes.h"
 class CryptoPP_AES_Converter
 {
 private:
