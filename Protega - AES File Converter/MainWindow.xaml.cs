@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using Protega___AES_File_Converter.Classes;
+using System.IO;
 
 namespace Protega___AES_File_Converter
 {
@@ -29,14 +30,14 @@ namespace Protega___AES_File_Converter
 
         public MainWindow()
         {
-            InitializeComponent();            
+            InitializeComponent();
         }
 
         private void btnSelectFiles_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Multiselect = true;
-            openFileDialog.Filter = "Protega data files (*.csv)|*.csv|All files (*.*)|*.*";
+            openFileDialog.Filter = "All files (*.*)|*.*|Encrypted AES Files (*.enc)|*.enc|Protega data files (*.csv)|*.csv";
             openFileDialog.ShowDialog();
             lFilePaths.AddRange(openFileDialog.FileNames);
 
@@ -52,6 +53,29 @@ namespace Protega___AES_File_Converter
         {
             if(cbMode.Text == "Encrypt")
             {
+                //Source = Files
+                if (iSource == 0)
+                {
+                    foreach (var sFile in lFilePaths)
+                    {
+                        using (StreamReader sr = new StreamReader(sFile))
+                        {
+                            string sEncryptedNewContentOfFile = AES_Converter.EncryptWithCBC(txtKey.Text, txtIV.Text, sr.ReadToEnd());
+                            using (StreamWriter sw = new StreamWriter(sFile + ".enc"))
+                            {
+                                sw.WriteLine(sEncryptedNewContentOfFile);
+                            }
+                        }
+                    }
+                    MessageBox.Show("All files got encrypted successfully!", "Protega - AES File Converter", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                //Source = Text
+                if (iSource == 1)
+                {
+                    string sTextToDecrypt = txtText.Text;
+                    txtText.Clear();
+                    txtText.Text = AES_Converter.EncryptWithCBC(txtKey.Text, txtIV.Text, txtText.Text);
+                }
                 return;
             }
             if(cbMode.Text == "Decrypt")
@@ -59,14 +83,25 @@ namespace Protega___AES_File_Converter
                 //Source = Files
                 if(iSource == 0)
                 {
-
+                    foreach (var sFile in lFilePaths)
+                    {
+                        using (StreamReader sr = new StreamReader(sFile))
+                        {
+                            string sDecryptedNewContentOfFile = AES_Converter.DecryptFromCBC(txtKey.Text, txtIV.Text, sr.ReadToEnd().Replace("\r\n", ""));
+                            using (StreamWriter sw = new StreamWriter(sFile + ".dec"))
+                            {
+                                sw.WriteLine(sDecryptedNewContentOfFile);
+                            }
+                        }
+                    }
+                    MessageBox.Show("All files got decrypted successfully!", "Protega - AES File Converter", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 //Source = Text
                 if(iSource == 1)
                 {
                     string sTextToDecrypt = txtText.Text;
                     txtText.Clear();               
-                    txtText.Text = AES_Converter.Decrypt( txtKey.Text, txtIV.Text, txtText.Text);
+                    txtText.Text = AES_Converter.DecryptFromCBC(txtKey.Text, txtIV.Text, txtText.Text);
                 }
             }
         }
@@ -93,6 +128,12 @@ namespace Protega___AES_File_Converter
                 iSource = 0;
                 return;
             }
+        }
+
+        private void btnDeleteSelection_Click(object sender, RoutedEventArgs e)
+        {
+            lbSelectedFiles.Items.Clear();
+            lFilePaths.Clear();
         }
     }
 }

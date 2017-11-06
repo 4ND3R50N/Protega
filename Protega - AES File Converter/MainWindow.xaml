@@ -14,9 +14,10 @@
         <GroupBox Header="Select the Files you want to En- or Decrypt" Height="183" Margin="10,10,10,0" VerticalAlignment="Top">
             <Grid>
                 <ListBox x:Name="lbSelectedFiles" HorizontalAlignment="Left" Height="88" VerticalAlignment="Top" Width="230" Margin="10,46,0,0"/>
-                <Button x:Name="btnSelectFiles" Content="Select Files..." HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="230" Click="btnSelectFiles_Click"/>
+                <Button x:Name="btnSelectFiles" Content="Select Files..." HorizontalAlignment="Left" Margin="118,10,0,0" VerticalAlignment="Top" Width="122" Click="btnSelectFiles_Click"/>
                 <Button x:Name="btnUseTextorFile" Content="Use text" HorizontalAlignment="Left" Margin="258,10,0,0" VerticalAlignment="Top" Width="230" Click="btnUseTextorFile_Click"/>
                 <TextBox x:Name="txtText" HorizontalAlignment="Left" Height="88" TextWrapping="Wrap" VerticalAlignment="Top" Width="230" Margin="258,46,0,0" IsEnabled="False"/>
+                <Button x:Name="btnDeleteSelection" Content="Delete Selection" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top" Width="113" Click="btnDeleteSelection_Click"/>
             </Grid>
         </GroupBox>
         <GroupBox Header="AES Settings" Height="100" Margin="10,198,10,0" VerticalAlignment="Top">
