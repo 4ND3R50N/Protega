@@ -86,6 +86,9 @@
     <ClInclude Include="Tools\CryptoPP_AES_Converter.h">
       <Filter>Headerdateien\Tools</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Data_Manager.h">
+      <Filter>Headerdateien\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -123,6 +126,9 @@
     </ClCompile>
     <ClCompile Include="Tools\CryptoPP_AES_Converter.cpp">
       <Filter>Quelldateien\Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Data_Manager.cpp">
+      <Filter>Quelldateien\Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
