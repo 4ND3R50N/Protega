@@ -4,6 +4,7 @@
 #include "CppUnitTest.h"
 #include "../Protega/Tools/SplashDisplayer.h"
 #include "../Protega/Tools/CryptoPP_AES_Converter.h"
+#include "../Protega/Core/Data_Manager.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -25,7 +26,7 @@ namespace ProtegaClientTestsuite
 
 	public:
 	    //Triggers the main entry point of protega.dll -> maybe also get return
-		TEST_METHOD(Injection_CompleteStartUpProtega)
+		TEST_METHOD(Core_CompleteStartUpProtega)
 		{		
 			HINSTANCE hInstLibrary = LoadLibrary(L"Protega.dll");
 			MainCallFunction PEntryMain;
@@ -41,7 +42,7 @@ namespace ProtegaClientTestsuite
 		}
 
 		//tests the 
-		TEST_METHOD(Injection_CompleteStartUpShell)
+		TEST_METHOD(Core_CompleteStartUpShell)
 		{
 			HINSTANCE hInstLibrary = LoadLibrary(L"ShellX64.dll");
 			MainCallFunctionShell MainEntry;
@@ -53,6 +54,15 @@ namespace ProtegaClientTestsuite
 			//stopTrigger();
 			Sleep(10000);
 
+		}
+
+		TEST_METHOD(Core_DataGathering)
+		{
+		
+			const char* test = Data_Manager::GetTargetEnviormentDataUrl();
+			
+			
+			Data_Manager::GetWebFileAsString("http://62.138.6.50:13011/CabalOnline/Heuristic_Data.csv");
 		}
 
 		TEST_METHOD(Tools_DisplayBitmap)
