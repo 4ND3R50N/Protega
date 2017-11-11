@@ -51,6 +51,8 @@
     <Compile Include="Classes\ControllerCore.cs" />
     <Compile Include="Classes\Data\DPlayer.cs" />
     <Compile Include="Classes\Entity\EPlayer.cs" />
+    <Compile Include="Classes\Protocol\Protocol.cs" />
+    <Compile Include="Classes\Protocol\ProtocolController.cs" />
     <Compile Include="Classes\Service\SPlayer.cs" />
     <Compile Include="Classes\Utility\clsIODataManager.cs" />
     <Compile Include="Classes\Utility\Database\DBInterface.cs" />
@@ -66,5 +68,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
