@@ -53,7 +53,10 @@
     <ClCompile Include="..\Protega\Tools\CryptoPP_AES_Converter.cpp">
       <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Protega\Core\Data_Manager.cpp">
+    <ClCompile Include="..\Protega\Data\Data_Manager.cpp">
+      <Filter>Quelldateien\Protega CPP Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Protega\Data\Data_Gathering.cpp">
       <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
   </ItemGroup>
