@@ -6,9 +6,15 @@ char* Data_Manager::TARGET_ENVIORMENT_OWNER_NAME = "CodeZero";
 char* Data_Manager::TARGET_ENVIORMENT_DATA_URL = "http://62.138.6.50:13011/CabalOnline/";
 char* Data_Manager::TARGET_ENVIORMENT_HEURISTIC_DATA_FILE_NAME = "Heuristic_Data.csv.enc";
 char* Data_Manager::TARGET_ENVIORMENT_VMP_FILE_NAME = "VMP_Addresses.csv.enc";
+
+char Data_Manager::LOKAL_DATA_DELIMITER = ';';
 char* Data_Manager::LOKAL_DATA_FOLDER = "protega/";
+
 const char* Data_Manager::DATA_AES_KEY = "1234567890123456";
 const char* Data_Manager::DATA_AES_IV = "bbbbbbbbbbbbbbbb";
+
+std::string** Data_Manager::sHeuristicTable = new std::string*[4];
+std::string** Data_Manager::sVMPTable = new std::string*[7];
 #pragma endregion
 
 
