@@ -151,8 +151,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Core\Data_Manager.h" />
     <ClInclude Include="Core\ProtegaCore.h" />
+    <ClInclude Include="Data\Data_Gathering.h" />
+    <ClInclude Include="Data\Data_Manager.h" />
     <ClInclude Include="Network\Network_Manager.h" />
     <ClInclude Include="Network\Tcp_Connector.h" />
     <ClInclude Include="Protection\Protection_Manager.h" />
@@ -166,14 +167,15 @@
     <ClInclude Include="Tools\SplashDisplayer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Core\Data_Manager.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../stdafx.h</PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../stdafx.h</PrecompiledHeaderFile>
-    </ClCompile>
     <ClCompile Include="Core\ProtegaCore.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="Data\Data_Gathering.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="Data\Data_Manager.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>

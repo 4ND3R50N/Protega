@@ -45,6 +45,12 @@
     <Filter Include="Quelldateien\Protection\Target Enviorment">
       <UniqueIdentifier>{24bbbd57-7901-4639-9f70-b7f6673266a6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headerdateien\Data">
+      <UniqueIdentifier>{821b6c15-13a3-4398-8ac6-4d429bd9fcc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\Data">
+      <UniqueIdentifier>{41e2e1da-6c0b-4057-b0d5-775b63045fd2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -86,8 +92,11 @@
     <ClInclude Include="Tools\CryptoPP_AES_Converter.h">
       <Filter>Headerdateien\Tools</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Data_Manager.h">
-      <Filter>Headerdateien\Core</Filter>
+    <ClInclude Include="Data\Data_Gathering.h">
+      <Filter>Headerdateien\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Data\Data_Manager.h">
+      <Filter>Headerdateien\Data</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -127,8 +136,11 @@
     <ClCompile Include="Tools\CryptoPP_AES_Converter.cpp">
       <Filter>Quelldateien\Tools</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Data_Manager.cpp">
-      <Filter>Quelldateien\Core</Filter>
+    <ClCompile Include="Data\Data_Gathering.cpp">
+      <Filter>Quelldateien\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="Data\Data_Manager.cpp">
+      <Filter>Quelldateien\Data</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
