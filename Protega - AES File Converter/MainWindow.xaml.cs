@@ -40,13 +40,14 @@ namespace Protega___AES_File_Converter
             openFileDialog.Filter = "All files (*.*)|*.*|Encrypted AES Files (*.enc)|*.enc|Protega data files (*.csv)|*.csv";
             openFileDialog.ShowDialog();
             lFilePaths.AddRange(openFileDialog.FileNames);
-
+            lbSelectedFiles.Items.Clear();
             foreach (string sFilePath in lFilePaths)
             {
                 ListBoxItem listBoxItem = new ListBoxItem();
                 listBoxItem.Content = sFilePath;
                 lbSelectedFiles.Items.Add(listBoxItem);
             }
+           
         }
 
         private void btnConvert_Click(object sender, RoutedEventArgs e)
