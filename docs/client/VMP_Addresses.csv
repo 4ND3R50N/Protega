@@ -1,0 +1,3 @@
+ID;Base Address;Offset;Value Type;Value Check Condition;Value Check definition;Value Check Token;#
+1;0x00B93530;0x00000204;2;<Comes later>;450.0f;EQL;#
+2;0x33434344;0x33333333;1;<Comes later>;1000;EQL;#
