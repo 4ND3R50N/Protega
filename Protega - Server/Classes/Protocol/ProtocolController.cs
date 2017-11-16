@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Protega___Server.Classes.Core;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,10 @@ namespace Protega___Server.Classes.Protocol
 {
     class ProtocolController
     {
+        private ControllerCore core;
+        public ProtocolController(ControllerCore core) {
+            this.core = core;
+        }
         // just for me that I don´t forget any of the calls
         int[] protocolKeysClientToServer = {500, 600, 701,702,703,704,705 };
         int[] protocolKeysServerToClient = { 200, 201, 300, 301, 400, 401, 402 };
@@ -31,6 +36,7 @@ namespace Protega___Server.Classes.Protocol
 
         private void SendProtocol(String protocolString, int userID) {
             // send the protocoll to the given user
+            // using the controller core to send messages??????????
         }
 
         private void AuthenticateUser(Protocol prot)
