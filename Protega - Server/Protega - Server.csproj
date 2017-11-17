@@ -54,12 +54,9 @@
     <Compile Include="Classes\Entity\ELoggerData.cs" />
     <Compile Include="Classes\Entity\ELoggerType.cs" />
     <Compile Include="Classes\Entity\EPlayer.cs" />
-<<<<<<< HEAD
     <Compile Include="Classes\Service\SLoggerType.cs" />
-=======
     <Compile Include="Classes\Protocol\Protocol.cs" />
     <Compile Include="Classes\Protocol\ProtocolController.cs" />
->>>>>>> 9e1b0402290f1054953511e4f10a1f99465385e3
     <Compile Include="Classes\Service\SPlayer.cs" />
     <Compile Include="Classes\Utility\clsIODataManager.cs" />
     <Compile Include="Classes\Utility\Database\DBInterface.cs" />
@@ -75,6 +72,5 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-    <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
