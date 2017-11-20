@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Support;
 using System.Net;
 using System.Net.Sockets;
-
+using Protega___Server.Classes.Protocol;
 
 namespace Protega___Server.Classes.Core
 {
@@ -52,10 +52,10 @@ namespace Protega___Server.Classes.Core
             sAesKey = _sAesKey;
             this.cProtocolDelimiter = _cProtocolDelimiter;
             this.cDataDelimiter = _cDataDelimiter;
-            TcpServer = new networkServer(NetworkProtocol, _sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            CCstLogging.Logger.writeInLog(true, "TCP Server ready for start!");
+            TcpServer = new networkServer(NetworkProtocol, _sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp, AuthenticateClient);
 
-            SPlayer.GetByName("Semado123", CCstDatabase.DatabaseEngine);
+            ProtocolController.SendProtocol += this.SendProtocol;
+            CCstLogging.Logger.writeInLog(true, "TCP Server ready for start!");
 
             //TESTCASE
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
@@ -80,6 +80,13 @@ namespace Protega___Server.Classes.Core
 
         }
 
+
+        void AuthenticateClient(networkServer.networkClientInterface Client)
+        {
+            if(ActiveConnections.Count==0)
+            ActiveConnections.Add(Client);
+        }
+
         public void Start()
         {
             if(TcpServer.startListening())
@@ -92,372 +99,72 @@ namespace Protega___Server.Classes.Core
             }
            
         }
-        
-        private void NetworkProtocol(string message, ref networkServer.networkClientInterface relatedClient)
-        {
-            string sProtocolShortcut = GetProtocolShortcut(message);
-            // Put data in array
-            List<string> lDataList = new List<string>();
-            lDataList = GetProtocolData(GetProtocolMessage(message));
 
-            switch (sProtocolShortcut)
+        #region Protocol
+        private void NetworkProtocol(string message)
+        {
+            try
             {
-                case "#001":
-                    Tel_001_testPackage(ref relatedClient); break;
-                case "#003":
-                    Tel_003_testPackage(lDataList, ref relatedClient); break;
-                case "#102":
-                    Tel_102_loginUser(lDataList, ref relatedClient); break;
-                case "#104":
-                    Tel_104_registerUser(lDataList, ref relatedClient); break;
-                case "#201":
-                    Tel_201_requestRoomOverview(ref relatedClient); break;
-                case "#203":
-                    Tel_203_requestRoomAddorUpdate(lDataList, ref relatedClient); break;
-                case "#205":
-                    Tel_205_requestWorkoutOverview(lDataList, ref relatedClient); break;
-                case "#207":
-                    Tel_207_requestLevelOverview(lDataList, ref relatedClient); break;
-                case "#209":
-                    Tel_209_requestFullExerciseData(lDataList, ref relatedClient); break;
-                case "#211":
-                    Tel_211_requestRoomOverview(lDataList, ref relatedClient); break;
-                case "#213":
-                    Tel_213_requestRoomDelete(lDataList, ref relatedClient); break;
-                default:
-                    CCstLogging.Logger.writeInLog(true, "Unknown package protocol/data received: " + message);
-                    break;
+                message = message.TrimEnd('\0');
+                //Decrypt received protocol
+
+                List<char> Chars = message.ToList();
+                message = AES_Converter.DecryptFromCBC(CCstConfig.EncryptionKey, CCstConfig.EncryptionIV, message);
             }
-        }
-
-        #region telegram functions
-        //Testpackages
-        private void Tel_001_testPackage(ref networkServer.networkClientInterface relatedClient)
-        {
-            CCstLogging.Logger.writeInLog(true, "Message #001 (TESTPACKET_NORMAL) received from a client!");
-            TcpServer.sendMessage("#002;Greetings from Controller :)", relatedClient);
-            CCstLogging.Logger.writeInLog(true, "Answered #002 with the greetings message!");
-        }
-
-        private void Tel_003_testPackage(List<string> lDataList, ref networkServer.networkClientInterface relatedClient)
-        {
-            CCstLogging.Logger.writeInLog(true, "Message #003 (TESTPACKET_LARGE) received from a client!");
-            string sDataPackage = "#004;";
-            int iForCounter = 40;
-            for (int i = 0; i < iForCounter; i++)
+            catch (Exception e)
             {
-                sDataPackage = sDataPackage + "Package number: " + (i + 1) + ". This is a large datapackage to test the network tcp/ip receive function. You should get " + iForCounter + " of these packages! Good luck, programmer!\n";
+                //If decryption failed, something was probably manipulated -> Log it
+                CCstLogging.Logger.writeInLog(true, "Protocol Decryption failed! From xy - message: " + e.ToString());
+                return;
             }
-            TcpServer.sendMessage(sDataPackage, relatedClient);
-            CCstLogging.Logger.writeInLog(true, "Answered #004 with the large datapacket!");
+
+            CCstLogging.Logger.writeInLog(true, "Protocol received: " + message);
+            ProtocolController.RecievedProtocol(message);
         }
-        
-        //Signup
-        private void Tel_104_registerUser(List<string> lDataList, ref networkServer.networkClientInterface relatedClient)
+
+
+
+        void RegisterUser(int ComputerID, Boolean architecture, String language, double version, Boolean auth)
         {
-            //try
-            //{
-            //    //log
-            //    Logger.writeInLog(true, "Message #104 (SIGNUP) received from a client!");
-            //    //register user
-            //    int iSignUpStatusCode = CCstDatabase.DatabaseEngine.signUpRegisterUser(lDataList[0], lDataList[1], lDataList[2], lDataList[3], lDataList[4], Convert.ToInt16(lDataList[5]));
-            //    //send message to client
-            //    TcpServer.sendMessage("#105" + cProtocolDelimiter + iSignUpStatusCode, relatedClient);
-            //    Logger.writeInLog(true, "Answered #105 with SignUpCode " + iSignUpStatusCode + "!");
-            //}
-            //catch (Exception e)
-            //{
-            //    Logger.writeInLog(true, "ERROR: Something went wrong with telegram (SIGNUP)! Message: " + e.ToString());
-            //    return;
-            //}
+            networkServer.networkClientInterface Client = new networkServer.networkClientInterface();
+            Client.User.ID = ComputerID;
+
+            ActiveConnections.Add(Client);
         }
-        //Login
-        private void Tel_102_loginUser(List<string> lDataList, ref networkServer.networkClientInterface relatedClient)
+
+        public void SendProtocol(string Protocol, int computerID)
         {
-            //try
+            //List<networkServer.networkClientInterface> Clients = ActiveConnections.Where(asd => asd.User.ID == computerID).ToList();
+            //if (Clients.Count == 1)
             //{
-            //    //log
-            //    Logger.writeInLog(true, "Message #102 (LOGIN) received from a client!");
-            //    //Try to login user
-            //    int iUserID = 0;
-            //    int iLoginStatusCode = CCstDatabase.DatabaseEngine.loginUser(lDataList[0], lDataList[1], ref iUserID);
-            //    //Send message to client
-            //    if (iLoginStatusCode != 1)
-            //    {
-            //        TcpServer.sendMessage("#103" + cProtocolDelimiter + iLoginStatusCode, relatedClient);
-            //    }
-            //    else
-            //    {
-            //        TcpServer.sendMessage("#103" + cProtocolDelimiter + iLoginStatusCode + cProtocolDelimiter + iUserID, relatedClient);
-            //    }
-            //    Logger.writeInLog(true, "Answered #103 with LoginCode " + iLoginStatusCode + ". The user id is " + iUserID + "!");
+            //encrypt protocol
+            Protocol = AES_Converter.EncryptWithCBC(CCstConfig.EncryptionKey, CCstConfig.EncryptionIV, Protocol) + "~";
+                //TcpServer.sendMessage(Protocol, Clients[0]);
+                if (ActiveConnections.Count>0)
+                    TcpServer.sendMessage(Protocol, ActiveConnections[0]);
             //}
-            //catch (Exception e)
+            //else
             //{
-            //    Logger.writeInLog(true, "ERROR: Something went wrong with telegram (LOGIN)! Message: " + e.ToString());
-            //    return;
+            //    //Usually there cannot be 2 clients with the same Computer ID
+            //    CCstLogging.Logger.writeInLog(true, String.Format("SendProtocol - found Clients with same Computer ID: {0}, ID: {1}, Protocol: {2}", Clients.Count, computerID, Protocol));
             //}
-            
+                
         }
-        //Content
-        private void Tel_201_requestRoomOverview(ref networkServer.networkClientInterface relatedClient)
-        {
-            //try
-            //{
-            //    //log
-            //    Logger.writeInLog(true, "Message #201 (REQ_ROOMOVERVIEWDATA) received from a client!");
-            //    //Get room data
-            //    List<List<string>> llRoomData = new List<List<string>>();
-            //    llRoomData = CCstDatabase.DatabaseEngine.getRoomOverViewData();
-            //    //Build protocol
-            //    string sProtocol = "#202" + cProtocolDelimiter.ToString();
-            //    sProtocol += llRoomData.Count + cProtocolDelimiter.ToString();
-            //    for (int i = 0; i < llRoomData.Count; i++)
-            //    {
-            //        for (int d = 0; d < llRoomData[i].Count; d++)
-            //        {
-            //            sProtocol += llRoomData[i][d] + cDataDelimiter.ToString();
-            //        }
-            //        //Remove the last cDataDelimiter
-            //        sProtocol = sProtocol.Remove(sProtocol.Length - 1);
-            //        sProtocol += cProtocolDelimiter.ToString();
-            //    }
-            //    //Remove last cProtocolDelimiter
-            //    sProtocol = sProtocol.Remove(sProtocol.Length - 1);
-
-            //    //Send message to client
-            //    TcpServer.sendMessage(sProtocol, relatedClient);
-            //    Logger.writeInLog(true, "Answered #202 with all room data. " + llRoomData.Count + " room entries sent!");
-
-            //}
-            //catch (Exception e)
-            //{
-            //    Logger.writeInLog(true, "ERROR: Something went wrong with telegram (REQ_ROOMOVERVIEWDATA)! Message: " + e.ToString());
-            //    return;
-            //}
-        }
-
-        private void Tel_203_requestRoomAddorUpdate(List<string> lDataList, ref networkServer.networkClientInterface relatedClient)
-        {
-            //int iRoomStatus = 0;
-            //string sAddorUpdateText = "";
-            //try
-            //{
-            //    //log
-            //    Logger.writeInLog(true, "Message #203 (REQ_ROOMADDorUPDATE) received from a client!");
-
-            //    //Check if its a update or a add request
-            //    //IMPORTANT -> Check length of ldatalistcount
-
-            //    if(Convert.ToInt32(lDataList[0]) != 0)
-            //    {
-            //        iRoomStatus = CCstDatabase.DatabaseEngine.updateRoom(Convert.ToInt32(lDataList[0]),
-            //                                                lDataList[2], lDataList[3],
-            //                                                Convert.ToInt16(lDataList[4]), 
-            //                                                lDataList[5]);
-
-            //        sAddorUpdateText = "UPDATE";
-            //    }else
-            //    {
-            //        //Try to add room + add trainer to room
-            //        iRoomStatus = CCstDatabase.DatabaseEngine.addNewRoom(Convert.ToInt32(lDataList[1]),
-            //                                                       lDataList[2], lDataList[3],
-            //                                                       Convert.ToInt16(lDataList[4]),
-            //                                                       lDataList[5]);
-            //        sAddorUpdateText = "ADD";
-            //    }
-
-            //    //Send message to client
-            //    TcpServer.sendMessage("#204" + cProtocolDelimiter + iRoomStatus, relatedClient);
-            //    Logger.writeInLog(true, "Answered #205. It was a " + sAddorUpdateText + " order with status code " + iRoomStatus + "!");
-            //}
-            //catch (Exception e)
-            //{
-            //    Logger.writeInLog(true, "ERROR: Something went wrong with telegram (REQ_ROOMADDorUPDATE)! Message: " + e.ToString());
-            //    return;
-            //}
-        }
-
-        private void Tel_205_requestWorkoutOverview(List<string> lDataList, ref networkServer.networkClientInterface relatedClient)
-        {
-            ////Try catch auf llWorkoutData anpassen, sodass im fall eines falschen protokols trozdem daten Runtergesendet werden.
-            //try { 
-            //    //log
-            //    Logger.writeInLog(true, "Message #205 (REQ_WORKOUTOVERVIEWDATA) received from a client!");
-            //    //Get room data
-            //    List<List<string>> llWorkoutData = new List<List<string>>();
-            //    //If the id is not a ID, skip the workout gathering
-            //    try
-            //    {
-            //        llWorkoutData = CCstDatabase.DatabaseEngine.getWorkoutOverViewData(Convert.ToInt32(lDataList[0]));
-            //    }
-            //    catch (Exception e) { }
-            //    //Build protocol
-            //    string sProtocol = "#206" + cProtocolDelimiter.ToString();
-            //    sProtocol += llWorkoutData.Count + cProtocolDelimiter.ToString();
-            //for (int i = 0; i < llWorkoutData.Count; i++)
-            //{
-            //    for (int d = 0; d < llWorkoutData[i].Count; d++)
-            //    {
-            //        sProtocol += llWorkoutData[i][d] + cDataDelimiter.ToString();
-            //    }
-            //    //Remove the last cDataDelimiter
-            //    sProtocol = sProtocol.Remove(sProtocol.Length - 1);
-
-            //    sProtocol += cProtocolDelimiter.ToString();
-            //}
-            ////Remove last cProtocolDelimiter
-            //sProtocol = sProtocol.Remove(sProtocol.Length - 1);
-
-            ////Send message to client
-            //TcpServer.sendMessage(sProtocol, relatedClient);
-            //Logger.writeInLog(true, "Answered #206 with all workout overview data. " + llWorkoutData.Count + " workout entries sent!");
-
-            //}
-            //catch (Exception e)
-            //{
-            //    Logger.writeInLog(true, "ERROR: Something went wrong with telegram (REQ_ROOMOVERVIEWDATA)! Message: " + e.ToString());
-            //    return;
-            //}
-        }
-
-        private void Tel_207_requestLevelOverview(List<string> lDataList, ref networkServer.networkClientInterface relatedClient)
-        {
-            //try
-            //{
-            //    //log
-            //    Logger.writeInLog(true, "Message #207 (REQ_LEVELOVERVIEW) received from a client!");
-            //    //Get room data
-            //    List<List<string>> llLevel = new List<List<string>>();
-            //    llLevel = CCstDatabase.DatabaseEngine.getLevelOverviewData(Convert.ToInt32(lDataList[0]));
-            //    //Build protocol
-            //    string sProtocol = "#208" + cProtocolDelimiter.ToString();
-            //    //sProtocol += llWorkoutData.Count + cProtocolDelimiter.ToString(); <- Keine Anzahl angegeben
-            //    for (int i = 0; i < llLevel.Count; i++)
-            //    {
-
-            //        for (int d = 0; d < llLevel[i].Count; d++)
-            //        {
-            //            sProtocol += llLevel[i][d] + cDataDelimiter.ToString();
-            //        }
-            //        sProtocol += cProtocolDelimiter.ToString();                   
-            //        //Remove the last cDataDelimiter
-            //    }
-            //    //Remove last cProtocolDelimiter
-            //    sProtocol = sProtocol.Remove(sProtocol.Length - 1);
-
-            //    //Send message to client
-            //    TcpServer.sendMessage(sProtocol, relatedClient);
-            //    Logger.writeInLog(true, "Answered #208 with all levels for workout with ID: "+ lDataList[0]  + ". " + llLevel.Count + " levels sent!");
-            //}
-            //catch (Exception e)
-            //{
-            //    Logger.writeInLog(true, "ERROR: Something went wrong with telegram (REQ_LEVELOVERVIEW)! Message: " + e.ToString());
-            //    return;
-            //}
-        }
-
-        private void Tel_209_requestFullExerciseData(List<string> lDataList, ref networkServer.networkClientInterface relatedClient)
-        {
-            //try
-            //{
-            //    //log
-            //    Logger.writeInLog(true, "Message #209 (REQ_FULLEXERCISEDATA) received from a client!");
-            //    //Get room data
-            //    List<List<string>> llExercises = new List<List<string>>();
-            //    llExercises = CCstDatabase.DatabaseEngine.getFullExerciseData(Convert.ToInt32(lDataList[0]));
-            //    //Build protocol
-            //    string sProtocol = "#210" + cProtocolDelimiter.ToString();
-            //    sProtocol += llExercises.Count + cProtocolDelimiter.ToString();
-            //    for (int i = 0; i < llExercises.Count; i++)
-            //    {
-            //        for (int d = 0; d < llExercises[i].Count; d++)
-            //        {
-            //            sProtocol += llExercises[i][d] + cDataDelimiter.ToString();
-            //        }
-            //        sProtocol += cProtocolDelimiter.ToString();
-            //        //Remove the last cDataDelimiter
-            //    }
-            //    //Remove last cProtocolDelimiter
-            //    sProtocol = sProtocol.Remove(sProtocol.Length - 1);
-
-            //    //Send message to client
-            //    TcpServer.sendMessage(sProtocol, relatedClient);
-            //    Logger.writeInLog(true, "Answered #210 with all excercises of a level with ID: " + lDataList[0] + ". " + llExercises.Count + " exercises sent!");
-            //}
-            //catch (Exception e)
-            //{
-            //    Logger.writeInLog(true, "ERROR: Something went wrong with telegram (REQ_FULLEXERCISEDATA)! Message: " + e.ToString());
-            //    return;
-            //}
-        }
-
-        private void Tel_211_requestRoomOverview(List<string> lDataList, ref networkServer.networkClientInterface relatedClient)
-        {
-            //try
-            //{
-            //    //log
-            //    Logger.writeInLog(true, "Message #211 (REQ_ROOMOVERVIEWDATA2) received from a client!");
-            //    //Get room data
-            //    List<List<string>> llRoomData = new List<List<string>>();
-            //    llRoomData = CCstDatabase.DatabaseEngine.getRoomOverViewData2(Convert.ToInt32(lDataList[0]));
-            //    //Build protocol
-            //    string sProtocol = "#212" + cProtocolDelimiter.ToString();
-            //    sProtocol += llRoomData.Count + cProtocolDelimiter.ToString();
-            //    for (int i = 0; i < llRoomData.Count; i++)
-            //    {
-            //        for (int d = 0; d < llRoomData[i].Count; d++)
-            //        {
-            //            sProtocol += llRoomData[i][d] + cDataDelimiter.ToString();
-            //        }
-            //        //Remove the last cDataDelimiter
-            //        sProtocol = sProtocol.Remove(sProtocol.Length - 1);
-            //        sProtocol += cProtocolDelimiter.ToString();
-            //    }
-            //    //Remove last cProtocolDelimiter
-            //    sProtocol = sProtocol.Remove(sProtocol.Length - 1);
-
-            //    //Send message to client
-            //    TcpServer.sendMessage(sProtocol, relatedClient);
-            //    Logger.writeInLog(true, "Answered #212 with specific room data. " + llRoomData.Count + " room entries sent!");
-
-            //}
-            //catch (Exception e)
-            //{
-            //    Logger.writeInLog(true, "ERROR: Something went wrong with telegram (REQ_ROOMOVERVIEWDATA2)! Message: " + e.ToString());
-            //    return;
-            //}
-        }
-
-        private void Tel_213_requestRoomDelete(List<string> lDataList, ref networkServer.networkClientInterface relatedClient)
-        {
-            //try
-            //{
-            //    //log
-            //    Logger.writeInLog(true, "Message #213 (REQ_ROOMDELETE) received from a client!");
-            //    //Get room data
-            //    int iRoomDeleteStatusCode = CCstDatabase.DatabaseEngine.deleteRoom(Convert.ToInt32(lDataList[0]));
-            //    string sProtocol = "#214" + cProtocolDelimiter + iRoomDeleteStatusCode;
-            //    //Send message to client
-            //    TcpServer.sendMessage(sProtocol, relatedClient);
-            //    Logger.writeInLog(true, "Answered #214 with status code: " + iRoomDeleteStatusCode);
-
-            //}
-            //catch (Exception e)
-            //{
-            //    Logger.writeInLog(true, "ERROR: Something went wrong with telegram (REQ_ROOMDELETE)! Message: " + e.ToString());
-            //    return;
-            //}
-        }
-
         #endregion
+
+        //private void NetworkProtocol(string message)
+        //{
+        //    ProtocolController contr = new ProtocolController(this);
+
+        //    contr.RecievedProtocol(message);
+        //}
 
 
         #region Support functions
-        private List<string> GetProtocolData(string message)
-        {
-            return message.Split(cProtocolDelimiter).ToList();
-        }
+        //private List<string> GetProtocolData(string message)
+        //{
+        //    return message.Split(cProtocolDelimiter).ToList();
+        //}
 
         private string GetProtocolShortcut(string message)
         {

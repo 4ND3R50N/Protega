@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Protega___Server.Classes.Core;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,13 +8,20 @@ using System.Threading.Tasks;
 
 namespace Protega___Server.Classes.Protocol
 {
-    class ProtocolController
+    static class ProtocolController
     {
+        //private ControllerCore core;
+        //public ProtocolController(ControllerCore core) {
+        //    this.core = core;
+        //}
         // just for me that I don´t forget any of the calls
-        int[] protocolKeysClientToServer = {500, 600, 701,702,703,704,705 };
-        int[] protocolKeysServerToClient = { 200, 201, 300, 301, 400, 401, 402 };
+        //int[] protocolKeysClientToServer = {500, 600, 701,702,703,704,705 };
+        //int[] protocolKeysServerToClient = { 200, 201, 300, 301, 400, 401, 402 };
 
-        public void RecievedProtocol(String protocolString) {
+        public delegate void SendProt(string Protocol, int ComputerID);
+        public static event SendProt SendProtocol = null;
+
+        public static void RecievedProtocol(string protocolString) {
             Protocol protocol = new Protocol(protocolString);
                 switch (protocol.GetKey())
                 {
@@ -26,14 +34,24 @@ namespace Protega___Server.Classes.Protocol
                     case 705: FoundHackDetaction(protocol); break;
                     default: Console.WriteLine("Invalid key for client to server communication."); break;
                 }
+
+            if(protocolString == "#001")
+            {
+                SendProtocol("001;Hello!", protocol.key);
+                Console.WriteLine("Hello sent!");
+            }
             
         }
 
-        private void SendProtocol(String protocolString, int userID) {
-            // send the protocoll to the given user
-        }
+        //private static void SendProtocol(String protocolString, int userID) {
+        // send the protocoll to the given user
+        // using the controller core to send messages??????????
+        //}
 
-        private void AuthenticateUser(Protocol prot)
+        public delegate void _RegisterUser(int ComputerID, Boolean architecture, String language, double version, Boolean auth);
+        public static event _RegisterUser RegisterUser=null;
+
+        private static void AuthenticateUser(Protocol prot)
         {
             //Computer ID, Computer Architecture, Language, Version
             try
@@ -43,6 +61,8 @@ namespace Protega___Server.Classes.Protocol
                 String language = (String)prot.GetValues()[2];
                 double version = (double)prot.GetValues()[3];
                 Boolean auth = true;
+
+                RegisterUser(computerID, architecture, language, version, auth);
                 // TODO: check if computerID is saved in database
                 // TODO: Save the other parameters in the database
                 // check if user is authorized to play the game by checking also the #of hack detections
@@ -63,7 +83,7 @@ namespace Protega___Server.Classes.Protocol
             
         }
 
-        private void CheckPing(Protocol prot)
+        private static void CheckPing(Protocol prot)
         {
             int computerID = (int)prot.GetValues()[0];
             // save somewhere that user pinged successfully
@@ -79,7 +99,7 @@ namespace Protega___Server.Classes.Protocol
             }
         }
 
-        private void FoundHackDetaction(Protocol prot)
+        private static void FoundHackDetaction(Protocol prot)
         {
             int computerID = (int)prot.GetValues()[0];
             // get number of found hack detections and the result will lead to different answers to the client

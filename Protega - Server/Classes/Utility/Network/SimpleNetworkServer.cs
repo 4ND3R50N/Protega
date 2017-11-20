@@ -9,14 +9,9 @@
  * @since		Version 2.1
  */
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using Support;
 
 namespace Protega___Server
 {
@@ -24,11 +19,13 @@ namespace Protega___Server
     {
         //Variables
         //--Public
-        public delegate void protocolFunction(string prot, ref networkClientInterface networkAPI);
+        public delegate void protocolFunction(string prot);
+        public delegate void _AuthenticateClient(networkClientInterface Client);
         //--Private
         private IPEndPoint serverEndPoint;
         private Socket serverSocket;
         private event protocolFunction protAnalyseFunction;
+        public event _AuthenticateClient AuthenticateClient;
 
         private string network_AKey;
 
@@ -41,14 +38,14 @@ namespace Protega___Server
         }
 
         public networkServer(protocolFunction protAnalyseFunction, string network_AKey, IPAddress ip, short port, 
-            AddressFamily familyType, SocketType socketType, ProtocolType protocolType)
+            AddressFamily familyType, SocketType socketType, ProtocolType protocolType, _AuthenticateClient AuthenticateClient)
         {
             this.network_AKey = network_AKey;
             this.protAnalyseFunction = protAnalyseFunction;
             serverEndPoint = new IPEndPoint(IPAddress.Any, port);
             serverSocket = new Socket(familyType, socketType, protocolType);
             serverSocket.Blocking = false;
-
+            this.AuthenticateClient = AuthenticateClient;
         }
 
 
@@ -80,8 +77,8 @@ namespace Protega___Server
 
         private void AcceptCallback(IAsyncResult result)
         {
-
             networkClientInterface connection = new networkClientInterface((Socket)result.AsyncState, result);
+                AuthenticateClient(connection);
             try
             { 
                
@@ -110,14 +107,16 @@ namespace Protega___Server
 
         private void ReceiveCallback(IAsyncResult result)
         {
+            Classes.CCstLogging.Logger.writeInLog(true, "Callback received!");
             networkClientInterface connection = (networkClientInterface)result.AsyncState;
+                    AuthenticateClient(connection);
             try
             {
                 //bytesread = count of bytes
                 int bytesRead = connection.networkSocket.EndReceive(result);
                 if (0 != bytesRead)
                 {
-                    protAnalyseFunction(Encoding.UTF8.GetString(connection.buffer, 0, bytesRead), ref connection);
+                    protAnalyseFunction(Encoding.Default.GetString(connection.buffer, 0, bytesRead));
                     connection.networkSocket.BeginReceive(connection.buffer, 0,
                       connection.buffer.Length, SocketFlags.None,
                       new AsyncCallback(ReceiveCallback), connection);
@@ -128,7 +127,7 @@ namespace Protega___Server
             {
                 closeConnection(connection);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 closeConnection(connection);
             }
@@ -138,9 +137,10 @@ namespace Protega___Server
         {
             try
             {
-                byte[] bytes = Encoding.UTF8.GetBytes(message);
+                byte[] bytes = Encoding.Default.GetBytes(message);
                 client.networkSocket.Send(bytes, bytes.Length,
                                 SocketFlags.None);
+                
             }
             catch (Exception)
             {
@@ -165,8 +165,7 @@ namespace Protega___Server
             public Socket networkSocket;
             public byte[] buffer;
             //Protes Values
-            public string UserName = "";
-            public bool isTrainer = false;
+            public Classes.Entity.EPlayer User;
 
             public networkClientInterface()
             {

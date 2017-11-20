@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Collections;
 
 namespace Protega___Server.Classes.Entity
@@ -14,7 +12,7 @@ namespace Protega___Server.Classes.Entity
         /// <summary>
         /// Unique identifier of the player
         /// </summary>
-        private int? _ID = null;
+        private int _ID=0;
         private string _Name;
         private string _IP;
 
@@ -33,7 +31,7 @@ namespace Protega___Server.Classes.Entity
         /// <summary>
         /// Unique identifier of the player
         /// </summary>
-        public int? ID
+        public int ID
         {
             get { return _ID; }
             set { _ID = value; }

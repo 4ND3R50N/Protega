@@ -5,17 +5,19 @@ namespace Protega___Server.Classes.Protocol
 {
     class Protocol
     {
-        private int key;
+        public int key;
         private ArrayList values = new ArrayList();
 
         public Protocol(String protocol)
         {
-            Object[] elements = protocol.Split(';');
-            this.key = (int)elements[0];
-            foreach(var o in elements)
-            {
-                values.Add(o);
-            }
+            Object[] elements;
+            if (protocol.Contains(";"))
+                elements = protocol.Split(';');
+            //this.key = (int)elements[0];
+            //foreach(var o in elements)
+            //{
+            //    values.Add(o);
+            //}
         }
         public int GetKey()
         {

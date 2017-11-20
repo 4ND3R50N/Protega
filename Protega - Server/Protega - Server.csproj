@@ -46,11 +46,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\clsProtesServerCore.cs" />
+    <Compile Include="Classes\Constant\CCstConfig.cs" />
     <Compile Include="Classes\Constant\CCstDatabase.cs" />
     <Compile Include="Classes\Constant\CCstLogging.cs" />
     <Compile Include="Classes\ControllerCore.cs" />
+    <Compile Include="Classes\Data\DLoggerType.cs" />
     <Compile Include="Classes\Data\DPlayer.cs" />
+    <Compile Include="Classes\Entity\ELoggerData.cs" />
+    <Compile Include="Classes\Entity\ELoggerType.cs" />
     <Compile Include="Classes\Entity\EPlayer.cs" />
+    <Compile Include="Classes\Service\SLoggerType.cs" />
     <Compile Include="Classes\Protocol\Protocol.cs" />
     <Compile Include="Classes\Protocol\ProtocolController.cs" />
     <Compile Include="Classes\Service\SPlayer.cs" />
@@ -60,6 +65,7 @@
     <Compile Include="Classes\Utility\Database\MysqlDataManager.cs" />
     <Compile Include="Classes\Utility\Network\SimpleNetworkServer.cs" />
     <Compile Include="Classes\Utility\Support\AESEncoding.cs" />
+    <Compile Include="Classes\Utility\Support\AES_Converter.cs" />
     <Compile Include="Classes\Utility\Support\IniEngine.cs" />
     <Compile Include="Classes\Utility\Support\logWriter.cs" />
     <Compile Include="Program.cs" />
@@ -68,6 +74,5 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
