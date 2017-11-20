@@ -26,6 +26,10 @@ namespace ProtegaClientTestsuite
 
 		//Data Gathering
 		const std::string sHttpRequest = "Test!";
+		bool bCurrentOS64 = true;
+		uint16_t u16VolumeHash = 23901;
+		uint16_t u16CpuHash = 29548;
+		std::string sComputerName = "DESKTOP-MTTQVRN";
 
 	public:
 	    //Triggers the main entry point of protega.dll -> maybe also get return
@@ -63,6 +67,15 @@ namespace ProtegaClientTestsuite
 		{			
 			Assert::AreEqual(Data_Gathering::GetWebFileAsString("http://62.138.6.50:13011/index.html"), sHttpRequest);
 		}
+
+		TEST_METHOD(Data_HardwareDataGathering)
+		{
+			Assert::IsTrue((bCurrentOS64 == Data_Gathering::is64BitOS() &&
+				u16VolumeHash == Data_Gathering::getVolumeHash() &&
+				u16CpuHash == Data_Gathering::getCpuHash() &&
+				sComputerName == Data_Gathering::getMachineName()));
+		}
+
 		TEST_METHOD(Data_DynamicDataCollecting)
 		{
 			Data_Manager::CollectDynamicProtesData();
