@@ -4,11 +4,11 @@ using Protega___Server.Classes.Data;
 
 namespace Protega___Server.Classes
 {
-    static class SPlayer
+    static class LoggerType
     {
-        public static EPlayer GetByName(string Name)
+        public static ECollectionLoggerType GetList()
         {
-            return DPlayer.GetByName(Name);
+            return DLoggerType.GetList();
         }
     }
 }
