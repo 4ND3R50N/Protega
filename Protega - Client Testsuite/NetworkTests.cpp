@@ -8,7 +8,7 @@ namespace ProtegaClientTestsuite
 {
 	//Static vars for network testing
 	extern const string TEST_IP =  "62.138.6.50";
-	extern const string TEST_PORT = "13001";
+	extern const string TEST_PORT = "10000";
 
 	TEST_CLASS(NetworkTests)
 	{
@@ -28,7 +28,5 @@ namespace ProtegaClientTestsuite
 			Assert::AreEqual(NetworkTelegramMessage.iTelegramNumber, 1);
 			Assert::AreEqual(NetworkTelegramMessage.lParameters[0], sCheckMessage);
 		}
-
-
 	};
 }
