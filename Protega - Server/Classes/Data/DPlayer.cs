@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Data.SqlClient;
 using Protega___Server.Classes.Entity;
 using System.Data;
@@ -74,7 +78,7 @@ namespace Protega___Server.Classes.Data
 
         #region Method select
 
-        public static ECollectionPlayer GetList(EPlayer _pPlayer)
+        public static ECollectionPlayer GetList(EPlayer _pPlayer, DBEngine dBEngine)
         {
             SqlDataReader oReader = null;
             try
@@ -86,7 +90,7 @@ namespace Protega___Server.Classes.Data
                 SqlParameter[] p_sqlParams = RegisterSqlParameter(_pPlayer);
 
                 //Call the request
-                oReader = CCstDatabase.DatabaseEngine.ExecuteReader(CommandType.StoredProcedure, CCstDatabase.SP_Player_GetByName, p_sqlParams);
+                oReader = dBEngine.ExecuteReader(CommandType.StoredProcedure, CCstDatabase.SP_Player_GetByName, p_sqlParams);
 
                 //If there is a result (not null)
                 if (oReader != null)
@@ -113,7 +117,7 @@ namespace Protega___Server.Classes.Data
 
         }
 
-        public static EPlayer GetByName(string Name)
+        public static EPlayer GetByName(string Name, DBEngine dBEngine)
         {
             SqlDataReader dataReader = null;
 

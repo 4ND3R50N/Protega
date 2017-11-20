@@ -41,6 +41,5 @@ namespace Support
                 file.WriteLine("[" + DateTime + "]: " + text);
             }
         }
-        //private void LogInDatabase(string Text)
     }
 }

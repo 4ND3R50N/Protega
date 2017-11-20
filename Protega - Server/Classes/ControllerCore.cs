@@ -55,7 +55,7 @@ namespace Protega___Server.Classes.Core
             TcpServer = new networkServer(NetworkProtocol, _sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             CCstLogging.Logger.writeInLog(true, "TCP Server ready for start!");
 
-            SPlayer.GetByName("Semado123");
+            SPlayer.GetByName("Semado123", CCstDatabase.DatabaseEngine);
 
             //TESTCASE
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();

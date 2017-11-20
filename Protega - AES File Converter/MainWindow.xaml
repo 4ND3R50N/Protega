@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Protega___AES_File_Converter"
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
         mc:Ignorable="d"
-        Title="Protega - AES File Converter" Height="374.858" Width="537.926">
+        Title="Protega - AES File Converter (Develop)" Height="374.858" Width="537.926">
 
 
 
