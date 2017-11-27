@@ -30,6 +30,7 @@ namespace ProtegaClientTestsuite
 		uint16_t u16VolumeHash = 23901;
 		uint16_t u16CpuHash = 29548;
 		std::string sComputerName = "DESKTOP-MTTQVRN";
+		std::wstring wsOsLanguage = L"de-DE";
 
 	public:
 	    //Triggers the main entry point of protega.dll -> maybe also get return
@@ -70,10 +71,20 @@ namespace ProtegaClientTestsuite
 
 		TEST_METHOD(Data_HardwareDataGathering)
 		{
-			Assert::IsTrue((bCurrentOS64 == Data_Gathering::is64BitOS() &&
-				u16VolumeHash == Data_Gathering::getVolumeHash() &&
-				u16CpuHash == Data_Gathering::getCpuHash() &&
-				sComputerName == Data_Gathering::getMachineName()));
+			//Get OS
+			WCHAR wcBuffer[16];
+			if (GetSystemDefaultLocaleName(wcBuffer, 16)) {
+				printf("%S\n", wcBuffer);
+			}
+
+			std::wstring wsOsLanguageC(wcBuffer);
+
+			//Get rest + compare
+			Assert::IsTrue((bCurrentOS64 == Data_Gathering::Is64BitOS() &&
+				u16VolumeHash == Data_Gathering::GetVolumeHash() &&
+				u16CpuHash == Data_Gathering::GetCpuHash() &&
+				sComputerName == Data_Gathering::GetMachineName() &&
+				wsOsLanguage == wsOsLanguageC));
 		}
 
 		TEST_METHOD(Data_DynamicDataCollecting)
