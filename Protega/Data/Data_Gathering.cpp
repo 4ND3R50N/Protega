@@ -58,7 +58,7 @@ std::string Data_Gathering::GetWebFileAsString(const char* sTargetURL)
 	return readBuffer;
 }
 
-bool Data_Gathering::is64BitOS()
+bool Data_Gathering::Is64BitOS()
 {	
 
 #if _WIN64
@@ -95,7 +95,7 @@ bool Data_Gathering::is64BitOS()
 #endif
 }
 
-uint16_t Data_Gathering::getVolumeHash()
+uint16_t Data_Gathering::GetVolumeHash()
 {
 	DWORD dwSerialNum = 0;
 
@@ -106,7 +106,7 @@ uint16_t Data_Gathering::getVolumeHash()
 	return hash;
 }
 
-uint16_t Data_Gathering::getCpuHash()
+uint16_t Data_Gathering::GetCpuHash()
 {
 	int iCpuInfo[4] = { 0, 0, 0, 0 };
 	__cpuid(iCpuInfo, 0);
@@ -118,7 +118,7 @@ uint16_t Data_Gathering::getCpuHash()
 	return u16Hash;
 }
 
-std::string Data_Gathering::getMachineName()
+std::string Data_Gathering::GetMachineName()
 {
 	char cAnsiBuffer[255];
 	TCHAR  tcInfoBuffer[INFO_BUFFER_SIZE];
@@ -135,6 +135,20 @@ std::string Data_Gathering::getMachineName()
 		return std::string(cAnsiBuffer);
 	}
 }
+
+int Data_Gathering::GetSystemDefaultLocaleName(LPWSTR lpLocaleName, int cchLocaleName) // by Napalm
+{
+	int nRet1, nRet2 = 0;
+	if ((nRet1 = GetLocaleInfoW(LOCALE_SYSTEM_DEFAULT, LOCALE_SISO639LANGNAME, lpLocaleName, cchLocaleName))) {
+		cchLocaleName -= nRet1;
+		if (cchLocaleName) {
+			lpLocaleName += --nRet1; *lpLocaleName++ = '-'; *lpLocaleName = 0;
+			return GetLocaleInfoW(LOCALE_SYSTEM_DEFAULT, LOCALE_SISO3166CTRYNAME, lpLocaleName, cchLocaleName);
+		}
+	}
+	return 0;
+}
+
 
 //Private 
 

@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include <tchar.h>
 #include <intrin.h> 
+#include <stdio.h>
 
 #define INFO_BUFFER_SIZE 32767
 
@@ -23,10 +24,10 @@ public:
 	static std::string GetWebFileAsString(const char* sTargetURL);
 
 	//Hardware
-	static bool is64BitOS();
-	static uint16_t getVolumeHash();
-	static uint16_t getCpuHash();
-	static std::string getMachineName();
-	
+	static bool Is64BitOS();
+	static uint16_t GetVolumeHash();
+	static uint16_t GetCpuHash();
+	static std::string GetMachineName();
+	static int GetSystemDefaultLocaleName(LPWSTR lpLocaleName, int cchLocaleName);
 };
 
