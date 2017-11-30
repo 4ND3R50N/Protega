@@ -6,6 +6,7 @@
 #include <list>
 #include <comdef.h>
 #include "../Protega/Protection/Target Enviorment/Virtual_Memory_Protection_Engine.h"
+#include "../Protega/Protection/Target Enviorment/Heuristic_Scan_Engine.h"
 
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -21,6 +22,12 @@ namespace ProtegaClientTestsuite
 		//VMP_S
 		typedef std::pair<unsigned int, unsigned int> ADDRESSPAIR;
 		typedef std::pair<const char*, unsigned int> INFORMATIONPAIR;
+		
+		//HEP
+
+
+
+		//Temporary here...
 		int GetProcessId(char* ProcName) {
 			PROCESSENTRY32 pe32;
 			HANDLE hSnapshot = NULL;
@@ -77,6 +84,14 @@ namespace ProtegaClientTestsuite
 			Assert::AreEqual((float)atof(sActualValue), 600.0f);
 		}
 
+
+		//This tests emulates the usage of Heuristic_Scan_Engine class
+		TEST_METHOD(Protection_HEP_Test)
+		{
+			Heuristic_Scan_Engine* HEP = new Heuristic_Scan_Engine();
+			
+			HEP->DoScanProcessNames();
+		}
 
 
 	};

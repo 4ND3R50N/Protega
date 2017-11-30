@@ -59,5 +59,8 @@
     <ClCompile Include="..\Protega\Data\Data_Gathering.cpp">
       <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Protega\Protection\Target Enviorment\Heuristic_Scan_Engine.cpp">
+      <Filter>Quelldateien\Protega CPP Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
