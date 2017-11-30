@@ -31,6 +31,7 @@ namespace ProtegaClientTestsuite
 		uint16_t u16CpuHash = 29548;
 		std::string sComputerName = "DESKTOP-MTTQVRN";
 		std::wstring wsOsLanguage = L"de-DE";
+		std::string sComputerID = "29548-23901";
 
 	public:
 	    //Triggers the main entry point of protega.dll -> maybe also get return
@@ -85,6 +86,11 @@ namespace ProtegaClientTestsuite
 				u16CpuHash == Data_Gathering::GetCpuHash() &&
 				sComputerName == Data_Gathering::GetMachineName() &&
 				wsOsLanguage == wsOsLanguageC));
+		}
+
+		TEST_METHOD(Data_GetComputerID)
+		{
+			Assert::AreEqual(sComputerID, Data_Manager::GenerateComputerID());
 		}
 
 		TEST_METHOD(Data_DynamicDataCollecting)
