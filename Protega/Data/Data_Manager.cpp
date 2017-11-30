@@ -60,6 +60,14 @@ bool Data_Manager::CollectDynamicProtesData()
 	return true;
 }
 
+std::string Data_Manager::GenerateComputerID()
+{
+	std::stringstream ssComputerID;
+	ssComputerID << Data_Gathering::GetCpuHash() << "-" << Data_Gathering::GetVolumeHash();
+	return ssComputerID.str();
+}
+
+
 //Private
 std::string ** Data_Manager::ConvertStringToMatrix(std::string sData)
 {
@@ -106,4 +114,5 @@ std::string Data_Manager::GetTargetEnviormentHeuristicDataFileName()
 {
 	return TARGET_ENVIORMENT_HEURISTIC_DATA_FILE_NAME;
 }
+
 

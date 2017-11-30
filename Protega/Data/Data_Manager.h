@@ -34,9 +34,11 @@ private:
 public:
 	//Functions
 	static bool CollectDynamicProtesData();
+	static std::string GenerateComputerID();
 	//Getter
 	static std::string GetTargetEnviormentDataUrl();
 	static std::string GetTargetEnviormentHeuristicDataFileName();
+	
 		
 
 
