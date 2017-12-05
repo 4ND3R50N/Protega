@@ -1,26 +1,31 @@
 #pragma once
+#include <sstream>
 #include <list>
-#include <windows.h>
-#include <stdio.h>
-#include <tchar.h>
-#include <psapi.h>
-
-
+#include "TlHelp32.h"
+#include <boost/algorithm/string.hpp>
+#include <algorithm>
 
 class Heuristic_Scan_Engine
 {
 private:
-	std::list<std::string> lProcessNames;
-	std::list<std::string> lWindowNames;
-	std::list<std::string> lClassNames;
-	std::list<std::string> lMd5Values;
+	std::list<DWORD> lProcessIDs;
+	std::list<std::wstring> lBlackListProcessNames;
+	std::list<std::string> lBlackListWindowNames;
+	std::list<std::string> lBlackListClassNames;
+	std::list<std::string> lBlackListMd5Values;
 
-	void GetCurrentProcessIdentificators(DWORD* aProcesses, DWORD& cbNeeded);
-	std::wstring GetProcessName(DWORD dwProcessID);
+	std::function<void(std::wstring sDetectedValue, std::list<std::string> lOtherInformation) > funcErrorCallbackHandler;
 
+	void GetCurrentProcessNamesAndPIDs(std::list<std::wstring>& lProcessNames, std::list<DWORD>& lProcessIDs);
+
+	
 
 public:
-	Heuristic_Scan_Engine();
+	Heuristic_Scan_Engine(std::list<std::wstring> lBlackListProcessNames,
+		std::list<std::string> lBlackListWindowNames,
+		std::list<std::string> lBlackListClassNames,
+		std::list<std::string> lBlackListMd5Values,
+		std::function<void(std::wstring sDetectedValue, std::list<std::string> lOtherInformation) > funcErrorCallbackHandler);
 	~Heuristic_Scan_Engine();
 
 	//Main thread functions
