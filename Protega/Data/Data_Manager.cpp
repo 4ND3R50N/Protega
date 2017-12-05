@@ -2,18 +2,22 @@
 #include "Data_Manager.h"
 
 #pragma region PROTES_STATIC_DATA_CONFIG
+//Web data
 char* Data_Manager::TARGET_ENVIORMENT_OWNER_NAME = "CodeZero";
 char* Data_Manager::TARGET_ENVIORMENT_DATA_URL = "http://62.138.6.50:13011/CabalOnline/";
 char* Data_Manager::TARGET_ENVIORMENT_HEURISTIC_DATA_FILE_NAME = "Heuristic_Data.csv.enc";
 char* Data_Manager::TARGET_ENVIORMENT_VMP_FILE_NAME = "VMP_Addresses.csv.enc";
 
+//Local data
 char Data_Manager::LOKAL_DATA_NEWLINE_DELIMITER = '#';
 char Data_Manager::LOKAL_DATA_DELIMITER = ';';
 char* Data_Manager::LOKAL_DATA_FOLDER = ".\\protega\\";
 
+//Network data
 const char* Data_Manager::DATA_AES_KEY = "1234567890123456";
 const char* Data_Manager::DATA_AES_IV = "bbbbbbbbbbbbbbbb";
 
+//Content data
 std::string** Data_Manager::sHeuristicTable;
 std::string** Data_Manager::sVMPTable;
 #pragma endregion
