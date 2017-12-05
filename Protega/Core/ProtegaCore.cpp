@@ -1,6 +1,9 @@
 #include "../stdafx.h"
 #include "ProtegaCore.h"
 
+//Possible todos:
+// - Implement a refresh logic for dynamic data (Download data again for each X mins
+
 
 ProtegaCore::ProtegaCore()
 {
