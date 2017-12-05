@@ -88,11 +88,28 @@ namespace ProtegaClientTestsuite
 		//This tests emulates the usage of Heuristic_Scan_Engine class
 		TEST_METHOD(Protection_HEP_Test)
 		{
-			Heuristic_Scan_Engine* HEP = new Heuristic_Scan_Engine();
+			std::list<std::wstring> lBlackListProcessNames;
+			std::list<std::string> lBlackListWindowNames;
+			std::list<std::string> lBlackListClassNames;
+			std::list<std::string> lBlackListMd5Values;
+
+			lBlackListProcessNames.push_back(L"Notepad.exe");
+			lBlackListWindowNames.push_back("ddjbneidb");
+			lBlackListMd5Values.push_back("12343333");
+			lBlackListClassNames.push_back("miaudfhh");
+
+			Heuristic_Scan_Engine* HEP = new Heuristic_Scan_Engine(lBlackListProcessNames,
+				lBlackListWindowNames, 
+				lBlackListClassNames, 
+				lBlackListMd5Values,
+				std::bind(&ProtectionTests::Heuristic_Callback, this, std::placeholders::_1, std::placeholders::_2));
 			
 			HEP->DoScanProcessNames();
 		}
+		void Heuristic_Callback(std::wstring sDetection, std::list<std::string> lOtherInformation)
+		{
 
+		}
 
 	};
 }
