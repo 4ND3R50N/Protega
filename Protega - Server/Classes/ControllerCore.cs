@@ -80,7 +80,9 @@ namespace Protega___Server.Classes.Core
 
         }
 
-
+        // QUESTION: what exactly is the authenticating here? It looks for me more like:
+        // is there someone saved? No? -> save him! And if there is already someone saved
+        // I don't add him so the list only have one active connection? What is that for?
         void AuthenticateClient(networkServer.networkClientInterface Client)
         {
             if(ActiveConnections.Count==0)
@@ -122,8 +124,7 @@ namespace Protega___Server.Classes.Core
             ProtocolController.RecievedProtocol(message);
         }
 
-
-
+        
         void RegisterUser(int ComputerID, Boolean architecture, String language, double version, Boolean auth)
         {
             networkServer.networkClientInterface Client = new networkServer.networkClientInterface();
@@ -131,7 +132,7 @@ namespace Protega___Server.Classes.Core
 
             ActiveConnections.Add(Client);
         }
-
+        
         public void SendProtocol(string Protocol, int computerID)
         {
             //List<networkServer.networkClientInterface> Clients = ActiveConnections.Where(asd => asd.User.ID == computerID).ToList();

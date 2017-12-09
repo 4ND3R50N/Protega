@@ -17,7 +17,7 @@ namespace Protega___Server.Classes.Protocol
         // just for me that I don´t forget any of the calls
         //int[] protocolKeysClientToServer = {500, 600, 701,702,703,704,705 };
         //int[] protocolKeysServerToClient = { 200, 201, 300, 301, 400, 401, 402 };
-
+        //QUESTION: I thought the computerID is already included in the protocol -> don't need to pass it as parameter??
         public delegate void SendProt(string Protocol, int ComputerID);
         public static event SendProt SendProtocol = null;
 
@@ -61,7 +61,10 @@ namespace Protega___Server.Classes.Protocol
                 String language = (String)prot.GetValues()[2];
                 double version = (double)prot.GetValues()[3];
                 Boolean auth = true;
-
+                // QUESTION: I am not sure but I thought you only register a user when his authentication was successfull??
+                // QUESTION: But then we would need a initial registration in the database when a user plays the first time?
+                // QUESTION: Or is this authentication for you the registration? But then we would need something to check if the user already exists in the database?
+                // QUESTION: I don't get what this method is for :/
                 RegisterUser(computerID, architecture, language, version, auth);
                 // TODO: check if computerID is saved in database
                 // TODO: Save the other parameters in the database
