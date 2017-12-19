@@ -65,6 +65,8 @@ namespace Protega___Server.Classes.Protocol
                 // QUESTION: But then we would need a initial registration in the database when a user plays the first time?
                 // QUESTION: Or is this authentication for you the registration? But then we would need something to check if the user already exists in the database?
                 // QUESTION: I don't get what this method is for :/
+
+                //ANSWER: I only added this for the test with Lars. Of course it has to be adjusted
                 RegisterUser(computerID, architecture, language, version, auth);
                 // TODO: check if computerID is saved in database
                 // TODO: Save the other parameters in the database

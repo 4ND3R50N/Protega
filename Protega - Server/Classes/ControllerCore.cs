@@ -83,6 +83,10 @@ namespace Protega___Server.Classes.Core
         // QUESTION: what exactly is the authenticating here? It looks for me more like:
         // is there someone saved? No? -> save him! And if there is already someone saved
         // I don't add him so the list only have one active connection? What is that for?
+
+            //Answer
+            //I only added this to test with Lars (max 1 connection).
+            //Because currently every protocol is seen as a new authentication
         void AuthenticateClient(networkServer.networkClientInterface Client)
         {
             if(ActiveConnections.Count==0)
