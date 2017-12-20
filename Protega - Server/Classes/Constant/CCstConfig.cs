@@ -10,5 +10,7 @@ namespace Protega___Server.Classes
     {
         public const string EncryptionKey = "1234567890123456";
         public const string EncryptionIV = "bbbbbbbbbbbbbbbb";
+
+        public const int ApplicationID = 1;
     }
 }

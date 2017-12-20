@@ -12,9 +12,11 @@ namespace Protega___Server.Classes.Entity
         /// <summary>
         /// Unique identifier of the player
         /// </summary>
-        private int _ID=0;
+        private string _ID;
         private string _Name;
         private string _IP;
+        private string _Language;
+        private string _OperatingSystem;
 
         /// <summary>
         /// Ban status of the player. 0 = unpunished, 1 = banned
@@ -31,7 +33,7 @@ namespace Protega___Server.Classes.Entity
         /// <summary>
         /// Unique identifier of the player
         /// </summary>
-        public int ID
+        public string ID
         {
             get { return _ID; }
             set { _ID = value; }
@@ -56,11 +58,29 @@ namespace Protega___Server.Classes.Entity
         }
 
         /// <summary>
+        /// Language of the player
+        /// </summary>
+        public string Language
+        {
+            get { return _Language; }
+            set { _Language = value; }
+        }
+
+        /// <summary>
+        /// OperatingSystem of the player
+        /// </summary>
+        public string OperatingSystem
+        {
+            get { return _OperatingSystem; }
+            set { _OperatingSystem = value; }
+        }
+
+        /// <summary>
         /// Ban status of the player. 0 = unpunished, 1 = banned
         /// </summary>
         public bool? isBanned
         {
-            get { return _isBanned; }
+            get { return _isBanned;}
             set { _isBanned = value; }
         }
         #endregion

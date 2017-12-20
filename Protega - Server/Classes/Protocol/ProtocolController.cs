@@ -5,11 +5,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Protega___Server.Classes.Entity;
 
 namespace Protega___Server.Classes.Protocol
 {
-    static class ProtocolController
+    public class ProtocolController
     {
+        List<networkServer.networkClientInterface> ActiveConnections;
+
+        public ProtocolController(ref List<networkServer.networkClientInterface> ActiveConnections)
+        {
+            this.ActiveConnections = ActiveConnections;
+        }
+
+
         //private ControllerCore core;
         //public ProtocolController(ControllerCore core) {
         //    this.core = core;
@@ -18,14 +27,14 @@ namespace Protega___Server.Classes.Protocol
         //int[] protocolKeysClientToServer = {500, 600, 701,702,703,704,705 };
         //int[] protocolKeysServerToClient = { 200, 201, 300, 301, 400, 401, 402 };
         //QUESTION: I thought the computerID is already included in the protocol -> don't need to pass it as parameter??
-        public delegate void SendProt(string Protocol, int ComputerID);
+        public delegate void SendProt(string Protocol, networkServer.networkClientInterface ClientInterface);
         public static event SendProt SendProtocol = null;
 
-        public static void RecievedProtocol(string protocolString) {
+        public void RecievedProtocol(networkServer.networkClientInterface NetworkClient, string protocolString) {
             Protocol protocol = new Protocol(protocolString);
                 switch (protocol.GetKey())
                 {
-                    case 500: AuthenticateUser(protocol); break;
+                    case 500: AuthenticateUser(NetworkClient, protocol); break;
                     case 600: CheckPing(protocol);  break;
                     case 701: FoundHackDetaction(protocol); break;
                     case 702: FoundHackDetaction(protocol); break;
@@ -37,10 +46,20 @@ namespace Protega___Server.Classes.Protocol
 
             if(protocolString == "#001")
             {
-                SendProtocol("001;Hello!", protocol.key);
+                SendProtocol("001;Hello!", NetworkClient);
                 Console.WriteLine("Hello sent!");
             }
+        }
+
+        bool CheckIfUserExists(string HardwareID, out networkServer.networkClientInterface ClientInterface)
+        {
+            //Check if a hardware ID exists in ActiveConnections
+            ClientInterface = null;
             
+            List<networkServer.networkClientInterface> lList = ActiveConnections.Where(Client => Client.User.ID == HardwareID).ToList();
+            if (lList.Count == 1)
+                ClientInterface = lList[0];
+            return lList.Count == 1;
         }
 
         //private static void SendProtocol(String protocolString, int userID) {
@@ -48,83 +67,118 @@ namespace Protega___Server.Classes.Protocol
         // using the controller core to send messages??????????
         //}
 
-        public delegate void _RegisterUser(int ComputerID, Boolean architecture, String language, double version, Boolean auth);
-        public static event _RegisterUser RegisterUser=null;
+        #region Authenticate User
+        public delegate void _RegisterUser(string ComputerID, Boolean architecture, String language, double version, Boolean auth);
+        public event _RegisterUser RegisterUser=null;
 
-        private static void AuthenticateUser(Protocol prot)
+        private void AuthenticateUser(networkServer.networkClientInterface ClientInterface, Protocol prot)
         {
             //Computer ID, Computer Architecture, Language, Version
-            try
-            {
-                int computerID = (int)prot.GetValues()[0];
-                Boolean architecture = (Boolean)prot.GetValues()[1];
-                String language = (String)prot.GetValues()[2];
-                double version = (double)prot.GetValues()[3];
-                Boolean auth = true;
-                // QUESTION: I am not sure but I thought you only register a user when his authentication was successfull??
-                // QUESTION: But then we would need a initial registration in the database when a user plays the first time?
-                // QUESTION: Or is this authentication for you the registration? But then we would need something to check if the user already exists in the database?
-                // QUESTION: I don't get what this method is for :/
+            string architecture = prot.GetValues()[0].ToString();
+            String language = prot.GetValues()[1].ToString();
+            double version = Convert.ToDouble(prot.GetValues()[2]);
 
-                //ANSWER: I only added this for the test with Lars. Of course it has to be adjusted
-                RegisterUser(computerID, architecture, language, version, auth);
-                // TODO: check if computerID is saved in database
-                // TODO: Save the other parameters in the database
-                // check if user is authorized to play the game by checking also the #of hack detections
-                if (auth)
+            //Check if user is already connected
+            
+            if (CheckIfUserExists(prot.GetComputerID(), out ClientInterface))
+            {
+                //User is already registered
+                //Kick User?
+                CCstLogging.Logger.writeInLog(true, "User "+prot.GetComputerID()+" is already added to list!");
+                return;
+            }
+
+            EPlayer dataClient = SPlayer.Authenticate(prot.GetComputerID(), architecture, language, "127.0.0.1");
+            if (dataClient == null)
+            {
+                //If a computer ID exists multiple times in the database, a null object is returned
+                SendProtocol("201;Contact Admin!", ClientInterface);
+                return;
+            }
+
+            //Add EPlayer to ClientInterface and to the list
+            ClientInterface.User = dataClient;
+            ActiveConnections.Add(ClientInterface);
+
+            //SendProtocol("200;16 Bit Alias Key", ClientInterface);
+
+        }
+
+        void AddUserToActiveConnections(networkServer.networkClientInterface ClientInterface, string ComputerID, string architecture, String language, double version, Boolean auth)
+        {
+            //Check if user is already connected
+            ActiveConnections
+                .ForEach(Client =>
                 {
-                    SendProtocol("200;16 Bit Alias Key", computerID);
+                    if (Client.User.ID == ComputerID)
+                    {
+                        //User is already registered
+                        //Kick User?
+                        CCstLogging.Logger.writeInLog(true, "User is already added to list!");
+                        return;
+                    }
+                });
+
+            EPlayer dataClient = SPlayer.Authenticate(ComputerID, architecture, language, "");
+            if (dataClient == null)
+            {
+                //If a computer ID exists multiple times in the database, a null object is returned
+                SendProtocol("201;Contact Admin", ClientInterface);
+                return;
+            }
+
+            //Add EPlayer to ClientInterface and to the list
+            ClientInterface.User = dataClient;
+            ActiveConnections.Add(ClientInterface);
+        }
+
+            #endregion
+
+            private void CheckPing(Protocol prot)
+        {
+            networkServer.networkClientInterface ClientInterface;
+            if (CheckIfUserExists(prot.ComputerID, out ClientInterface))
+            {
+                // save somewhere that user pinged successfully
+                // check if some other messages should be send
+                Boolean sendMessage = true;
+                if (sendMessage)
+                {
+                    SendProtocol("301;Some messages added divided by ;", ClientInterface);
                 }
                 else
                 {
-                    SendProtocol("201;IssueID getting from the database response.", computerID);
+                    SendProtocol("300", ClientInterface);
                 }
             }
-            catch(IndexOutOfRangeException ex)
-            {
-                System.Console.WriteLine("Something went wrong getting the parameters for protocol to authenticate a user.");
-                System.Console.WriteLine(ex.Message);
-            }
-            
         }
 
-        private static void CheckPing(Protocol prot)
+        private void FoundHackDetaction(Protocol prot)
         {
-            int computerID = (int)prot.GetValues()[0];
-            // save somewhere that user pinged successfully
-            // check if some other messages should be send
-            Boolean sendMessage = true;
-            if (sendMessage)
+            networkServer.networkClientInterface ClientInterface;
+            if (CheckIfUserExists(prot.ComputerID, out ClientInterface))
             {
-                SendProtocol("301;Some messages added divided by ;", computerID);
-            }
-            else
-            {
-                SendProtocol("300", computerID);
-            }
-        }
+                int computerID = (int)prot.GetValues()[0];
+                // get number of found hack detections and the result will lead to different answers to the client
+                int numberOfDetections = 0;
+                numberOfDetections++;
+                // save new number for this user
 
-        private static void FoundHackDetaction(Protocol prot)
-        {
-            int computerID = (int)prot.GetValues()[0];
-            // get number of found hack detections and the result will lead to different answers to the client
-            int numberOfDetections = 0;
-            numberOfDetections++;
-            // save new number for this user
+                // save all other parameter in the database
 
-            // save all other parameter in the database
-
-            if(numberOfDetections == 1)
-            {
-                SendProtocol("400", computerID);
-            }else if((numberOfDetections >= 2) && (numberOfDetections <= 4))
-            {
-                int time = numberOfDetections*1000;
-                SendProtocol("401;" + time, computerID);
-            }
-            else
-            {
-                SendProtocol("402", computerID);
+                if (numberOfDetections == 1)
+                {
+                    SendProtocol("400", ClientInterface);
+                }
+                else if ((numberOfDetections >= 2) && (numberOfDetections <= 4))
+                {
+                    int time = numberOfDetections * 1000;
+                    SendProtocol("401;" + time, ClientInterface);
+                }
+                else
+                {
+                    SendProtocol("402", ClientInterface);
+                }
             }
         }
     }

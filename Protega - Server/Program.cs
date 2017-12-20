@@ -13,7 +13,7 @@ namespace Protega___Server
         static void Main(string[] args)
         {
             string Test = "123";
-            ControllerCore Controller = new ControllerCore(10000, ';', 'a', "asdf", "mssql", "217.23.14.23", 1433, "sa", "S3mad0123", "Network", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()));
+            ControllerCore Controller = new ControllerCore(10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()));
             Controller.Start();
             Console.ReadLine();
         }

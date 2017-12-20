@@ -6,8 +6,9 @@ namespace Protega___Server.Classes.Protocol
     class Protocol
     {
         public int key;
+        public string ComputerID;
         private ArrayList values = new ArrayList();
-
+        
         public Protocol(String protocol)
         {
             Object[] elements = null;
@@ -17,11 +18,13 @@ namespace Protega___Server.Classes.Protocol
                 elements = protocol.Split(';');
             }
             // the key is always saved at the first entry
-            key =  (int) elements[0];
+            key =  Convert.ToInt32(elements[0]);
+            ComputerID = elements[1].ToString();
+
             // if the protocol has not only the key, save the values.
             if (elements.Length > 1)
             {
-                for (int i = 1; i < elements.Length; i++)
+                for (int i = 2; i < elements.Length; i++)
                 {
                     values.Add(elements[i]);
                 }
@@ -31,6 +34,10 @@ namespace Protega___Server.Classes.Protocol
         public int GetKey()
         {
             return key;
+        }
+        public string GetComputerID()
+        {
+            return ComputerID;
         }
         public ArrayList GetValues()
         {

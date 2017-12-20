@@ -10,5 +10,10 @@ namespace Protega___Server.Classes
         {
             return DPlayer.GetByName(Name);
         }
+
+        public static EPlayer Authenticate(string ComputerID, string Architecture, string Language, string Ip)
+        {
+            return DPlayer.Authenticate(new EPlayer() { ID = ComputerID, OperatingSystem = Architecture, Language = Language, IP = Ip });
+        }
     }
 }

@@ -15,11 +15,11 @@ using System.Text;
 
 namespace Protega___Server
 {
-    class networkServer
+    public class networkServer
     {
         //Variables
         //--Public
-        public delegate void protocolFunction(string prot);
+        public delegate void protocolFunction(networkClientInterface NetworkClient, string prot);
         public delegate void _AuthenticateClient(networkClientInterface Client);
         //--Private
         private IPEndPoint serverEndPoint;
@@ -38,7 +38,7 @@ namespace Protega___Server
         }
 
         public networkServer(protocolFunction protAnalyseFunction, string network_AKey, IPAddress ip, short port, 
-            AddressFamily familyType, SocketType socketType, ProtocolType protocolType, _AuthenticateClient AuthenticateClient)
+            AddressFamily familyType, SocketType socketType, ProtocolType protocolType)
         {
             this.network_AKey = network_AKey;
             this.protAnalyseFunction = protAnalyseFunction;
@@ -78,7 +78,6 @@ namespace Protega___Server
         private void AcceptCallback(IAsyncResult result)
         {
             networkClientInterface connection = new networkClientInterface((Socket)result.AsyncState, result);
-                AuthenticateClient(connection);
             try
             { 
                
@@ -109,14 +108,13 @@ namespace Protega___Server
         {
             Classes.CCstLogging.Logger.writeInLog(true, "Callback received!");
             networkClientInterface connection = (networkClientInterface)result.AsyncState;
-                    AuthenticateClient(connection);
             try
             {
                 //bytesread = count of bytes
                 int bytesRead = connection.networkSocket.EndReceive(result);
                 if (0 != bytesRead)
                 {
-                    protAnalyseFunction(Encoding.Default.GetString(connection.buffer, 0, bytesRead));
+                    protAnalyseFunction(connection, Encoding.Default.GetString(connection.buffer, 0, bytesRead));
                     connection.networkSocket.BeginReceive(connection.buffer, 0,
                       connection.buffer.Length, SocketFlags.None,
                       new AsyncCallback(ReceiveCallback), connection);

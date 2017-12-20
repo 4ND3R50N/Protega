@@ -16,6 +16,7 @@ namespace Protega___Server.Classes.Core
         //Variablen
         networkServer TcpServer;
         List<networkServer.networkClientInterface> ActiveConnections;
+        ProtocolController ProtocolController;
         
         private string sAesKey;
         private char   cProtocolDelimiter;
@@ -52,13 +53,17 @@ namespace Protega___Server.Classes.Core
             sAesKey = _sAesKey;
             this.cProtocolDelimiter = _cProtocolDelimiter;
             this.cDataDelimiter = _cDataDelimiter;
-            TcpServer = new networkServer(NetworkProtocol, _sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp, AuthenticateClient);
+            TcpServer = new networkServer(NetworkProtocol, _sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             ProtocolController.SendProtocol += this.SendProtocol;
             CCstLogging.Logger.writeInLog(true, "TCP Server ready for start!");
+            ProtocolController = new ProtocolController(ref ActiveConnections);
 
             //TESTCASE
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
+            //Registration
+            ProtocolController.RecievedProtocol(new networkServer.networkClientInterface(), "500;98765;Windoofs 7;Deutsch;1");
+            ProtocolController.RecievedProtocol(new networkServer.networkClientInterface(), "500;98765;Windoofs 7;Deutsch;1");
             //Auth
             //  networkProtocol("#104;Anderson2;Lars;Pickelin;miau1234;l.pickelin@web.de", ref dummy);
             //  networkProtocol("#102;Anderson2;miau1x234", ref dummy);
@@ -107,7 +112,7 @@ namespace Protega___Server.Classes.Core
         }
 
         #region Protocol
-        private void NetworkProtocol(string message)
+        private void NetworkProtocol(networkServer.networkClientInterface NetworkClient, string message)
         {
             try
             {
@@ -125,19 +130,36 @@ namespace Protega___Server.Classes.Core
             }
 
             CCstLogging.Logger.writeInLog(true, "Protocol received: " + message);
-            ProtocolController.RecievedProtocol(message);
+            ProtocolController.RecievedProtocol(NetworkClient, message);
         }
 
         
-        void RegisterUser(int ComputerID, Boolean architecture, String language, double version, Boolean auth)
+        void AddUserToActiveConnections(string ComputerID, Boolean architecture, String language, double version, Boolean auth)
         {
+
             networkServer.networkClientInterface Client = new networkServer.networkClientInterface();
             Client.User.ID = ComputerID;
 
+            if(ActiveConnections.Contains(Client))
+            {
+                //User is already registered
+                //Kick User?
+                CCstLogging.Logger.writeInLog(true, "User is already added to list!");
+                return;
+            }
+            else
+            {
+                //Client.User.
+            }
+
+
+
+
             ActiveConnections.Add(Client);
         }
-        
-        public void SendProtocol(string Protocol, int computerID)
+
+
+        public void SendProtocol(string Protocol, networkServer.networkClientInterface ClientInterface)
         {
             //List<networkServer.networkClientInterface> Clients = ActiveConnections.Where(asd => asd.User.ID == computerID).ToList();
             //if (Clients.Count == 1)
@@ -146,7 +168,7 @@ namespace Protega___Server.Classes.Core
             Protocol = AES_Converter.EncryptWithCBC(CCstConfig.EncryptionKey, CCstConfig.EncryptionIV, Protocol) + "~";
                 //TcpServer.sendMessage(Protocol, Clients[0]);
                 if (ActiveConnections.Count>0)
-                    TcpServer.sendMessage(Protocol, ActiveConnections[0]);
+                    TcpServer.sendMessage(Protocol, ClientInterface);
             //}
             //else
             //{

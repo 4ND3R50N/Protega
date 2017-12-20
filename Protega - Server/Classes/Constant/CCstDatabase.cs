@@ -8,8 +8,9 @@ namespace Protega___Server.Classes
 
         #region Stored Procedures
 
-        #region Player
-        public const string SP_Player_GetByName = "Player_GetByName";
+        #region User
+        public const string SP_User_GetByName = "Player_GetByName";
+        public const string SP_User_Authenticate = "User_Authenticate";
         #endregion
 
         #region LoggerType
