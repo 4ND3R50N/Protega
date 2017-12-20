@@ -43,12 +43,7 @@ namespace Protega___Server.Classes.Protocol
                     case 705: FoundHackDetaction(protocol); break;
                     default: Console.WriteLine("Invalid key for client to server communication."); break;
                 }
-
-            if(protocolString == "#001")
-            {
-                SendProtocol("001;Hello!", NetworkClient);
-                Console.WriteLine("Hello sent!");
-            }
+            
         }
 
         bool CheckIfUserExists(string HardwareID, out networkServer.networkClientInterface ClientInterface)
