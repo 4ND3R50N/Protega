@@ -26,7 +26,7 @@ bool Tcp_Connector::Connect()
 bool Tcp_Connector::SendAndReceive(string sMessage)
 {
 	//Try Catch?
-	m_SendBuffer = CryptoPP_AES_Converter::Encrypt("1234567890123456","bbbbbbbbbbbbbbbb",sMessage);
+	m_SendBuffer = CryptoPP_AES_Converter::Encrypt("1234567890123456", "bbbbbbbbbbbbbbbb",sMessage);
 	m_Socket.send(boost::asio::buffer(m_SendBuffer.c_str(), m_SendBuffer.length() + 1));
 	char *cJunk;
 	std::string sDecryptedMessage;

@@ -149,9 +149,7 @@ int Data_Gathering::GetSystemDefaultLocaleName(LPWSTR lpLocaleName, int cchLocal
 	return 0;
 }
 
-
 //Private 
-
 void Data_Gathering::TCharToChar(const wchar_t * Src, char * Dest, int Size)
 {
 	WideCharToMultiByte(CP_ACP, 0, Src, wcslen(Src) + 1, Dest, Size, NULL, NULL);
