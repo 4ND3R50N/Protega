@@ -47,9 +47,6 @@
     <ClCompile Include="ProtectionTests.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\Protega\Protection\Target Enviorment\Virtual_Memory_Protection_Engine.cpp">
-      <Filter>Quelldateien\Protega CPP Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Protega\Tools\CryptoPP_AES_Converter.cpp">
       <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
@@ -60,6 +57,12 @@
       <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Protega\Protection\Target Enviorment\Heuristic_Scan_Engine.cpp">
+      <Filter>Quelldateien\Protega CPP Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Protega\Protection\Target Enviorment\Virtual_Memory_Protection_Cabal_Online.cpp">
+      <Filter>Quelldateien\Protega CPP Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Protega\Protection\Target Enviorment\Virtual_Memory_IO.cpp">
       <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
   </ItemGroup>

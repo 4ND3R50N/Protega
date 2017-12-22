@@ -5,7 +5,7 @@
 #include <tlhelp32.h>
 #include <list>
 #include <comdef.h>
-#include "../Protega/Protection/Target Enviorment/Virtual_Memory_Protection_Engine.h"
+#include "../Protega/Protection/Target Enviorment/Virtual_Memory_Protection_Cabal_Online.h"
 #include "../Protega/Protection/Target Enviorment/Heuristic_Scan_Engine.h"
 
 
@@ -19,9 +19,6 @@ namespace ProtegaClientTestsuite
 		//Global
 		char* sProcessName = "CabalMain22.exe";
 		bool bDetect = false;
-		//VMP_S
-		typedef std::pair<unsigned int, unsigned int> ADDRESSPAIR;
-		typedef std::pair<const char*, unsigned int> INFORMATIONPAIR;
 		
 		//HEP
 
@@ -52,36 +49,42 @@ namespace ProtegaClientTestsuite
 
 		//This test emulates the usage of Virtual_Memory_Protection_Engine class.
 		//The speed value of cabal is the value that gets checked here
-		TEST_METHOD(Protection_VMP_Test)
+		TEST_METHOD(Protection_VMP_ChangeSpeedValue_Test)
 		{
-			//Declare lists with address entries
-			bDetect = false;
-			std::list<std::pair<unsigned int, unsigned int>> kvpAddressList;
-			std::list<std::pair<const char*, unsigned int>> kvpValueInformation;
-			kvpAddressList.push_back(ADDRESSPAIR(0x00B93530, 0x00000204));		
-			kvpValueInformation.push_back(INFORMATIONPAIR("450.0f", 2));
+
 			//Get process id
 			unsigned int processId = GetProcessId(sProcessName);
 			//init class
-			Virtual_Memory_Protection_Engine *VMP_S = new Virtual_Memory_Protection_Engine(processId, kvpAddressList, kvpValueInformation,
-				std::bind(&ProtectionTests::VMP_S_CallBack, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+			Virtual_Memory_Protection_Cabal_Online *VMP_S = new Virtual_Memory_Protection_Cabal_Online(processId,
+				std::bind(&ProtectionTests::VMP_S_CallBack, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 
 			VMP_S->OpenProcessInstance();
 			
 			//Loop "scan all addresses" function
 			do
 			{
-				VMP_S->ScanAllAddresses();
+				//VMP_S->VMP_CheckGameSpeed();
 				Sleep(1000);
 			} while (!bDetect);
 		}
 
-		void VMP_S_CallBack(std::list<std::pair<unsigned int, unsigned int>>::iterator kvpDetectedAddress,
-			const char* sActualValue, const char* sWantedCondition)
+		TEST_METHOD(Protection_VMP_WallHackPrevention_Test)
+		{
+			//Get process id
+			unsigned int processId = GetProcessId(sProcessName);
+			//init class
+			Virtual_Memory_Protection_Cabal_Online *VMP_S = new Virtual_Memory_Protection_Cabal_Online(processId,
+				std::bind(&ProtectionTests::VMP_S_CallBack, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+
+			VMP_S->OpenProcessInstance();
+			VMP_S->VMP_CheckWallBorders();
+		}	
+
+		void VMP_S_CallBack(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sStandartValue)
 		{
 			bDetect = true;
-			MessageBoxA(NULL, "Detect!", "Protega antihack engine", NULL);
-			Assert::AreEqual((float)atof(sActualValue), 600.0f);
+			MessageBoxA(NULL, "DETECT!", "Protega antihack engine", NULL);
+			Assert::AreEqual((float)atof(sDetectedValue.c_str()), 600.0f);
 		}
 
 
