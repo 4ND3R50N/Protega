@@ -86,9 +86,6 @@
     <ClInclude Include="Protection\Target Enviorment\Heuristic_Scan_Engine.h">
       <Filter>Headerdateien\Protection\Target Enviorment</Filter>
     </ClInclude>
-    <ClInclude Include="Protection\Target Enviorment\Virtual_Memory_Protection_Engine.h">
-      <Filter>Headerdateien\Protection\Target Enviorment</Filter>
-    </ClInclude>
     <ClInclude Include="Tools\CryptoPP_AES_Converter.h">
       <Filter>Headerdateien\Tools</Filter>
     </ClInclude>
@@ -97,6 +94,12 @@
     </ClInclude>
     <ClInclude Include="Data\Data_Manager.h">
       <Filter>Headerdateien\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Protection\Target Enviorment\Virtual_Memory_IO.h">
+      <Filter>Headerdateien\Protection\Target Enviorment</Filter>
+    </ClInclude>
+    <ClInclude Include="Protection\Target Enviorment\Virtual_Memory_Protection_Cabal_Online.h">
+      <Filter>Headerdateien\Protection\Target Enviorment</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -130,9 +133,6 @@
     <ClCompile Include="Protection\Target Enviorment\Heuristic_Scan_Engine.cpp">
       <Filter>Quelldateien\Protection\Target Enviorment</Filter>
     </ClCompile>
-    <ClCompile Include="Protection\Target Enviorment\Virtual_Memory_Protection_Engine.cpp">
-      <Filter>Quelldateien\Protection\Target Enviorment</Filter>
-    </ClCompile>
     <ClCompile Include="Tools\CryptoPP_AES_Converter.cpp">
       <Filter>Quelldateien\Tools</Filter>
     </ClCompile>
@@ -141,6 +141,12 @@
     </ClCompile>
     <ClCompile Include="Data\Data_Manager.cpp">
       <Filter>Quelldateien\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="Protection\Target Enviorment\Virtual_Memory_IO.cpp">
+      <Filter>Quelldateien\Protection\Target Enviorment</Filter>
+    </ClCompile>
+    <ClCompile Include="Protection\Target Enviorment\Virtual_Memory_Protection_Cabal_Online.cpp">
+      <Filter>Quelldateien\Protection\Target Enviorment</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
