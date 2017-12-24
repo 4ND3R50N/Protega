@@ -8,10 +8,14 @@ private:
 protected:
 	//Vars
 	HANDLE hProcessHandle;
+
 	//Pointer Getter
 	int GetIntViaLevel2Pointer(LPCVOID BaseAddress, LPCVOID Offset);
 	float GetFloatViaLevel2Pointer(LPCVOID BaseAddress, LPCVOID Offset);
 	const char* GetStringViaLevel2Pointer(LPCVOID BaseAddress, LPCVOID Offset);
+
+	//Address Getter
+	LPCVOID GetAddressOfLevel2Pointer(LPCVOID BaseAddress, LPCVOID Offset);
 
 	//Value Getter
 	int ReadMemoryInt(HANDLE processHandle, LPCVOID address);

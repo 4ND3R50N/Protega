@@ -33,6 +33,14 @@ const char * Virtual_Memory_IO::GetStringViaLevel2Pointer(LPCVOID BaseAddress, L
 	return nullptr;
 }
 
+//Address Getter
+LPCVOID Virtual_Memory_IO::GetAddressOfLevel2Pointer(LPCVOID BaseAddress, LPCVOID Offset)
+{
+	unsigned int iOffset = (int)Offset;
+	unsigned int iBAValueAddress = ReadMemoryInt(hProcessHandle, BaseAddress);
+	return (LPCVOID)(iBAValueAddress + iOffset);
+}
+
 //	ReadMemory functions
 int Virtual_Memory_IO::ReadMemoryInt(HANDLE processHandle, LPCVOID address)
 {
@@ -57,7 +65,6 @@ float Virtual_Memory_IO::ReadMemoryFloat(HANDLE processHandle, LPCVOID address)
 }
 
 bool Virtual_Memory_IO::WriteIntToMemory(HANDLE processHandle, LPCVOID address, int iValue)
-{
-	WriteProcessMemory(processHandle, (LPVOID)address, &iValue, sizeof(iValue), 0);
-	return false;
+{	
+	return WriteProcessMemory(processHandle, (LPVOID)address, &iValue, sizeof(iValue), 0);
 }
