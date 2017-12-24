@@ -82,11 +82,83 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckWallBorders()
 	if (dPercentOfZeros == 100.0)
 	{
 		funcCallbackHandler("CABAL WALL BASE ADDRESS", "WALL START OFFSET", "100 % ZEROS", "NOT 100 %");
+		return true;
 	}
 
 	//file << "Amount of all Addresses = " << iAmountOfAllAddresses << " | % of all Zeros = " << dPercentOfZeros << " | % of all non Zeros = " << dPercentOfNonZeros;
-	//file.close();
-	
+	//file.close();	
+	return false;
+}
+
+//HAS TO BE TESTED
+bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckZoomState()
+{
+	//Maybe we need here a map check later...
+
+	int iZoom1 = ReadMemoryInt(hProcessHandle, (LPCVOID)((unsigned int)lpcvCabalModuleAddress + (unsigned int)lpcvCabalZoomOffset1));
+	int iZoom2 = ReadMemoryInt(hProcessHandle, (LPCVOID)((unsigned int)lpcvCabalModuleAddress + (unsigned int)lpcvCabalZoomOffset2));
+
+	if (iZoom1 != iCabalDefaultZoom && iZoom2 != iCabalDefaultZoom)
+	{
+		std::stringstream ss;
+		ss << "Zoom1: " << iZoom1 << " | Zoom2: " << iZoom2;
+		std::string sDetectedValue = ss.str();
+		ss.clear();
+		ss << "Default Zoom 1/2: " << iCabalDefaultZoom;
+		std::string sDefaultValue = ss.str();
+		ss.clear();
+
+		funcCallbackHandler("CABAL MODULE ADDRESS", "ZOOM OFFSET 1 AND 2", sDetectedValue, sDefaultValue);
+		return true;
+	}
+
+	if (iZoom1 != iCabalDefaultZoom)
+	{
+		std::stringstream ss;
+		ss << "Zoom1: " << iZoom1;
+		std::string sDetectedValue = ss.str();
+		ss.clear();
+		ss << "Default Zoom 1/2: " << iCabalDefaultZoom;
+		std::string sDefaultValue = ss.str();
+		ss.clear();
+		funcCallbackHandler("CABAL MODULE ADDRESS", "ZOOM OFFSET 1", sDetectedValue, sDefaultValue);
+		return true;
+	}
+
+	if (iZoom2 != iCabalDefaultZoom)
+	{
+		std::stringstream ss;
+		ss << "Zoom2: " << iZoom2;
+		std::string sDetectedValue = ss.str();
+		ss.clear();
+		ss << "Default Zoom 1/2: " << iCabalDefaultZoom;
+		std::string sDefaultValue = ss.str();
+		ss.clear();
+		funcCallbackHandler("CABAL MODULE ADDRESS", "ZOOM OFFSET 2", sDetectedValue, sDefaultValue);
+		return true;
+	}
+
+	return false;
+}
+
+bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillAnimation()
+{
+	LPCVOID SkillCastAddress = GetAddressOfLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
+	//CreateThread(NULL, NULL, LPTHREAD_START_ROUTINE(WriteMemoryValueAsync), (void*)this, 0, 0);
+
+	int iCurrentAnimationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
+
+	if (iCurrentAnimationValue == iCabalAnimationSkill)
+	{
+		int iCurrentSkillCastValue = ReadMemoryInt(hProcessHandle, SkillCastAddress);
+		if (iCurrentSkillCastValue < iCabalSkillValueLowerLimit)
+		{
+			std::stringstream ss;
+			ss << iCurrentSkillCastValue;
+			funcCallbackHandler("CABAL MODULE ADDRESS", "SKILL CAST OFFSET", ">3000000", ss.str());
+			return true;
+		}
+	}
 	return false;
 }
 
@@ -105,5 +177,21 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_EnableWallHack()
 
 
 //Private
+//TEST
+//void Virtual_Memory_Protection_Cabal_Online::WriteMemoryValueAsync(void* Param)
+//{
+//
+//	Virtual_Memory_Protection_Cabal_Online* This = (Virtual_Memory_Protection_Cabal_Online*)Param;
+//	
+//	std::clock_t start;
+//	double dDuration = 0;
+//	start = std::clock();
+//	do
+//	{
+//		This->WriteIntToMemory(This->hProcessHandle, (LPCVOID)0x0f12f2ec, 1);
+//		dDuration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+//	} while (dDuration < 0.1);
+//	
+//}
 
 
