@@ -39,7 +39,6 @@ namespace ProtegaClientTestsuite
 		{		
 			HINSTANCE hInstLibrary = LoadLibrary(L"Protega.dll");
 			MainCallFunction PEntryMain;
-			getStopTrigger stopTrigger;
 
 			PEntryMain = (MainCallFunction)GetProcAddress(hInstLibrary, "ProcMainEntry");
 			//stopTrigger = (getStopTrigger)GetProcAddress(hInstLibrary, "stopTrigger");

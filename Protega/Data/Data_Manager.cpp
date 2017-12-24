@@ -34,13 +34,13 @@ bool Data_Manager::CollectDynamicProtesData()
 
 	ssUrlCombiner << TARGET_ENVIORMENT_DATA_URL << TARGET_ENVIORMENT_HEURISTIC_DATA_FILE_NAME;
 	ssHeuristicFilePathCombiner << LOKAL_DATA_FOLDER << TARGET_ENVIORMENT_HEURISTIC_DATA_FILE_NAME;
-	Data_Gathering::DownloadWebFile(strdup(ssUrlCombiner.str().c_str()), strdup(ssHeuristicFilePathCombiner.str().c_str()));
+	Data_Gathering::DownloadWebFile(_strdup(ssUrlCombiner.str().c_str()), _strdup(ssHeuristicFilePathCombiner.str().c_str()));
 	ssUrlCombiner.str(std::string());
 
 
 	ssUrlCombiner << TARGET_ENVIORMENT_DATA_URL << TARGET_ENVIORMENT_OWNER_NAME << '/' << TARGET_ENVIORMENT_VMP_FILE_NAME;
 	ssVMPFilePathCombiner << LOKAL_DATA_FOLDER << TARGET_ENVIORMENT_VMP_FILE_NAME;
-	Data_Gathering::DownloadWebFile(strdup(ssUrlCombiner.str().c_str()), strdup(ssVMPFilePathCombiner.str().c_str()));
+	Data_Gathering::DownloadWebFile(_strdup(ssUrlCombiner.str().c_str()), _strdup(ssVMPFilePathCombiner.str().c_str()));
 	ssUrlCombiner.str(std::string());
 
 	//Read encrypted string from files
