@@ -48,10 +48,8 @@ namespace ProtegaClientTestsuite
 	public:
 
 		//This test emulates the usage of Virtual_Memory_Protection_Engine class.
-		//The speed value of cabal is the value that gets checked here
-		TEST_METHOD(Protection_VMP_ChangeSpeedValue_Test)
+		TEST_METHOD(Protection_VMP_SpeedHackPrevention_Test)
 		{
-
 			//Get process id
 			unsigned int processId = GetProcessId(sProcessName);
 			//init class
@@ -63,7 +61,7 @@ namespace ProtegaClientTestsuite
 			//Loop "scan all addresses" function
 			do
 			{
-				//VMP_S->VMP_CheckGameSpeed();
+				VMP_S->VMP_CheckGameSpeed();
 				Sleep(1000);
 			} while (!bDetect);
 		}
@@ -79,6 +77,29 @@ namespace ProtegaClientTestsuite
 			VMP_S->OpenProcessInstance();
 			VMP_S->VMP_CheckWallBorders();
 		}	
+
+		TEST_METHOD(Protection_VMP_ZoomHackPrevention_Test) 
+		{
+
+		}
+
+		TEST_METHOD(Protection_VMP_NoSkillCastPrevention_Test)
+		{
+			//Get process id
+			unsigned int processId = GetProcessId(sProcessName);
+			//init class
+			Virtual_Memory_Protection_Cabal_Online *VMP_S = new Virtual_Memory_Protection_Cabal_Online(processId,
+				std::bind(&ProtectionTests::VMP_S_CallBack, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+
+			VMP_S->OpenProcessInstance();
+
+			//Loop "scan all addresses" function
+			do
+			{
+				VMP_S->VMP_CheckSkillCast();
+				Sleep(1000);
+			} while (!bDetect);
+		}
 
 		void VMP_S_CallBack(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sStandartValue)
 		{
