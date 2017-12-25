@@ -48,6 +48,7 @@ private:
 public:
 	Virtual_Memory_Protection_Cabal_Online(unsigned int iProcessID,
 		std::function<void(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sStandartValue) > funcCallbackHandler);
+	
 	bool OpenProcessInstance();
 	bool CloseProcessInstance();
 	void CheckAllVmpFunctions();
@@ -56,7 +57,8 @@ public:
 	bool VMP_CheckGameSpeed();
 	bool VMP_CheckWallBorders();
 	bool VMP_CheckZoomState();
-	bool VMP_CheckNoSkillAnimation();
+	bool VMP_CheckNoSkillDelay();
+	bool VMP_SkillRangeCheck();
 	//VMP Tests
 	bool VMP_EnableWallHack();
 

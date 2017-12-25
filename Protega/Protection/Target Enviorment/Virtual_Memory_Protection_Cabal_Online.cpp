@@ -37,6 +37,7 @@ void Virtual_Memory_Protection_Cabal_Online::CheckAllVmpFunctions()
 }
 
 //VMP Functions
+//NOTE: There are different speed values! Check all of them!
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckGameSpeed()
 {
 	//Check if we are currently on a map
@@ -94,10 +95,11 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckWallBorders()
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckZoomState()
 {
 	//Maybe we need here a map check later...
-
+	//Get Zoom Values
 	int iZoom1 = ReadMemoryInt(hProcessHandle, (LPCVOID)((unsigned int)lpcvCabalModuleAddress + (unsigned int)lpcvCabalZoomOffset1));
 	int iZoom2 = ReadMemoryInt(hProcessHandle, (LPCVOID)((unsigned int)lpcvCabalModuleAddress + (unsigned int)lpcvCabalZoomOffset2));
-
+	
+	//Check if they are showing the default value
 	if (iZoom1 != iCabalDefaultZoom && iZoom2 != iCabalDefaultZoom)
 	{
 		std::stringstream ss;
@@ -141,16 +143,23 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckZoomState()
 	return false;
 }
 
-bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillAnimation()
+//NOTE: There has to be some other checks. E.G: No stun = 7 -> cast > 30000000, No stun = 3 -> 1XXXXXXXX ....
+bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay()
 {
+	//Get Skill Cast address to write them later
 	LPCVOID SkillCastAddress = GetAddressOfLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
-	//CreateThread(NULL, NULL, LPTHREAD_START_ROUTINE(WriteMemoryValueAsync), (void*)this, 0, 0);
 
+	//CreateThread(NULL, NULL, LPTHREAD_START_ROUTINE(WriteMemoryValueAsync), (void*)this, 0, 0);
+	
+	//Get the actual animation value
 	int iCurrentAnimationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
 
+	//Check of the animation value is currently showing a skill
 	if (iCurrentAnimationValue == iCabalAnimationSkill)
 	{
+		//Get the current skill cast value
 		int iCurrentSkillCastValue = ReadMemoryInt(hProcessHandle, SkillCastAddress);
+		//Check if the value is NOT a skill animation cast
 		if (iCurrentSkillCastValue < iCabalSkillValueLowerLimit)
 		{
 			std::stringstream ss;
@@ -159,6 +168,12 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillAnimation()
 			return true;
 		}
 	}
+	return false;
+}
+
+bool Virtual_Memory_Protection_Cabal_Online::VMP_SkillRangeCheck()
+{
+	//Check GM, GM range, GM AOE <> 0
 	return false;
 }
 
