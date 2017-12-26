@@ -171,6 +171,45 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay()
 	return false;
 }
 
+//NOTE: Set sleep vars global! Algorithm speed: 100ms! Gamestart + freeze NCT = 0 -> Makes some problems. Check it later!
+//Comment code!
+bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime()
+{
+	//Check if its the first run
+	if (iCabalLatestNoCastTimeValue == 0 && iCabalLatestCastValue == 0)
+	{
+		iCabalLatestNoCastTimeValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
+		iCabalLatestCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
+	}
+	
+	int iCurrentSkillCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
+
+	if (iCurrentSkillCastValue != iCabalLatestCastValue)
+	{
+		int iCurrentAnimationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
+		
+		if (iCurrentAnimationValue == iCabalAnimationSkill && iCurrentSkillCastValue >= iCabalSkillValueLowerLimit)
+		{
+			Sleep(200);
+			int iCurrentNoCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
+			
+			if (iCabalLatestNoCastTimeValue == iCurrentNoCastValue)
+			{
+				funcCallbackHandler("CABAL MODULE ADDRESS", "SKILL CAST OFFSET", ">3000000", "");
+				return true;
+			}
+			else
+			{
+				iCabalLatestNoCastTimeValue = iCurrentNoCastValue;
+				
+			}
+		}
+		iCabalLatestCastValue = iCurrentSkillCastValue;
+	}
+
+	return false;
+}
+
 bool Virtual_Memory_Protection_Cabal_Online::VMP_SkillRangeCheck()
 {
 	//Check GM, GM range, GM AOE <> 0

@@ -26,6 +26,7 @@ private:
 
 	LPCVOID lpcvCabalSkillCastOffset = (LPCVOID)0x72D4;
 	LPCVOID lpcvCabalAnimationOffset = (LPCVOID)0x1F4;
+	LPCVOID lpcvCabalNoCastTimeOffset = (LPCVOID)0x3578;
 
 	//Cabal Values
 	int iCabalMapDefaultValue = 4294967295;
@@ -34,6 +35,9 @@ private:
 	int iCabalAnimationRun = 5;
 	int iCabalAnimationSkill = 7;
 	float fCabalNormalSpeed = 450.f;
+
+	int iCabalLatestNoCastTimeValue = 0;
+	int iCabalLatestCastValue = 0;
 
 
 	//Vars
@@ -58,6 +62,7 @@ public:
 	bool VMP_CheckWallBorders();
 	bool VMP_CheckZoomState();
 	bool VMP_CheckNoSkillDelay();
+	bool VMP_CheckNoCastTime();
 	bool VMP_SkillRangeCheck();
 	//VMP Tests
 	bool VMP_EnableWallHack();
