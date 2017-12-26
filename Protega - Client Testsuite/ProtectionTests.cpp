@@ -83,7 +83,7 @@ namespace ProtegaClientTestsuite
 
 		}
 
-		TEST_METHOD(Protection_VMP_NoSkillCastPrevention_Test)
+		TEST_METHOD(Protection_VMP_NoSkillDelayPrevention_Test)
 		{
 			//Get process id
 			unsigned int processId = GetProcessId(sProcessName);
@@ -96,8 +96,26 @@ namespace ProtegaClientTestsuite
 			//Loop "scan all addresses" function
 			do
 			{
-				VMP_S->VMP_CheckSkillCast();
+				VMP_S->VMP_CheckNoSkillDelay();
 				Sleep(1000);
+			} while (!bDetect);
+		}
+
+		TEST_METHOD(Protection_VMP_NoCastTimePrevention_Test)
+		{
+			//Get process id
+			unsigned int processId = GetProcessId(sProcessName);
+			//init class
+			Virtual_Memory_Protection_Cabal_Online *VMP_S = new Virtual_Memory_Protection_Cabal_Online(processId,
+				std::bind(&ProtectionTests::VMP_S_CallBack, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+
+			VMP_S->OpenProcessInstance();
+
+			//Loop "scan all addresses" function
+			do
+			{
+				VMP_S->VMP_CheckNoCastTime();
+				Sleep(100);
 			} while (!bDetect);
 		}
 
@@ -130,6 +148,7 @@ namespace ProtegaClientTestsuite
 			
 			HEP->DoScanProcessNames();
 		}
+		
 		void Heuristic_Callback(std::wstring sDetection, std::list<std::string> lOtherInformation)
 		{
 
