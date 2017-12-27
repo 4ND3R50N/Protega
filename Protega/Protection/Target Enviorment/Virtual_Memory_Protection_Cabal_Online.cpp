@@ -80,7 +80,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckWallBorders()
 	double dPercentOfNonZeros = 100.0 - dPercentOfZeros;
 
 	//This decision must be adjusted later!!!
-	if (dPercentOfZeros == 100.0)
+	if (dPercentOfZeros >= 80.0)
 	{
 		funcCallbackHandler("CABAL WALL BASE ADDRESS", "WALL START OFFSET", "100 % ZEROS", "NOT 100 %");
 		return true;
@@ -91,6 +91,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckWallBorders()
 	return false;
 }
 
+//NOTE: reset vars to 3 after a detect
 //HAS TO BE TESTED
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckZoomState()
 {
@@ -100,7 +101,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckZoomState()
 	int iZoom2 = ReadMemoryInt(hProcessHandle, (LPCVOID)((unsigned int)lpcvCabalModuleAddress + (unsigned int)lpcvCabalZoomOffset2));
 	
 	//Check if they are showing the default value
-	if (iZoom1 != iCabalDefaultZoom && iZoom2 != iCabalDefaultZoom)
+	if (iZoom1 != iCabalDefaultZoom || iZoom2 != iCabalDefaultZoom)
 	{
 		std::stringstream ss;
 		ss << "Zoom1: " << iZoom1 << " | Zoom2: " << iZoom2;
@@ -110,36 +111,9 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckZoomState()
 		std::string sDefaultValue = ss.str();
 		ss.clear();
 
-		funcCallbackHandler("CABAL MODULE ADDRESS", "ZOOM OFFSET 1 AND 2", sDetectedValue, sDefaultValue);
+		funcCallbackHandler("CABAL MODULE ADDRESS", "ZOOM OFFSET 1 OR 2", sDetectedValue, sDefaultValue);
 		return true;
 	}
-
-	if (iZoom1 != iCabalDefaultZoom)
-	{
-		std::stringstream ss;
-		ss << "Zoom1: " << iZoom1;
-		std::string sDetectedValue = ss.str();
-		ss.clear();
-		ss << "Default Zoom 1/2: " << iCabalDefaultZoom;
-		std::string sDefaultValue = ss.str();
-		ss.clear();
-		funcCallbackHandler("CABAL MODULE ADDRESS", "ZOOM OFFSET 1", sDetectedValue, sDefaultValue);
-		return true;
-	}
-
-	if (iZoom2 != iCabalDefaultZoom)
-	{
-		std::stringstream ss;
-		ss << "Zoom2: " << iZoom2;
-		std::string sDetectedValue = ss.str();
-		ss.clear();
-		ss << "Default Zoom 1/2: " << iCabalDefaultZoom;
-		std::string sDefaultValue = ss.str();
-		ss.clear();
-		funcCallbackHandler("CABAL MODULE ADDRESS", "ZOOM OFFSET 2", sDetectedValue, sDefaultValue);
-		return true;
-	}
-
 	return false;
 }
 
@@ -213,6 +187,22 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime()
 bool Virtual_Memory_Protection_Cabal_Online::VMP_SkillRangeCheck()
 {
 	//Check GM, GM range, GM AOE <> 0
+	int iCabalCurrentGmValue = ReadMemoryInt(hProcessHandle, lpcvCabalGmAddress);
+	int iCabalCurrentRangeValue = ReadMemoryInt(hProcessHandle, lpcvCabalRangeAddress);
+	int iCabalCurrentAoeValue = ReadMemoryInt(hProcessHandle, lpcvCabalAoeAddress);
+
+	if (iCabalCurrentGmValue != iCabalDefaultGM || iCabalCurrentRangeValue != iCabalDefaultRange || iCabalCurrentAoeValue != iCabalDefaultAOE)
+	{
+		std::stringstream ss;
+		ss << "GM: " << iCabalCurrentGmValue << " | Range: " << iCabalCurrentRangeValue << " | Aoe: " << iCabalCurrentAoeValue;
+		std::string sDetectedValues = ss.str();
+		ss.clear();
+		ss << "GM: " << iCabalDefaultGM << " | Range: " << iCabalDefaultRange << " | Aoe: " << iCabalDefaultAOE;
+		std::string sDefaultValues = ss.str();
+		ss.clear();
+		funcCallbackHandler("GM | RANGE | AOE", "X", sDetectedValues, sDefaultValues);
+	}
+
 	return false;
 }
 

@@ -13,6 +13,9 @@ private:
 	LPCVOID lpcvCabalWallBaseAddress = (LPCVOID)0x010838D8;
 	LPCVOID lpcvCabalModuleAddress = (LPCVOID)0x400000;
 
+	LPCVOID lpcvCabalGmAddress = (LPCVOID)0x0107D588;
+	LPCVOID lpcvCabalRangeAddress = (LPCVOID)0x010CDC40;
+	LPCVOID lpcvCabalAoeAddress = (LPCVOID)0x010CDC44;
 
 	//Cabal Offsets
 	LPCVOID lpcvCabalMapOffset =   (LPCVOID)0x000072E4;
@@ -28,18 +31,27 @@ private:
 	LPCVOID lpcvCabalAnimationOffset = (LPCVOID)0x1F4;
 	LPCVOID lpcvCabalNoCastTimeOffset = (LPCVOID)0x3578;
 
+	
+
 	//Cabal Values
+	//	Map
 	int iCabalMapDefaultValue = 4294967295;
+	//	Zoom
 	int iCabalDefaultZoom = 3;
+	//	NSD + NCT
 	int iCabalSkillValueLowerLimit = 3000000;
 	int iCabalAnimationRun = 5;
 	int iCabalAnimationSkill = 7;
-	float fCabalNormalSpeed = 450.f;
 
 	int iCabalLatestNoCastTimeValue = 0;
 	int iCabalLatestCastValue = 0;
-
-
+	//	Speedcheck
+	float fCabalNormalSpeed = 450.f;
+	//	Rangecheck
+	int iCabalDefaultGM = 0;
+	int iCabalDefaultRange = 0;
+	int iCabalDefaultAOE = 0;
+	
 	//Vars
 	unsigned int iProcessID;
 	
