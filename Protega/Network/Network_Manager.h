@@ -4,10 +4,6 @@
 #include <boost/algorithm/string.hpp>
 #include <thread>
 
-#pragma region Web Config
-#define TELEGRAM_SPLIT_CHAR ";"
-#pragma endregion
-
 struct NetworkTelegram {
 	int iTelegramNumber;
 	std::vector<std::string> lParameters;
@@ -19,13 +15,15 @@ private:
 	//Vars
 	string sIP;
 	string iPort;
+	const char* sProtocolDelimiter;
+	const char* sDataDelimiter;
 	NetworkTelegram NetworkTelegramMessage;
 	//Functions
 	bool SendAndGet(const char* sMessage);
 	void OnReceiveConverter(string sMessage);
 	std::function<void(NetworkTelegram Telegram)> funcCallbackHandler;
 public:
-	Network_Manager(string sIP, string iPort, std::function<void(NetworkTelegram Telegram)> funcCallbackHandler);
+	Network_Manager(std::string sIP, std::string iPort, const char* sProtocolDelimiter, const char* sDataDelimiter, std::function<void(NetworkTelegram Telegram)> funcCallbackHandler);
 	~Network_Manager();
 	bool TestMessage_001();
 };

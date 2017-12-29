@@ -1,10 +1,12 @@
 #include "../stdafx.h"
 #include "Network_Manager.h"
 
-Network_Manager::Network_Manager(string sIP, string iPort, std::function<void(NetworkTelegram Telegram)> funcCallbackHandler)
+Network_Manager::Network_Manager(std::string sIP, std::string sPort, const char* sProtoclDelimiter, const char* sDataDelimiter, std::function<void(NetworkTelegram Telegram)> funcCallbackHandler)
 {
 	this->sIP = sIP;
 	this->iPort = iPort;
+	this->sProtocolDelimiter = sProtocolDelimiter;
+	this->sDataDelimiter = sDataDelimiter;
 	this->funcCallbackHandler = funcCallbackHandler;
 }
 
@@ -22,6 +24,8 @@ bool Network_Manager::TestMessage_001()
 	return true;
 }
 
+
+//Private
 bool Network_Manager::SendAndGet(const char * sMessage)
 {
 	try
@@ -31,7 +35,7 @@ bool Network_Manager::SendAndGet(const char * sMessage)
 		tcp::resolver::query Query(sIP, iPort);
 		tcp::resolver::iterator EndPointIterator = Resolver.resolve(Query);
 
-		Tcp_Connector Test(IO_Service, EndPointIterator, std::bind(&Network_Manager::OnReceiveConverter, this, std::placeholders::_1));
+		Tcp_Connector Test(IO_Service, EndPointIterator, std::bind(&Network_Manager::OnReceiveConverter, this, std::placeholders::_1), sProtocolDelimiter);
 		Test.Connect();
 		Test.SendAndReceive(sMessage);
 		Test.Close();
@@ -41,15 +45,14 @@ bool Network_Manager::SendAndGet(const char * sMessage)
 	{
 		MessageBoxA(NULL, e.what(), "Protega antihack engine", NULL);
 		return false;
-	}	
+	}
 	return true;
 }
 
-//Private
 void Network_Manager::OnReceiveConverter(string sMessage)
 {
 	std::vector<std::string> lParameters;
-	boost::split(lParameters, sMessage, boost::is_any_of(TELEGRAM_SPLIT_CHAR));
+	boost::split(lParameters, sMessage, boost::is_any_of(sDataDelimiter));
 	NetworkTelegramMessage.iTelegramNumber = atoi(lParameters[0].c_str());
 	lParameters.erase(lParameters.begin());
 	NetworkTelegramMessage.lParameters = lParameters;
