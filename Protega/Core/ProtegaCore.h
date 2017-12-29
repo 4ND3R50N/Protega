@@ -1,5 +1,6 @@
 #pragma once
 #include "../Network/Network_Manager.h"
+#include "../Data/Data_Manager.h"
 
 class ProtegaCore
 {
