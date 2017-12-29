@@ -2,11 +2,24 @@
 #include "Tcp_Connector.h"
 
 Tcp_Connector::Tcp_Connector(boost::asio::io_service & IO_Service, tcp::resolver::iterator EndPointIter,
-	std::function<void(string sMessage)> funcCallbackHandler) : m_IOService(IO_Service), m_Socket(IO_Service), m_SendBuffer("")
+	std::function<void(string sMessage)> funcCallbackHandler, const char * sProtocolDelimiter) : m_IOService(IO_Service), m_Socket(IO_Service), m_SendBuffer("")
 { 
 	EndPoint = *EndPointIter;
 	this->EndPointIter = EndPointIter;
 	this->funcCallbackHandler = funcCallbackHandler;
+	this->sProtocolDelimiter = sProtocolDelimiter;
+}
+
+Tcp_Connector::Tcp_Connector(boost::asio::io_service & IO_Service, tcp::resolver::iterator EndPointIter, 
+	std::function<void(string sMessage)> funcCallbackHandler, const char * sProtocolDelimiter, const char * sAesKey, const char * sAesIV) : m_IOService(IO_Service), m_Socket(IO_Service), m_SendBuffer("")
+{
+	EndPoint = *EndPointIter;
+	this->EndPointIter = EndPointIter;
+	this->funcCallbackHandler = funcCallbackHandler;
+	this->sProtocolDelimiter = sProtocolDelimiter;
+	this->sAesKey = sAesKey;
+	this->sAesIV = sAesIV; 
+	bEncryptedNetworking = true;
 }
 
 Tcp_Connector::~Tcp_Connector()
@@ -22,11 +35,18 @@ bool Tcp_Connector::Connect()
 	return true;
 }
 
-
 bool Tcp_Connector::SendAndReceive(string sMessage)
 {
 	//Try Catch?
-	m_SendBuffer = CryptoPP_AES_Converter::Encrypt("1234567890123456", "bbbbbbbbbbbbbbbb",sMessage);
+	if (bEncryptedNetworking)
+	{
+		m_SendBuffer = CryptoPP_AES_Converter::Encrypt(sAesKey, sAesIV, sMessage);
+	}
+	else
+	{
+		m_SendBuffer = sMessage;
+	}
+	
 	m_Socket.send(boost::asio::buffer(m_SendBuffer.c_str(), m_SendBuffer.length() + 1));
 	char *cJunk;
 	std::string sDecryptedMessage;
@@ -36,7 +56,7 @@ bool Tcp_Connector::SendAndReceive(string sMessage)
 		size_t len = m_Socket.read_some(boost::asio::buffer(m_ReceiveBuffer), m_Error);
 		
 		//INFO: Globallize the delimiter
-		cJunk = strstr(m_ReceiveBuffer.c_array(), "~");
+		cJunk = strstr(m_ReceiveBuffer.c_array(), sProtocolDelimiter);
 
 		if (cJunk == NULL)
 			return false; // Connection closed cleanly by peer.
@@ -49,7 +69,15 @@ bool Tcp_Connector::SendAndReceive(string sMessage)
 		boost::erase_all(sFinalData, cJunk);
 
 		//todo: ~ -> Global
-		sDecryptedMessage  = CryptoPP_AES_Converter::Decrypt("1234567890123456", "bbbbbbbbbbbbbbbb", sFinalData);
+		if (bEncryptedNetworking)
+		{
+			sDecryptedMessage = CryptoPP_AES_Converter::Decrypt(sAesKey, sAesIV, sFinalData);
+		}
+		else
+		{
+			sDecryptedMessage = sFinalData;
+		}
+		
 		break;
 	}
 	
@@ -62,7 +90,6 @@ void Tcp_Connector::Close()
 	m_IOService.post(
 		boost::bind(&Tcp_Connector::DoClose, this));
 }
-
 
 void Tcp_Connector::DoClose()
 {
