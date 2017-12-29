@@ -36,7 +36,9 @@ void Virtual_Memory_Protection_Cabal_Online::CheckAllVmpFunctions()
 
 }
 
+
 //VMP Functions
+
 //NOTE: There are different speed values! Check all of them!
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckGameSpeed()
 {
@@ -184,7 +186,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime()
 	return false;
 }
 
-bool Virtual_Memory_Protection_Cabal_Online::VMP_SkillRangeCheck()
+bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckSkillRange()
 {
 	//Check GM, GM range, GM AOE <> 0
 	int iCabalCurrentGmValue = ReadMemoryInt(hProcessHandle, lpcvCabalGmAddress);
@@ -196,13 +198,47 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_SkillRangeCheck()
 		std::stringstream ss;
 		ss << "GM: " << iCabalCurrentGmValue << " | Range: " << iCabalCurrentRangeValue << " | Aoe: " << iCabalCurrentAoeValue;
 		std::string sDetectedValues = ss.str();
-		ss.clear();
+		ss.str("");
 		ss << "GM: " << iCabalDefaultGM << " | Range: " << iCabalDefaultRange << " | Aoe: " << iCabalDefaultAOE;
 		std::string sDefaultValues = ss.str();
-		ss.clear();
+		ss.str("");
 		funcCallbackHandler("GM | RANGE | AOE", "X", sDetectedValues, sDefaultValues);
 	}
 
+	return false;
+}
+
+bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckSkillCooldown()
+{	
+	int iCurrentSkillCooldownValue = ReadMemoryInt(hProcessHandle, lpcvCabalSkillCooldownAddress);
+	if (iCurrentSkillCooldownValue != iCabalDefaultSkillCooldown)
+	{
+		std::stringstream ss;
+		ss << "Cooldown: " << iCurrentSkillCooldownValue;
+		std::string sDetectedValue = ss.str();
+		ss.str("");
+		ss << "Cooldown: " << iCabalDefaultSkillCooldown;
+		std::string sDefaultValue = ss.str();
+		ss.str("");
+		funcCallbackHandler("CABAL SKILL COOLDOWN", "X", sDetectedValue, sDefaultValue);
+		return true;
+	}
+	return false;
+}
+
+bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNation()
+{
+	int iCurrentNationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNationOffset);
+	if (iCurrentNationValue == iCabalGm)
+	{
+		std::stringstream ss;
+		ss << "Nation: " << iCurrentNationValue;
+		std::string sDetectedValue = ss.str();
+		ss.str("");
+		ss << "Nation: " << iCabalGm;
+		std::string sDefaultValue = ss.str();
+		funcCallbackHandler("CABAL MODULE ADDRESS", "NATION OFFSET", sDetectedValue, sDefaultValue);
+	}
 	return false;
 }
 

@@ -17,6 +17,8 @@ private:
 	LPCVOID lpcvCabalRangeAddress = (LPCVOID)0x010CDC40;
 	LPCVOID lpcvCabalAoeAddress = (LPCVOID)0x010CDC44;
 
+	LPCVOID lpcvCabalSkillCooldownAddress = (LPCVOID)0x876FB4;
+
 	//Cabal Offsets
 	LPCVOID lpcvCabalMapOffset =   (LPCVOID)0x000072E4;
 	LPCVOID lpcvCabalSpeedOffset = (LPCVOID)0x204;
@@ -31,7 +33,8 @@ private:
 	LPCVOID lpcvCabalAnimationOffset = (LPCVOID)0x1F4;
 	LPCVOID lpcvCabalNoCastTimeOffset = (LPCVOID)0x3578;
 
-	
+	LPCVOID lpcvCabalNationOffset = (LPCVOID)0x35C;
+
 
 	//Cabal Values
 	//	Map
@@ -51,6 +54,10 @@ private:
 	int iCabalDefaultGM = 0;
 	int iCabalDefaultRange = 0;
 	int iCabalDefaultAOE = 0;
+	//	No Cooldown
+	int iCabalDefaultSkillCooldown = 69485707;
+	//	Monitoring
+	int iCabalGm = 2;
 	
 	//Vars
 	unsigned int iProcessID;
@@ -69,13 +76,18 @@ public:
 	bool CloseProcessInstance();
 	void CheckAllVmpFunctions();
 
+
+
 	//VMP Functions
 	bool VMP_CheckGameSpeed();
 	bool VMP_CheckWallBorders();
 	bool VMP_CheckZoomState();
 	bool VMP_CheckNoSkillDelay();
 	bool VMP_CheckNoCastTime();
-	bool VMP_SkillRangeCheck();
+	bool VMP_CheckSkillRange();
+	bool VMP_CheckSkillCooldown();
+	bool VMP_CheckNation();
+
 	//VMP Tests
 	bool VMP_EnableWallHack();
 
