@@ -5,7 +5,7 @@ Heuristic_Scan_Engine::Heuristic_Scan_Engine(std::list<std::wstring> lBlackListP
 	std::list<std::string> lBlackListWindowNames,
 	std::list<std::string> lBlackListClassNames,
 	std::list<std::string> lBlackListMd5Values,
-	std::function<void(std::wstring sDetectedValue, std:: list<std::string> lOtherInformation) > funcErrorCallbackHandler)
+	std::function<void(std::wstring sDetectedValue) > funcErrorCallbackHandler)
 {
 	//Set data
 	this->lBlackListProcessNames = lBlackListProcessNames;
@@ -71,6 +71,7 @@ bool Heuristic_Scan_Engine::DoScanProcessNames()
 			//Detection handling
 			std::list<std::string> lOtherInformation;
 			std::list<std::string>::iterator sIt = std::next(lBlackListWindowNames.begin(), iForCounter);	
+		
 			//Get other data
 			lOtherInformation.push_back(sIt->c_str());
 			sIt = std::next(lBlackListClassNames.begin(), iForCounter);
@@ -78,7 +79,7 @@ bool Heuristic_Scan_Engine::DoScanProcessNames()
 			sIt = std::next(lBlackListMd5Values.begin(), iForCounter);
 			lOtherInformation.push_back(sIt->c_str());
 			//Send them to the protection manager
-			funcErrorCallbackHandler(wsItBlackListEntry, lOtherInformation);
+			funcErrorCallbackHandler(wsItBlackListEntry);
 			return true;
 		}
 		iForCounter++;
@@ -88,9 +89,6 @@ bool Heuristic_Scan_Engine::DoScanProcessNames()
 
 bool Heuristic_Scan_Engine::ScanWindowNames()
 {
-
-
-
 	return false;
 }
 
@@ -101,6 +99,51 @@ bool Heuristic_Scan_Engine::ScanClassNames()
 
 bool Heuristic_Scan_Engine::ScanProcessMd5Hash()
 {
+	//get current process names
+	std::stringstream ss;
+	std::list<std::wstring> lCurrentProcessNames;
+	std::list<DWORD> lCurrentProcessIDsTmp;
+	GetCurrentProcessNamesAndPIDs(lCurrentProcessNames, lCurrentProcessIDsTmp);
+	
+	//
+	HANDLE hProcessHandle;
+	wchar_t wtFilePath[MAX_PATH];
+
+	std::list<DWORD>::iterator itDwProcessID;
+
+	for (itDwProcessID = lCurrentProcessIDsTmp.begin(); itDwProcessID != lCurrentProcessIDsTmp.end(); ++itDwProcessID) {
+
+		hProcessHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, *itDwProcessID);
+
+		if (hProcessHandle)
+		{
+			GetModuleFileNameEx(hProcessHandle, 0, wtFilePath, MAX_PATH);
+			std::string sMD5Hash = "";
+			_bstr_t bstrFilePath(wtFilePath);
+
+			try
+			{
+				sMD5Hash = GetMD5Hash(bstrFilePath);
+			}
+			catch (const std::exception& e)
+			{
+				continue;
+			}
+			
+			bool bEntryFound = (std::find(lBlackListMd5Values.begin(), lBlackListMd5Values.end(), sMD5Hash) != lBlackListMd5Values.end());
+			
+			if (bEntryFound)
+			{
+				// Overestimate number of code points.
+				std::wstring wsMD5Hash(sMD5Hash.size(), L' '); 
+				// Shrink to fit.
+				wsMD5Hash.resize(std::mbstowcs(&wsMD5Hash[0], sMD5Hash.c_str(), sMD5Hash.size()));
+				funcErrorCallbackHandler(wsMD5Hash);
+			}
+
+			CloseHandle(hProcessHandle);
+		}
+	}
 	return false;
 }
 
@@ -127,4 +170,7 @@ void Heuristic_Scan_Engine::GetCurrentProcessNamesAndPIDs(std::list<std::wstring
 
 }
 
-
+std::string Heuristic_Scan_Engine::GetMD5Hash(const char * sFilePath)
+{
+	return CryptoPP_Converter::GetMD5ofFile(sFilePath);
+}
