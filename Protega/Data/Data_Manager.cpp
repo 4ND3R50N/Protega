@@ -59,8 +59,8 @@ bool Data_Manager::CollectDynamicProtesData()
 	remove(ssFTCFilePathCombiner.str().c_str());
 
 	//Decrypt data
-	std::string sTempDecryptedHeuristicData = CryptoPP_AES_Converter::Decrypt(DATA_AES_KEY, DATA_AES_IV, sTempEncryptedHeuristicData);
-	std::string sTempDecryptedVirtualMemoryData = CryptoPP_AES_Converter::Decrypt(DATA_AES_KEY, DATA_AES_IV, sTempEncryptedVirtualMemoryData);
+	std::string sTempDecryptedHeuristicData = CryptoPP_Converter::AESDecrypt(DATA_AES_KEY, DATA_AES_IV, sTempEncryptedHeuristicData);
+	std::string sTempDecryptedVirtualMemoryData = CryptoPP_Converter::AESDecrypt(DATA_AES_KEY, DATA_AES_IV, sTempEncryptedVirtualMemoryData);
 
 	//Convert data to lists
 	sHeuristicTable = ConvertStringToMatrix(sTempDecryptedHeuristicData);
