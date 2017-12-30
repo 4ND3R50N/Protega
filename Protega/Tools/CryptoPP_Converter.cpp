@@ -1,8 +1,8 @@
 #include "../stdafx.h"
-#include "CryptoPP_AES_Converter.h"
+#include "CryptoPP_Converter.h"
 
 
-std::string CryptoPP_AES_Converter::Encrypt(const char * sKey, const char * sIV, std::string sData)
+std::string CryptoPP_Converter::AESEncrypt(const char * sKey, const char * sIV, std::string sData)
 {
 	std::string ciphertext;
 
@@ -17,7 +17,7 @@ std::string CryptoPP_AES_Converter::Encrypt(const char * sKey, const char * sIV,
 	return ciphertext;
 }
 
-std::string CryptoPP_AES_Converter::Decrypt(const char * sKey, const char * sIV, std::string sData)
+std::string CryptoPP_Converter::AESDecrypt(const char * sKey, const char * sIV, std::string sData)
 {
 	std::string sResult = "";
 	CryptoPP::AES::Decryption aesDecryption((byte *)sKey, CryptoPP::AES::DEFAULT_KEYLENGTH);
@@ -28,4 +28,13 @@ std::string CryptoPP_AES_Converter::Decrypt(const char * sKey, const char * sIV,
 	stfDecryptor.MessageEnd();
 
 	return sResult;
+}
+
+std::string CryptoPP_Converter::GetMD5ofFile(const char * sFilePath)
+{
+	std::string sMD5Value;
+	CryptoPP::Weak1::MD5 hash;
+	CryptoPP::FileSource(sFilePath, true, new CryptoPP::HashFilter(hash, new CryptoPP::HexEncoder(new CryptoPP::StringSink(sMD5Value))));
+
+	return sMD5Value;
 }
