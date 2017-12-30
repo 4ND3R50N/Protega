@@ -5,7 +5,7 @@
 #include <boost/algorithm/string.hpp>
 #include <memory>
 #include <iostream>
-#include "../Tools/CryptoPP_AES_Converter.h"
+#include "../Tools/CryptoPP_Converter.h"
 
 using boost::asio::ip::tcp;
 using namespace std;

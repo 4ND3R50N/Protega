@@ -14,7 +14,7 @@ namespace ProtegaClientTestsuite
 	{
 	private:
 		std::string sCheckMessage = "Hello!";
-		Network_Manager *NetworkTestManager = new Network_Manager(TEST_IP, TEST_PORT, std::bind(&NetworkTests::ReceiveFunc, this, std::placeholders::_1));
+		Network_Manager *NetworkTestManager = new Network_Manager(TEST_IP, TEST_PORT, "~", ";", std::bind(&NetworkTests::ReceiveFunc, this, std::placeholders::_1));
 	public:
 		
 		//tests normal Send/receive by repeating this process two times

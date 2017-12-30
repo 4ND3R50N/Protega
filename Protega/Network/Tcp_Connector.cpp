@@ -40,7 +40,7 @@ bool Tcp_Connector::SendAndReceive(string sMessage)
 	//Try Catch?
 	if (bEncryptedNetworking)
 	{
-		m_SendBuffer = CryptoPP_AES_Converter::Encrypt(sAesKey, sAesIV, sMessage);
+		m_SendBuffer = CryptoPP_Converter::AESEncrypt(sAesKey, sAesIV, sMessage);
 	}
 	else
 	{
@@ -71,7 +71,7 @@ bool Tcp_Connector::SendAndReceive(string sMessage)
 		//todo: ~ -> Global
 		if (bEncryptedNetworking)
 		{
-			sDecryptedMessage = CryptoPP_AES_Converter::Decrypt(sAesKey, sAesIV, sFinalData);
+			sDecryptedMessage = CryptoPP_Converter::AESDecrypt(sAesKey, sAesIV, sFinalData);
 		}
 		else
 		{

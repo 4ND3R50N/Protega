@@ -3,7 +3,7 @@
 #include <Windows.h>
 #include "CppUnitTest.h"
 #include "../Protega/Tools/SplashDisplayer.h"
-#include "../Protega/Tools/CryptoPP_AES_Converter.h"
+#include "../Protega/Tools/CryptoPP_Converter.h"
 #include "../Protega/Data/Data_Manager.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -114,7 +114,7 @@ namespace ProtegaClientTestsuite
 			isReader.close();
 			sTmp.clear();
 
-			std::string sEncryptedString = CryptoPP_AES_Converter::Encrypt(sAESKey, sIV, sInput);
+			std::string sEncryptedString = CryptoPP_Converter::AESEncrypt(sAESKey, sIV, sInput);
 
 			//Safe encode to file
 			std::ofstream file(sFileToConvert.append(".enc"));
@@ -136,8 +136,8 @@ namespace ProtegaClientTestsuite
 
 		TEST_METHOD(Tools_CheckAESEncryption)
 		{
-			std::string sEncryptedData = CryptoPP_AES_Converter::Encrypt("0123456789abcdef", "aaaaaaaaaaaaaaaa", sMessage);
-			std::string sDecryptedData = CryptoPP_AES_Converter::Decrypt("0123456789abcdef", "aaaaaaaaaaaaaaaa", sEncryptedData);
+			std::string sEncryptedData = CryptoPP_Converter::AESEncrypt("0123456789abcdef", "aaaaaaaaaaaaaaaa", sMessage);
+			std::string sDecryptedData = CryptoPP_Converter::AESDecrypt("0123456789abcdef", "aaaaaaaaaaaaaaaa", sEncryptedData);
 
 			Assert::AreEqual(sMessage.c_str(), sDecryptedData.c_str());
 		}
