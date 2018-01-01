@@ -5,8 +5,8 @@
 #include <tlhelp32.h>
 #include <list>
 #include <comdef.h>
-#include "../Protega/Protection/Target Enviorment/Virtual_Memory_Protection_Cabal_Online.h"
-#include "../Protega/Protection/Target Enviorment/Heuristic_Scan_Engine.h"
+#include "../Protega/Protection/Protection_Manager.h"
+
 
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -50,6 +50,14 @@ namespace ProtegaClientTestsuite
 	public:
 
 		//This test emulates the usage of Virtual_Memory_Protection_Engine class.
+		TEST_METHOD(Protection_Threads_Test)
+		{
+			Protection_Manager* PM = new Protection_Manager();
+			PM->StartProtectionThreads();
+			Sleep(20000);
+
+		}
+
 		TEST_METHOD(Protection_VMP_SpeedHackPrevention_Test)
 		{
 			//Get process id
