@@ -37,6 +37,12 @@ Heuristic_Scan_Engine::Heuristic_Scan_Engine(std::list<std::wstring> lBlackListP
 		std::string& sItData(*sIt);
 		boost::to_upper(sItData);
 	}
+	// lBlackListMD5Values
+	for (sIt = this->lBlackListMd5Values.begin(); sIt != this->lBlackListMd5Values.end(); sIt++)
+	{
+		std::string& sItData(*sIt);
+		boost::to_upper(sItData);
+	}
 }
 
 
@@ -124,6 +130,7 @@ bool Heuristic_Scan_Engine::ScanProcessMd5Hash()
 			try
 			{
 				sMD5Hash = GetMD5Hash(bstrFilePath);
+				boost::to_upper(sMD5Hash);
 			}
 			catch (const std::exception& e)
 			{
