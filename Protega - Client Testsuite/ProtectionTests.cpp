@@ -48,16 +48,33 @@ namespace ProtegaClientTestsuite
 		}
 
 	public:
-
-		//This test emulates the usage of Virtual_Memory_Protection_Engine class.
+		//Protection manager
 		TEST_METHOD(Protection_Threads_Test)
 		{
-			Protection_Manager* PM = new Protection_Manager();
-			PM->StartProtectionThreads();
-			Sleep(20000);
 
+			lBlackListProcessNames.push_back(L"Notepad.exe");
+			lBlackListWindowNames.push_back("ddjbneidb");
+			lBlackListMd5Values.push_back("1c32647a706fbef6faeac45a75201489");
+			lBlackListClassNames.push_back("miaudfhh");
+
+			Protection_Manager* PM = new Protection_Manager(std::bind(&ProtectionTests::PM_Callback, this, std::placeholders::_1),
+				"CabalMain22.exe", 20,
+				lBlackListProcessNames, lBlackListWindowNames, lBlackListClassNames, lBlackListMd5Values);
+			PM->StartProtectionThreads();
+			//Loop "scan all addresses" function
+			do
+			{
+				Sleep(1000);
+			} while (!bDetect);
 		}
 
+		void PM_Callback(std::list<std::wstring> lDetectionInformation)
+		{
+			MessageBoxA(0, "PM_Callback", "PM_Callback", MB_OK);
+		}
+
+		//This test emulates the usage of Virtual_Memory_Protection_Engine class.
+		
 		TEST_METHOD(Protection_VMP_SpeedHackPrevention_Test)
 		{
 			//Get process id
@@ -190,7 +207,7 @@ namespace ProtegaClientTestsuite
 		{
 			lBlackListProcessNames.push_back(L"Notepad.exe");
 			lBlackListWindowNames.push_back("ddjbneidb");
-			lBlackListMd5Values.push_back("15556928CB0E9F74F4036411D8CC111E");
+			lBlackListMd5Values.push_back("1c32647a706fbef6faeac45a75201489");
 			lBlackListClassNames.push_back("miaudfhh");
 
 			Heuristic_Scan_Engine* HEM = new Heuristic_Scan_Engine(lBlackListProcessNames,
