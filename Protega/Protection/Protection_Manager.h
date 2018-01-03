@@ -10,12 +10,17 @@ private:
 	bool iProtectionIsRunning = false;
 	int iTargetProcessId;
 
-	std::thread* tTestThread;
+	std::thread* tHeThread;
+	std::thread* tVmpThread;
+	std::thread* tFpThread;
 
 	double dThreadResponseDelta;
+	std::clock_t ctMainThreadResponse;
 	std::clock_t ctHeResponse;
 	std::clock_t ctVmpResponse;
 	std::clock_t ctFpResponse;
+
+	std::function<void(std::list<std::wstring> lDetectionInformation)> funcCallbackHandler;
 
 	//Classes
 	Heuristic_Scan_Engine* HE;
@@ -23,7 +28,7 @@ private:
 	File_Protection_Engine* FP;
 
 	//Functions
-	//	Threads
+	//	Thread logic
 	void VMP_Thread();
 	void HE_Thread();
 	void FP_Thread();
@@ -31,17 +36,24 @@ private:
 	void HE_Callback(std::wstring sDetectionValue);
 	void VMP_Callback(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sDefaultValue);
 	// Normal functions
-	bool CheckClocks(std::clock_t* ctOwnClock);
+	
 	int GetProcessIdByName(char* ProcName);
+	void StringToWString(std::string sStringToConvert, std::wstring* wsOutput);
 public:
-	Protection_Manager();
-	Protection_Manager(std::string sTargetApplication, 
+	Protection_Manager(std::string sTargetApplication, double dThreadResponseDelta);
+	Protection_Manager(std::function<void(std::list<std::wstring> lDetectionInformation)> funcCallbackHandler,
+		std::string sTargetApplication,
 		double dThreadResponseDelta,
 		std::list<std::wstring> lBlackListProcessNames,
 		std::list<std::string> lBlackListWindowNames,
 		std::list<std::string> lBlackListClassNames,
 		std::list<std::string> lBlackListMd5Values);
 	bool StartProtectionThreads();
+	std::clock_t* GetMainThreadClock();
+	bool CheckClocks(std::clock_t* ctOwnClock);
 	~Protection_Manager();
+
+	
+	
 };
 
