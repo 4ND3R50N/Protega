@@ -31,9 +31,14 @@ bool Virtual_Memory_Protection_Cabal_Online::CloseProcessInstance()
 	return CloseHandle(hProcessHandle);
 }
 
-void Virtual_Memory_Protection_Cabal_Online::CheckAllVmpFunctions()
+bool Virtual_Memory_Protection_Cabal_Online::CheckAllVmpFunctions()
 {
-
+	if ((VMP_CheckGameSpeed() || VMP_CheckWallBorders() || VMP_CheckZoomState() || VMP_CheckNoSkillDelay()  || 
+		VMP_CheckNoCastTime() || VMP_CheckSkillRange() || VMP_CheckSkillCooldown() || VMP_CheckNation()) == true)
+	{
+		return true;
+	}
+	return false;
 }
 
 
@@ -59,6 +64,13 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckGameSpeed()
 
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckWallBorders()
 {
+	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalMapOffset) == iCabalMapDefaultValue)
+	{
+		return false;
+	}
+
+	Sleep(iWallhackScanDelay);
+
 	//Iterate through the Wall adresses
 	int iZeros = 0;
 	int iNonZeros = 0;
@@ -82,9 +94,16 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckWallBorders()
 	double dPercentOfNonZeros = 100.0 - dPercentOfZeros;
 
 	//This decision must be adjusted later!!!
-	if (dPercentOfZeros >= 80.0)
+	if (dPercentOfZeros >= iWallhackZeroTolerance)
 	{
-		funcCallbackHandler("CABAL WALL BASE ADDRESS", "WALL START OFFSET", "100 % ZEROS", "NOT 100 %");
+		std::stringstream ss;
+		ss << dPercentOfZeros << "% Zeros";
+		std::string sDetectedValue = ss.str();
+		ss.str("");
+		ss << "NOT > " << iWallhackZeroTolerance << "%";
+		std::string sDefaultValue = ss.str();
+		ss.str("");
+		funcCallbackHandler("CABAL WALL BASE ADDRESS", "WALL START OFFSET", sDetectedValue, sDefaultValue);
 		return true;
 	}
 
@@ -108,10 +127,10 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckZoomState()
 		std::stringstream ss;
 		ss << "Zoom1: " << iZoom1 << " | Zoom2: " << iZoom2;
 		std::string sDetectedValue = ss.str();
-		ss.clear();
+		ss.str("");
 		ss << "Default Zoom 1/2: " << iCabalDefaultZoom;
 		std::string sDefaultValue = ss.str();
-		ss.clear();
+		ss.str("");
 
 		funcCallbackHandler("CABAL MODULE ADDRESS", "ZOOM OFFSET 1 OR 2", sDetectedValue, sDefaultValue);
 		return true;
@@ -122,6 +141,11 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckZoomState()
 //NOTE: There has to be some other checks. E.G: No stun = 7 -> cast > 30000000, No stun = 3 -> 1XXXXXXXX ....
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay()
 {
+	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
+	{
+		return false;
+	}
+
 	//Get Skill Cast address to write them later
 	LPCVOID SkillCastAddress = GetAddressOfLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
 
@@ -140,7 +164,8 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay()
 		{
 			std::stringstream ss;
 			ss << iCurrentSkillCastValue;
-			funcCallbackHandler("CABAL MODULE ADDRESS", "SKILL CAST OFFSET", ">3000000", ss.str());
+			//Note: Information is unclear...
+			funcCallbackHandler("CABAL MODULE ADDRESS", "SKILL CAST OFFSET", ss.str(), ">3000000");
 			return true;
 		}
 	}
@@ -148,16 +173,22 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay()
 }
 
 //NOTE: Set sleep vars global! Algorithm speed: 100ms! Gamestart + freeze NCT = 0 -> Makes some problems. Check it later!
+//NOTE: Map or animation check is necessary.... maybe...
 //Comment code!
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime()
 {
+	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
+	{
+		return false;
+	}
+
 	//Check if its the first run
 	if (iCabalLatestNoCastTimeValue == 0 && iCabalLatestCastValue == 0)
 	{
 		iCabalLatestNoCastTimeValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
 		iCabalLatestCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
 	}
-	
+
 	int iCurrentSkillCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
 
 	if (iCurrentSkillCastValue != iCabalLatestCastValue)

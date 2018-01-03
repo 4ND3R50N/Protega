@@ -30,6 +30,7 @@ private:
 	LPCVOID lpcvCabalZoomOffset2 = (LPCVOID)0x791DD0;
 
 	LPCVOID lpcvCabalSkillCastOffset = (LPCVOID)0x72D4;
+	LPCVOID lpcvCabalAnimationSkillOffset = (LPCVOID)0x74;
 	LPCVOID lpcvCabalAnimationOffset = (LPCVOID)0x1F4;
 	LPCVOID lpcvCabalNoCastTimeOffset = (LPCVOID)0x3578;
 
@@ -42,6 +43,7 @@ private:
 	//	Zoom
 	int iCabalDefaultZoom = 3;
 	//	NSD + NCT
+	int iCabalSkillAnimationDefaultValue = 4294967295;
 	int iCabalSkillValueLowerLimit = 3000000;
 	int iCabalAnimationRun = 5;
 	int iCabalAnimationSkill = 7;
@@ -56,6 +58,9 @@ private:
 	int iCabalDefaultAOE = 0;
 	//	No Cooldown
 	int iCabalDefaultSkillCooldown = 69485707;
+	//	Wallhack
+	int iWallhackScanDelay = 5000; // <- Loading delay after player joins a map
+	double iWallhackZeroTolerance = 80.0;
 	//	Monitoring
 	int iCabalGm = 2;
 	
@@ -74,7 +79,7 @@ public:
 	
 	bool OpenProcessInstance();
 	bool CloseProcessInstance();
-	void CheckAllVmpFunctions();
+	bool CheckAllVmpFunctions();
 
 
 
