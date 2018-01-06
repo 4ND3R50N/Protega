@@ -154,6 +154,7 @@
     <ClInclude Include="Core\ProtegaCore.h" />
     <ClInclude Include="Data\Data_Gathering.h" />
     <ClInclude Include="Data\Data_Manager.h" />
+    <ClInclude Include="Exception_Manager.h" />
     <ClInclude Include="Network\Network_Manager.h" />
     <ClInclude Include="Network\Tcp_Connector.h" />
     <ClInclude Include="Protection\Protection_Manager.h" />
@@ -192,6 +193,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Exception_Manager.cpp" />
     <ClCompile Include="Network\Network_Manager.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>

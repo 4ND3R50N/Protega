@@ -68,8 +68,11 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckWallBorders()
 	{
 		return false;
 	}
-
-	Sleep(iWallhackScanDelay);
+	else if (bFirstChannelJoin)
+	{
+		Sleep(iWallhackScanDelay);
+		bFirstChannelJoin = false;
+	}
 
 	//Iterate through the Wall adresses
 	int iZeros = 0;

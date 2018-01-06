@@ -1,10 +1,8 @@
 #pragma once
 #include "stdafx.h"
-#include <Windows.h>
+//#include <Windows.h>
 #include "CppUnitTest.h"
-#include "../Protega/Tools/SplashDisplayer.h"
-#include "../Protega/Tools/CryptoPP_Converter.h"
-#include "../Protega/Data/Data_Manager.h"
+#include "../Protega/Core/ProtegaCore.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -64,6 +62,12 @@ namespace ProtegaClientTestsuite
 
 		}
 
+		TEST_METHOD(Core_AntihackRunTest)
+		{
+			ProtegaCore CoreTest;
+			CoreTest.StartAntihack();
+		}
+
 		TEST_METHOD(Data_WebDataGathering)
 		{			
 			Assert::AreEqual(Data_Gathering::GetWebFileAsString("http://62.138.6.50:13011/index.html"), sHttpRequest);
@@ -99,7 +103,7 @@ namespace ProtegaClientTestsuite
 
 		TEST_METHOD(Task_ConvertFileToEnc)
 		{
-			std::string sFileToConvert = ".\\..\\docs\\client\\VMP_Addresses.csv";
+			std::string sFileToConvert = ".\\..\\docs\\client\\Heuristic_Process_Names.csv";
 			const char* sAESKey = "1234567890123456";
 			const char* sIV = "bbbbbbbbbbbbbbbb";
 			std::ifstream isReader;

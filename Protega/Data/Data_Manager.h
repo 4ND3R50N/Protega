@@ -13,27 +13,34 @@ private:
 	//Static Data Storage Vars
 	static char* TARGET_ENVIORMENT_OWNER_NAME;
 	static char* TARGET_ENVIORMENT_DATA_URL;
-	static char* TARGET_ENVIORMENT_HEURISTIC_DATA_FILE_NAME;
+	static char* TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME;
+	static char* TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME;
 	static char* TARGET_ENVIORMENT_FTC_FILE_NAME;
 
-	static char* LOKAL_DATA_FOLDER;
-	static char LOKAL_DATA_NEWLINE_DELIMITER;
-	static char LOKAL_DATA_DELIMITER;
+	static char* LOCAL_DATA_FOLDER;
+	static const char* LOCAL_DATA_NEWLINE_DELIMITER;
+	static const char* LOCAL_DATA_DELIMITER;
+	static std::string LOCAL_DATA_PROTECTION_TARGET;
 
 	static const char* NETWORK_SERVER_IP;
 	static const char* NETWORK_SERVER_PORT;
 	static const char* NETWORK_PROTOCOL_DELIMITER;
 	static const char* NETWORK_DATA_DELIMITER;
+
 	//INFO: Currently we have only 1 pair of AES values. We need 2 for Data and network later!
 	static const char* DATA_AES_KEY;
 	static const char* DATA_AES_IV;
 	
+	static double PROTECTION_THREAD_RESPONSE_DELTA;
+
 	//Dynamic Data Storage Vars
-	static std::string** sHeuristicTable;
-	static std::string** sFTCTable;
+	static std::list<std::string> lHeuristicMD5Values;
+	static std::list<std::wstring> lHeuristicProcessNames;
 
 	//Functions
-	static std::string** ConvertStringToMatrix(std::string sData);
+	static std::list<std::string> ConvertStringToStringList(std::string sData);
+	static std::list<std::wstring> ConvertStringToWStringList(std::string sData);
+	static void StringToWString(std::string sStringToConvert, std::wstring* wsOutput);
 
 public:
 	//Functions
@@ -41,15 +48,16 @@ public:
 	static std::string GenerateComputerID();
 	//Getter
 	static std::string GetTargetEnviormentDataUrl();
-	static std::string GetTargetEnviormentHeuristicDataFileName();
 	static const char* GetNetworkServerIP();
 	static const char* GetNetworkServerPort();
 	static const char* GetProtocolDelimiter();
 	static const char* GetDataDelimiter();
 	static const char* GetNetworkAesKey();
 	static const char* GetNetworkAesIV();
-		
-
+	static double GetProtectionThreadResponseDelta();
+	static std::string GetLocalDataProtectionTarget();
+	static std::list<std::wstring> GetHeuristicProcessNames();
+	static std::list<std::string> GetHeuristicMD5Values();
 
 };
 

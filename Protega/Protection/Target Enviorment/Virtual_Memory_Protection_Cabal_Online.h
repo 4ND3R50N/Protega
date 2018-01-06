@@ -61,11 +61,13 @@ private:
 	//	Wallhack
 	int iWallhackScanDelay = 5000; // <- Loading delay after player joins a map
 	double iWallhackZeroTolerance = 80.0;
+	bool bFirstChannelJoin = true;
 	//	Monitoring
 	int iCabalGm = 2;
 	
 	//Vars
 	unsigned int iProcessID;
+	
 	
 	//Functions Vars
 	std::function<void(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sStandartValue) > funcCallbackHandler;

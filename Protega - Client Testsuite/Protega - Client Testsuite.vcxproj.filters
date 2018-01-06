@@ -71,5 +71,8 @@
     <ClCompile Include="..\Protega\Protection\Target Enviorment\File_Protection_Engine.cpp">
       <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Protega\Core\ProtegaCore.cpp">
+      <Filter>Quelldateien\Protega CPP Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -11,19 +11,6 @@ extern "C"
 		CreateThread(NULL, NULL, LPTHREAD_START_ROUTINE(initAntihack), NULL, 0, 0);
 		return 1;
 	}
-
-	//Just for testing reasons
-	int __declspec(dllexport) stopTrigger()
-	{
-		while (bStopper == false)
-		{
-			if (bStopper == true)
-			{
-				break;
-			}
-		}
-		return true;
-	}
 }
 void initAntihack()
 {

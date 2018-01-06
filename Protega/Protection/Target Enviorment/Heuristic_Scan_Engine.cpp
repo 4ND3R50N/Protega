@@ -74,16 +74,18 @@ bool Heuristic_Scan_Engine::DoScanProcessNames()
 
 		if (bEntryFound)
 		{
+			//Commented out due change of handling things
 			//Detection handling
-			std::list<std::string> lOtherInformation;
-			std::list<std::string>::iterator sIt = std::next(lBlackListWindowNames.begin(), iForCounter);	
+			//std::list<std::string> lOtherInformation;
+			
+			//std::list<std::string>::iterator sIt = std::next(lBlackListWindowNames.begin(), iForCounter);	
 		
-			//Get other data
-			lOtherInformation.push_back(sIt->c_str());
-			sIt = std::next(lBlackListClassNames.begin(), iForCounter);
-			lOtherInformation.push_back(sIt->c_str());
-			sIt = std::next(lBlackListMd5Values.begin(), iForCounter);
-			lOtherInformation.push_back(sIt->c_str());
+			////Get other data
+			//lOtherInformation.push_back(sIt->c_str());
+			//sIt = std::next(lBlackListClassNames.begin(), iForCounter);
+			//lOtherInformation.push_back(sIt->c_str());
+			//sIt = std::next(lBlackListMd5Values.begin(), iForCounter);
+			//lOtherInformation.push_back(sIt->c_str());
 			//Send them to the protection manager
 			funcErrorCallbackHandler(wsItBlackListEntry);
 			return true;

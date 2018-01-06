@@ -15,10 +15,10 @@ private:
 	std::thread* tFpThread;
 
 	double dThreadResponseDelta;
-	std::clock_t ctMainThreadResponse;
-	std::clock_t ctHeResponse;
-	std::clock_t ctVmpResponse;
-	std::clock_t ctFpResponse;
+	std::clock_t ctMainThreadResponse = 0;
+	std::clock_t ctHeResponse = 0;
+	std::clock_t ctVmpResponse = 0;
+	std::clock_t ctFpResponse = 0;
 
 	std::function<void(std::list<std::wstring> lDetectionInformation)> funcCallbackHandler;
 
@@ -28,15 +28,16 @@ private:
 	File_Protection_Engine* FP;
 
 	//Functions
-	//	Thread logic
+	//	Threads
 	void VMP_Thread();
 	void HE_Thread();
 	void FP_Thread();
 	//	Callbacks
 	void HE_Callback(std::wstring sDetectionValue);
 	void VMP_Callback(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sDefaultValue);
+	// Test
+
 	// Normal functions
-	
 	int GetProcessIdByName(char* ProcName);
 	void StringToWString(std::string sStringToConvert, std::wstring* wsOutput);
 public:
@@ -48,9 +49,14 @@ public:
 		std::list<std::string> lBlackListWindowNames,
 		std::list<std::string> lBlackListClassNames,
 		std::list<std::string> lBlackListMd5Values);
+	//Functions
+	//	User
 	bool StartProtectionThreads();
+	//	System
 	std::clock_t* GetMainThreadClock();
 	bool CheckClocks(std::clock_t* ctOwnClock);
+
+
 	~Protection_Manager();
 
 	

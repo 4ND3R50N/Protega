@@ -37,13 +37,15 @@ Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring
 
 }
 
-
 Protection_Manager::~Protection_Manager()
 {
 }
 
 
 //Public
+//	Classless thread starter
+
+
 bool Protection_Manager::StartProtectionThreads()
 {
 	iProtectionIsRunning = true;
@@ -56,10 +58,10 @@ bool Protection_Manager::StartProtectionThreads()
 	ctHeResponse = std::clock();
 	ctVmpResponse = std::clock();
 	//ctFpResponse = std::clock();
-
+	
 	//Start threads
-	tHeThread->join();
-	tVmpThread->join();
+	//tHeThread->join();
+	//tVmpThread->join();
 	//tFpThread->join();
 	return true;
 }
@@ -109,6 +111,7 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 }
 
 //Private
+
 //	Threads
 void Protection_Manager::VMP_Thread()
 {
@@ -178,7 +181,6 @@ void Protection_Manager::VMP_Callback(std::string sDetectedBaseAddress, std::str
 
 	funcCallbackHandler(lDetectionInformation);
 }
-
 
 //	Normal functions
 int Protection_Manager::GetProcessIdByName(char* ProcName) {
