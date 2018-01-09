@@ -17,7 +17,8 @@ private:
 	static char* TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME;
 	static char* TARGET_ENVIORMENT_FTC_FILE_NAME;
 
-	static char* LOCAL_DATA_FOLDER;
+	static const char* LOCAL_DATA_FOLDER;
+	static const char* LOCAL_DATA_PROTEGA_IMAGE;
 	static const char* LOCAL_DATA_NEWLINE_DELIMITER;
 	static const char* LOCAL_DATA_DELIMITER;
 	static std::string LOCAL_DATA_PROTECTION_TARGET;
@@ -33,6 +34,13 @@ private:
 	
 	static double PROTECTION_THREAD_RESPONSE_DELTA;
 
+	static const char* EXCEPTION_CAPTION;
+	static int EXCEPTION_LOCAL_FILE_ERROR;
+	static int EXCEPTION_WEB_DOWNLOAD_ERROR;
+	static int EXCEPTION_DATA_CONVERSION_ERROR;
+	static int EXCEPTION_VM_ERROR;
+	static int EXCEPTION_THREAD_ERROR;
+
 	//Dynamic Data Storage Vars
 	static std::list<std::string> lHeuristicMD5Values;
 	static std::list<std::wstring> lHeuristicProcessNames;
@@ -44,7 +52,7 @@ private:
 
 public:
 	//Functions
-	static bool CollectDynamicProtesData();
+	static int CollectDynamicProtesData();
 	static std::string GenerateComputerID();
 	//Getter
 	static std::string GetTargetEnviormentDataUrl();
@@ -56,8 +64,17 @@ public:
 	static const char* GetNetworkAesIV();
 	static double GetProtectionThreadResponseDelta();
 	static std::string GetLocalDataProtectionTarget();
+	static const char* GetLocalDataFolder();
+	static const char* GetLocalProtegaImage();
 	static std::list<std::wstring> GetHeuristicProcessNames();
 	static std::list<std::string> GetHeuristicMD5Values();
+	
+	static const char* GetExceptionCaption();
+	static int GetExceptionLocalFileErrorNumber();
+	static int GetExceptionWebDownloadErrorNumber();
+	static int GetExceptionDataConversionErrorNumber();
+	static int GetExceptionVmErrorNumber();
+	static int GetExceptionThreadErrorNumber();
 
 };
 

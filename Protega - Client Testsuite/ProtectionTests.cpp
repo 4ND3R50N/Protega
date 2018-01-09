@@ -1,12 +1,7 @@
 #pragma once
 #include "stdafx.h"
 #include "CppUnitTest.h"
-#include <Windows.h>
-#include <tlhelp32.h>
-#include <list>
-#include <comdef.h>
-#include "../Protega/Protection/Protection_Manager.h"
-
+#include "../Protega/Core/ProtegaCore.h"
 
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -26,27 +21,6 @@ namespace ProtegaClientTestsuite
 		std::list<std::string> lBlackListClassNames;
 		std::list<std::string> lBlackListMd5Values;
 
-		//Temporary here...
-		int GetProcessId(char* ProcName) {
-			PROCESSENTRY32 pe32;
-			HANDLE hSnapshot = NULL;
-			pe32.dwSize = sizeof(PROCESSENTRY32);
-			hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-
-			if (Process32First(hSnapshot, &pe32)) {
-				do {
-					_bstr_t sPe32ExeFile(pe32.szExeFile);
-					if (strcmp(sPe32ExeFile, ProcName) == 0)
-						break;
-				} while (Process32Next(hSnapshot, &pe32));
-			}
-
-			if (hSnapshot != INVALID_HANDLE_VALUE)
-				CloseHandle(hSnapshot);
-
-			return pe32.th32ProcessID;
-		}
-
 	public:
 		//Protection manager
 		TEST_METHOD(Protection_Threads_Test)
@@ -58,7 +32,7 @@ namespace ProtegaClientTestsuite
 			lBlackListClassNames.push_back("miaudfhh");
 
 			Protection_Manager* PM = new Protection_Manager(std::bind(&ProtectionTests::PM_Callback, this, std::placeholders::_1),
-				"CabalMain22.exe", 20,
+				"CabalMain22.exe", 20, 1, 2,
 				lBlackListProcessNames, lBlackListWindowNames, lBlackListClassNames, lBlackListMd5Values);
 			PM->StartProtectionThreads();
 			//Loop "scan all addresses" function

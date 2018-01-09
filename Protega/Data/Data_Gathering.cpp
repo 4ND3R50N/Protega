@@ -23,14 +23,21 @@ bool Data_Gathering::DownloadWebFile(char* sTarget, char sDestination[FILENAME_M
 
 	curl = curl_easy_init();
 	if (curl) {
-		fp = fopen(sDestination, "wb");
-		curl_easy_setopt(curl, CURLOPT_URL, sTarget);
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallbackForFile);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-		res = curl_easy_perform(curl);
-		/* always cleanup */
-		curl_easy_cleanup(curl);
-		fclose(fp);
+		try
+		{
+			fp = fopen(sDestination, "wb");
+			curl_easy_setopt(curl, CURLOPT_URL, sTarget);
+			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallbackForFile);
+			curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+			res = curl_easy_perform(curl);
+			/* always cleanup */
+			curl_easy_cleanup(curl);
+			fclose(fp);
+		}
+		catch (const std::exception&)
+		{
+			return false;
+		}
 	}
 	else
 	{

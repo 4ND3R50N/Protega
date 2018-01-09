@@ -1,29 +1,54 @@
 #include "../stdafx.h"
 #include "Protection_Manager.h"
 
-//Debug constructor
-Protection_Manager::Protection_Manager(std::string sTargetApplication, double dThreadResponseDelta)
+Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring>lDetectionInformation)> funcCallbackHandler, std::string sTargetApplicationId, double dThreadResponseDelta, int iVMErrorCode, int iThreadErrorCode, std::list<std::wstring> lBlackListProcessNames, std::list<std::string> lBlackListWindowNames, std::list<std::string> lBlackListClassNames, std::list<std::string> lBlackListMd5Values)
 {
 	this->dThreadResponseDelta = dThreadResponseDelta;
+	this->iVMErrorCode = iVMErrorCode;
+	this->iThreadErrorCode = iThreadErrorCode;
+	this->funcCallbackHandler = funcCallbackHandler;
 	//Get Target process id
-	iTargetProcessId = GetProcessIdByName(strdup(sTargetApplication.c_str()));
+	iTargetProcessId = GetProcessIdByName(&sTargetApplicationId[0u]);
+
+	if (iTargetProcessId == 0)
+	{
+		Exception_Manager::HandleProtegaStandardError(iVMErrorCode,
+			"Not able to get access to the target Process. Please restart the application as admin. If this problem accours more often, please contact the administrator! [1]");
+	}
+
+	//Build protection classes
+	//	HE
+	HE = new Heuristic_Scan_Engine(lBlackListProcessNames, lBlackListWindowNames, lBlackListClassNames, lBlackListMd5Values,
+		std::bind(&Protection_Manager::HE_Callback, this, std::placeholders::_1));
 	//	VMP
 	VMP = new Virtual_Memory_Protection_Cabal_Online(iTargetProcessId,
 		std::bind(&Protection_Manager::VMP_Callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+	//	File
+	FP = new File_Protection_Engine();
 }
 
-Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring> lDetectionInformation)> funcCallbackHandler, 
-	std::string sTargetApplication,
+Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring> lDetectionInformation)> funcCallbackHandler,
+	int iTargetApplicationId,
 	double dThreadResponseDelta,
+	int iVMErrorCode,
+	int iThreadErrorCode,
 	std::list<std::wstring> lBlackListProcessNames, 
 	std::list<std::string> lBlackListWindowNames, 
 	std::list<std::string> lBlackListClassNames, 
 	std::list<std::string> lBlackListMd5Values)
 {
 	this->dThreadResponseDelta = dThreadResponseDelta;
+	this->iVMErrorCode = iVMErrorCode;
+	this->iThreadErrorCode = iThreadErrorCode;
 	this->funcCallbackHandler = funcCallbackHandler;
 	//Get Target process id
-	iTargetProcessId = GetProcessIdByName(strdup(sTargetApplication.c_str()));
+	iTargetProcessId = iTargetApplicationId;
+
+	if (iTargetProcessId == 0)
+	{
+		Exception_Manager::HandleProtegaStandardError(iVMErrorCode,
+			"Not able to get access to the target Process. Please restart the application as admin. If this problem accours more often, please contact the administrator! [1]");
+	}
 
 	//Build protection classes
 	//	HE
@@ -83,6 +108,8 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 
 	if (dCurrentDuration > dThreadResponseDelta)
 	{
+		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
+			"Thread Error [M]. Please restart the application!");
 		return false;
 	}
 	//	HE
@@ -90,6 +117,8 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 
 	if (dCurrentDuration > dThreadResponseDelta)
 	{
+		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
+			"Thread Error [HE]. Please restart the application!");
 		return false;
 	}
 	//	VMP
@@ -97,6 +126,8 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 
 	if (dCurrentDuration > dThreadResponseDelta)
 	{
+		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
+			"Thread Error [VM]. Please restart the application!");
 		return false;
 	}
 	//	FP
@@ -115,7 +146,13 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 //	Threads
 void Protection_Manager::VMP_Thread()
 {
-	VMP->OpenProcessInstance();
+	if (!VMP->OpenProcessInstance())
+	{
+		Exception_Manager::HandleProtegaStandardError(iVMErrorCode,
+			"Not able to get access to the target Process. Please restart the application as admin. If this problem accours more often, please contact the administrator! [2]");
+		return;
+	}
+
 	do
 	{
 		if (VMP->CheckAllVmpFunctions() == true)
@@ -162,6 +199,8 @@ void Protection_Manager::HE_Callback(std::wstring sDetectionValue)
 
 void Protection_Manager::VMP_Callback(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sDefaultValue)
 {
+	iProtectionIsRunning = false;
+
 	std::wstring wsDetectedBaseAddress;
 	std::wstring wsDetectedOffset;
 	std::wstring wsDetectedValue;

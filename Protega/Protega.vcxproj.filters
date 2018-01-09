@@ -101,8 +101,8 @@
     <ClInclude Include="Tools\CryptoPP_Converter.h">
       <Filter>Headerdateien\Tools</Filter>
     </ClInclude>
-    <ClInclude Include="Exception_Manager.h">
-      <Filter>Headerdateien</Filter>
+    <ClInclude Include="Core\Exception_Manager.h">
+      <Filter>Headerdateien\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -151,8 +151,8 @@
     <ClCompile Include="Tools\CryptoPP_Converter.cpp">
       <Filter>Quelldateien\Tools</Filter>
     </ClCompile>
-    <ClCompile Include="Exception_Manager.cpp">
-      <Filter>Quelldateien</Filter>
+    <ClCompile Include="Core\Exception_Manager.cpp">
+      <Filter>Quelldateien\Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

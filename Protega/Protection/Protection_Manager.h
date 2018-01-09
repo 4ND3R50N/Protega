@@ -2,13 +2,16 @@
 #include "Target Enviorment\Virtual_Memory_Protection_Cabal_Online.h"
 #include "Target Enviorment\Heuristic_Scan_Engine.h"
 #include "Target Enviorment\File_Protection_Engine.h"
+#include "../Core/Exception_Manager.h"
 
 class Protection_Manager
 {
 private:
 	//Var
 	bool iProtectionIsRunning = false;
-	int iTargetProcessId;
+	int iTargetProcessId = 0;
+	int iVMErrorCode = 0;
+	int iThreadErrorCode = 0;
 
 	std::thread* tHeThread;
 	std::thread* tVmpThread;
@@ -41,10 +44,20 @@ private:
 	int GetProcessIdByName(char* ProcName);
 	void StringToWString(std::string sStringToConvert, std::wstring* wsOutput);
 public:
-	Protection_Manager(std::string sTargetApplication, double dThreadResponseDelta);
 	Protection_Manager(std::function<void(std::list<std::wstring> lDetectionInformation)> funcCallbackHandler,
-		std::string sTargetApplication,
+		std::string sTargetApplicationId,
 		double dThreadResponseDelta,
+		int iVMErrorCode,
+		int iThreadErrorCode,
+		std::list<std::wstring> lBlackListProcessNames,
+		std::list<std::string> lBlackListWindowNames,
+		std::list<std::string> lBlackListClassNames,
+		std::list<std::string> lBlackListMd5Values);
+	Protection_Manager(std::function<void(std::list<std::wstring> lDetectionInformation)> funcCallbackHandler,
+		int iTargetApplicationId,
+		double dThreadResponseDelta,
+		int iVMErrorCode,
+		int iThreadErrorCode,
 		std::list<std::wstring> lBlackListProcessNames,
 		std::list<std::string> lBlackListWindowNames,
 		std::list<std::string> lBlackListClassNames,

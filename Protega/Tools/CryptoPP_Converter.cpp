@@ -20,13 +20,19 @@ std::string CryptoPP_Converter::AESEncrypt(const char * sKey, const char * sIV, 
 std::string CryptoPP_Converter::AESDecrypt(const char * sKey, const char * sIV, std::string sData)
 {
 	std::string sResult = "";
-	CryptoPP::AES::Decryption aesDecryption((byte *)sKey, CryptoPP::AES::DEFAULT_KEYLENGTH);
-	CryptoPP::CBC_Mode_ExternalCipher::Decryption cbcDecryption(aesDecryption, (byte *)sIV);
+	try
+	{		
+		CryptoPP::AES::Decryption aesDecryption((byte *)sKey, CryptoPP::AES::DEFAULT_KEYLENGTH);
+		CryptoPP::CBC_Mode_ExternalCipher::Decryption cbcDecryption(aesDecryption, (byte *)sIV);
 
-	CryptoPP::StreamTransformationFilter stfDecryptor(cbcDecryption, new CryptoPP::StringSink(sResult));
-	stfDecryptor.Put(reinterpret_cast<const unsigned char*>(sData.c_str()), sData.size());
-	stfDecryptor.MessageEnd();
-
+		CryptoPP::StreamTransformationFilter stfDecryptor(cbcDecryption, new CryptoPP::StringSink(sResult));
+		stfDecryptor.Put(reinterpret_cast<const unsigned char*>(sData.c_str()), sData.size());
+		stfDecryptor.MessageEnd();
+	}
+	catch (const std::exception&)
+	{
+		return "";
+	}
 	return sResult;
 }
 

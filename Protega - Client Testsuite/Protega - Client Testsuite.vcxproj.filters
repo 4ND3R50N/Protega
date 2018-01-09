@@ -74,5 +74,8 @@
     <ClCompile Include="..\Protega\Core\ProtegaCore.cpp">
       <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Protega\Core\Exception_Manager.cpp">
+      <Filter>Quelldateien\Protega CPP Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -3,6 +3,9 @@
 #include "../Data/Data_Manager.h"
 #include "../Protection/Protection_Manager.h"
 #include "../Tools/SplashDisplayer.h"
+#include "Exception_Manager.h"
+#include <atlbase.h>
+#include <boost/filesystem.hpp>
 
 class ProtegaCore
 {
@@ -11,11 +14,15 @@ private:
 	Protection_Manager* ProtectionManager;
 
 
-
+	//Main functions
+	//	Callbacks
 	void ServerAnswer(NetworkTelegram NetworkTelegramMessage);
 	void ProtectionManagerAnswer(std::list<std::wstring> wsDetectionInformation);
+	//	Thread routine after start
 	void Update();
-
+	
+	//Support functions
+	bool CheckProtegaFiles(const char* sImageFilePath);
 public:
 	ProtegaCore();
 	~ProtegaCore();

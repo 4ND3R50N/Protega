@@ -66,6 +66,7 @@ namespace ProtegaClientTestsuite
 		{
 			ProtegaCore CoreTest;
 			CoreTest.StartAntihack();
+			
 		}
 
 		TEST_METHOD(Data_WebDataGathering)
@@ -145,5 +146,8 @@ namespace ProtegaClientTestsuite
 
 			Assert::AreEqual(sMessage.c_str(), sDecryptedData.c_str());
 		}
+
+	
+
 	};
 }
