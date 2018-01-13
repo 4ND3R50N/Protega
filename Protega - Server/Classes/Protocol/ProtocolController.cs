@@ -30,30 +30,30 @@ namespace Protega___Server.Classes.Protocol
         public delegate void SendProt(string Protocol, networkServer.networkClientInterface ClientInterface);
         public static event SendProt SendProtocol = null;
 
-        public void RecievedProtocol(networkServer.networkClientInterface NetworkClient, string protocolString) {
+        public void ReceivedProtocol(networkServer.networkClientInterface NetworkClient, string protocolString) {
             Protocol protocol = new Protocol(protocolString);
                 switch (protocol.GetKey())
                 {
                     case 500: AuthenticateUser(NetworkClient, protocol); break;
                     case 600: CheckPing(protocol);  break;
-                    case 701: FoundHackDetaction(protocol); break;
-                    case 702: FoundHackDetaction(protocol); break;
-                    case 703: FoundHackDetaction(protocol); break;
-                    case 704: FoundHackDetaction(protocol); break;
-                    case 705: FoundHackDetaction(protocol); break;
+                    case 701: HackDetection_Heuristic(protocol); break;
+                    case 702: HackDetection_Heuristic(protocol); break;
+                    case 703: HackDetection_Heuristic(protocol); break;
+                    case 704: HackDetection_Heuristic(protocol); break;
+                    case 705: HackDetection_VirtualMemory(protocol); break;
                     default: Console.WriteLine("Invalid key for client to server communication."); break;
                 }
             
         }
 
-        bool CheckIfUserExists(string HardwareID, out networkServer.networkClientInterface ClientInterface)
-        {
-            //Check if a hardware ID exists in ActiveConnections
-            ClientInterface = null;
-            
+        bool CheckIfUserExists(string HardwareID, ref networkServer.networkClientInterface ClientInterface)
+        {            
+            //Checks if that connection exists already. Gives back the amount of matching ClientInterfaces
             List<networkServer.networkClientInterface> lList = ActiveConnections.Where(Client => Client.User.ID == HardwareID).ToList();
             if (lList.Count == 1)
                 ClientInterface = lList[0];
+
+            //True if an interface exists, false if not or more
             return lList.Count == 1;
         }
 
@@ -75,7 +75,7 @@ namespace Protega___Server.Classes.Protocol
 
             //Check if user is already connected
             
-            if (CheckIfUserExists(prot.GetComputerID(), out ClientInterface))
+            if (CheckIfUserExists(prot.GetComputerID(), ref ClientInterface))
             {
                 //User is already registered
                 //Kick User?
@@ -131,50 +131,56 @@ namespace Protega___Server.Classes.Protocol
 
             private void CheckPing(Protocol prot)
         {
-            networkServer.networkClientInterface ClientInterface;
-            if (CheckIfUserExists(prot.ComputerID, out ClientInterface))
+            networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
+            
+
+            if (CheckIfUserExists(prot.ComputerID, ref ClientInterface))
             {
-                // save somewhere that user pinged successfully
-                // check if some other messages should be send
-                Boolean sendMessage = true;
-                if (sendMessage)
+                //If additional infos are asked, what is needed is identified by an ID
+                int AdditionalInfos = prot.HasValues() ? Convert.ToInt32(prot.GetValues()[0]) : -1;
+                string AdditionalInfo = "";
+                switch (AdditionalInfos)
                 {
-                    SendProtocol("301;Some messages added divided by ;", ClientInterface);
+                    case 1:
+                        AdditionalInfo = ";123";
+                        break;
+                    default:
+                        break;
                 }
-                else
-                {
-                    SendProtocol("300", ClientInterface);
-                }
+
+                //Reset the Ping timer
+                ClientInterface.ResetPingTimer();
+
+                //Send to the client that the Ping was successful
+                //If requested, additional infos will be sent
+                //SendProtocol(String.Format("{0}{1}", "300", AdditionalInfo), ClientInterface);
             }
         }
 
-        private void FoundHackDetaction(Protocol prot)
+
+        #region Hack Detections
+        private void HackDetection_Heuristic(Protocol prot)
         {
-            networkServer.networkClientInterface ClientInterface;
-            if (CheckIfUserExists(prot.ComputerID, out ClientInterface))
+            networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
+            if (CheckIfUserExists(prot.ComputerID, ref ClientInterface))
             {
-                int computerID = (int)prot.GetValues()[0];
-                // get number of found hack detections and the result will lead to different answers to the client
-                int numberOfDetections = 0;
-                numberOfDetections++;
-                // save new number for this user
+                string computerID = prot.GetComputerID();
 
-                // save all other parameter in the database
+                string ProcessName = Convert.ToString(prot.GetValues()[0]);
 
-                if (numberOfDetections == 1)
-                {
-                    SendProtocol("400", ClientInterface);
-                }
-                else if ((numberOfDetections >= 2) && (numberOfDetections <= 4))
-                {
-                    int time = numberOfDetections * 1000;
-                    SendProtocol("401;" + time, ClientInterface);
-                }
-                else
-                {
-                    SendProtocol("402", ClientInterface);
-                }
+                //CCstDatabase.DatabaseEngine.ExecuteReader(System.Data.CommandType.StoredProcedure, CCstDatabase.SP_HackDetection_Insert_Heuristic, )
+
             }
         }
+
+        private void HackDetection_VirtualMemory(Protocol prot)
+        {
+            networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
+            if (CheckIfUserExists(prot.ComputerID, ref ClientInterface))
+            {
+                string computerID = prot.GetComputerID();
+            }
+        }
+        #endregion
     }
 }
