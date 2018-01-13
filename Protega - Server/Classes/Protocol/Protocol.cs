@@ -43,5 +43,9 @@ namespace Protega___Server.Classes.Protocol
         {
             return values;
         }
+        public bool HasValues()
+        {
+            return values.Count > 0;
+        }
     }
 }

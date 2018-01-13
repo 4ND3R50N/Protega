@@ -17,6 +17,11 @@ namespace Protega___Server.Classes
         public const string SP_LoggerType_GetList = "LoggerType_GetList";
         #endregion
 
+        #region Hack Detection
+        public const string SP_HackDetection_Insert_Heuristic = "HackDetection_Insert_Heuristic";
+        public const string SP_HackDetection_Insert_VirtualMemory = "HackDetection_Insert_VirtualMemory";
+        #endregion
+
         #endregion
     }
 }

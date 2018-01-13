@@ -165,9 +165,27 @@ namespace Protega___Server
             //Protes Values
             public Classes.Entity.EPlayer User;
 
+            System.Timers.Timer tmrPing;
+            
             public networkClientInterface()
             {
+                tmrPing = new System.Timers.Timer();
+                tmrPing.Interval = 10000;
+                tmrPing.Elapsed += TmrPing_Elapsed;
+                User = new Classes.Entity.EPlayer();
+                //tmrPing.Start();
+            }
 
+            private void TmrPing_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+            {
+                //Kick - Timer elapsed
+                string Test = "";
+            }
+
+            public void ResetPingTimer()
+            {
+                tmrPing.Stop();
+                tmrPing.Start();
             }
 
             public networkClientInterface(Socket connection, IAsyncResult result)

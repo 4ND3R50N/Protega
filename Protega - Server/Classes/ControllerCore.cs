@@ -54,7 +54,7 @@ namespace Protega___Server.Classes.Core
             this.cProtocolDelimiter = _cProtocolDelimiter;
             this.cDataDelimiter = _cDataDelimiter;
             TcpServer = new networkServer(NetworkProtocol, _sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
+        
             ProtocolController.SendProtocol += this.SendProtocol;
             CCstLogging.Logger.writeInLog(true, "TCP Server ready for start!");
             ProtocolController = new ProtocolController(ref ActiveConnections);
@@ -62,8 +62,13 @@ namespace Protega___Server.Classes.Core
             //TESTCASE
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
             //Registration
-            ProtocolController.RecievedProtocol(new networkServer.networkClientInterface(), "500;98765;Windoofs 7;Deutsch;1");
-            ProtocolController.RecievedProtocol(new networkServer.networkClientInterface(), "500;98765;Windoofs 7;Deutsch;1");
+            ProtocolController.ReceivedProtocol(dummy, "500;98765;Windoofs 7;Deutsch;1");
+            ProtocolController.ReceivedProtocol(dummy, "600;98765");
+            System.Threading.Thread.Sleep(1000);
+            ProtocolController.ReceivedProtocol(dummy, "600;98765");
+
+            ProtocolController.ReceivedProtocol(dummy, "701;98765;Prozess");
+
             //Auth
             //  networkProtocol("#104;Anderson2;Lars;Pickelin;miau1234;l.pickelin@web.de", ref dummy);
             //  networkProtocol("#102;Anderson2;miau1x234", ref dummy);
@@ -130,7 +135,7 @@ namespace Protega___Server.Classes.Core
             }
 
             CCstLogging.Logger.writeInLog(true, "Protocol received: " + message);
-            ProtocolController.RecievedProtocol(NetworkClient, message);
+            ProtocolController.ReceivedProtocol(NetworkClient, message);
         }
 
         
