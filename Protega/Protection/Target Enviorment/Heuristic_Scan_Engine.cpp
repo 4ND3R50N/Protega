@@ -105,6 +105,8 @@ bool Heuristic_Scan_Engine::ScanClassNames()
 	return false;
 }
 
+//Note: optimize algorithm: do not scan all program pathes over and over, use "db"
+//Note2: check only X processes per time
 bool Heuristic_Scan_Engine::ScanProcessMd5Hash()
 {
 	//get current process names
@@ -134,7 +136,7 @@ bool Heuristic_Scan_Engine::ScanProcessMd5Hash()
 				sMD5Hash = GetMD5Hash(bstrFilePath);
 				boost::to_upper(sMD5Hash);
 			}
-			catch (const std::exception& e)
+			catch (const std::exception&)
 			{
 				continue;
 			}
