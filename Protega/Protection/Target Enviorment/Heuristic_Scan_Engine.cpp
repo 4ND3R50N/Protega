@@ -1,44 +1,44 @@
 #include "../../stdafx.h"
 #include "Heuristic_Scan_Engine.h"
 
-Heuristic_Scan_Engine::Heuristic_Scan_Engine(std::list<std::wstring> lBlackListProcessNames,
-	std::list<std::string> lBlackListWindowNames,
-	std::list<std::string> lBlackListClassNames,
-	std::list<std::string> lBlackListMd5Values,
+Heuristic_Scan_Engine::Heuristic_Scan_Engine(std::vector<std::wstring> lBlackListProcessNames,
+	std::vector<std::string> lBlackListWindowNames,
+	std::vector<std::string> lBlackListClassNames,
+	std::vector<std::string> lBlackListMd5Values,
 	std::function<void(std::wstring sDetectedValue) > funcErrorCallbackHandler)
 {
 	//Set data
-	this->lBlackListProcessNames = lBlackListProcessNames;
-	this->lBlackListWindowNames = lBlackListWindowNames;
-	this->lBlackListClassNames = lBlackListClassNames;
-	this->lBlackListMd5Values = lBlackListMd5Values;
+	this->vBlackListProcessNames = lBlackListProcessNames;
+	this->vBlackListWindowNames = lBlackListWindowNames;
+	this->vBlackListClassNames = lBlackListClassNames;
+	this->vBlackListMd5Values = lBlackListMd5Values;
 
 	this->funcErrorCallbackHandler = funcErrorCallbackHandler;
 
 	//Convert the current process names uppercase
-	std::list<std::wstring>::iterator wsIt;
-	std::list<std::string>::iterator sIt;
+	std::vector<std::wstring>::iterator wsIt;
+	std::vector<std::string>::iterator sIt;
 	//Iterate through all char related blacklists
 	// lBlackListProcessNames
-	for (wsIt = this->lBlackListProcessNames.begin(); wsIt != this->lBlackListProcessNames.end(); wsIt++)
+	for (wsIt = this->vBlackListProcessNames.begin(); wsIt != this->vBlackListProcessNames.end(); wsIt++)
 	{
 		std::wstring& wsItData(*wsIt);
 		boost::to_upper(wsItData);
 	}
 	// lBlackListWindowNames
-	for (sIt = this->lBlackListWindowNames.begin(); sIt != this->lBlackListWindowNames.end(); sIt++)
+	for (sIt = this->vBlackListWindowNames.begin(); sIt != this->vBlackListWindowNames.end(); sIt++)
 	{
 		std::string& sItData(*sIt);
 		boost::to_upper(sItData);
 	}
 	// lBlackListClassNames
-	for (sIt = this->lBlackListClassNames.begin(); sIt != this->lBlackListClassNames.end(); sIt++)
+	for (sIt = this->vBlackListClassNames.begin(); sIt != this->vBlackListClassNames.end(); sIt++)
 	{
 		std::string& sItData(*sIt);
 		boost::to_upper(sItData);
 	}
 	// lBlackListMD5Values
-	for (sIt = this->lBlackListMd5Values.begin(); sIt != this->lBlackListMd5Values.end(); sIt++)
+	for (sIt = this->vBlackListMd5Values.begin(); sIt != this->vBlackListMd5Values.end(); sIt++)
 	{
 		std::string& sItData(*sIt);
 		boost::to_upper(sItData);
@@ -61,10 +61,10 @@ bool Heuristic_Scan_Engine::DoScanProcessNames()
 	GetCurrentProcessNamesAndPIDs(lCurrentProcessNames, lCurrentProcessIDsTmp);
 
 	//Convert the current process names uppercase
-	std::list<std::wstring>::iterator wsIt;
+	std::vector<std::wstring>::iterator wsIt;
 	int iForCounter = 0;
 	//Iterate through all current running processes
-	for (wsIt = lBlackListProcessNames.begin(); wsIt != lBlackListProcessNames.end(); wsIt++)
+	for (wsIt = vBlackListProcessNames.begin(); wsIt != vBlackListProcessNames.end(); wsIt++)
 	{
 		std::wstring& wsItBlackListEntry(*wsIt);
 
@@ -141,7 +141,7 @@ bool Heuristic_Scan_Engine::ScanProcessMd5Hash()
 				continue;
 			}
 			
-			bool bEntryFound = (std::find(lBlackListMd5Values.begin(), lBlackListMd5Values.end(), sMD5Hash) != lBlackListMd5Values.end());
+			bool bEntryFound = (std::find(vBlackListMd5Values.begin(), vBlackListMd5Values.end(), sMD5Hash) != vBlackListMd5Values.end());
 			
 			if (bEntryFound)
 			{
