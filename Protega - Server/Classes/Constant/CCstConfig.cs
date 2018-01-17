@@ -12,5 +12,8 @@ namespace Protega___Server.Classes
         public const string EncryptionIV = "bbbbbbbbbbbbbbbb";
 
         public const int ApplicationID = 1;
+
+        public const int SessionIDLength = 10;
+        public const int PingTimer = 9999000;
     }
 }

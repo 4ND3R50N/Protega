@@ -17,6 +17,7 @@ namespace Protega___Server.Classes.Entity
         private string _IP;
         private string _Language;
         private string _OperatingSystem;
+        private string _ApplicationName;
 
         /// <summary>
         /// Ban status of the player. 0 = unpunished, 1 = banned
@@ -73,6 +74,15 @@ namespace Protega___Server.Classes.Entity
         {
             get { return _OperatingSystem; }
             set { _OperatingSystem = value; }
+        }
+
+        /// <summary>
+        /// Connected application of the player
+        /// </summary>
+        public string ApplicationName
+        {
+            get { return _ApplicationName; }
+            set { _ApplicationName = value; }
         }
 
         /// <summary>

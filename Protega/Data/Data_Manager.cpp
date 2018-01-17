@@ -29,7 +29,7 @@ std::vector<std::string> Data_Manager::vHeuristicMD5Values;
 std::vector<std::wstring> Data_Manager::vHeuristicProcessNames;
 std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::pFilesToCheck;
 //Protection data
-double Data_Manager::PROTECTION_THREAD_RESPONSE_DELTA = 30.0;
+double Data_Manager::PROTECTION_THREAD_RESPONSE_DELTA = 20.0;
 
 //Exceptions
 const char* Data_Manager::EXCEPTION_CAPTION = "Protega Anti-Hack Engine";

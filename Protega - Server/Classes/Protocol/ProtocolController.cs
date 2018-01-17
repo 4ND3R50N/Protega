@@ -30,26 +30,23 @@ namespace Protega___Server.Classes.Protocol
         public delegate void SendProt(string Protocol, networkServer.networkClientInterface ClientInterface);
         public static event SendProt SendProtocol = null;
 
-        public void ReceivedProtocol(networkServer.networkClientInterface NetworkClient, string protocolString) {
+        public bool ReceivedProtocol(networkServer.networkClientInterface NetworkClient, string protocolString) {
             Protocol protocol = new Protocol(protocolString);
-                switch (protocol.GetKey())
-                {
-                    case 500: AuthenticateUser(NetworkClient, protocol); break;
-                    case 600: CheckPing(protocol);  break;
-                    case 701: HackDetection_Heuristic(protocol); break;
-                    case 702: HackDetection_Heuristic(protocol); break;
-                    case 703: HackDetection_Heuristic(protocol); break;
-                    case 704: HackDetection_Heuristic(protocol); break;
-                    case 705: HackDetection_VirtualMemory(protocol); break;
-                    default: Console.WriteLine("Invalid key for client to server communication."); break;
-                }
+            switch (protocol.GetKey())
+            {
+                case 600: return CheckPing(protocol); break;
+                case 500: return AuthenticateUser(NetworkClient, protocol); break;
+                case 701: return HackDetection_Heuristic(protocol); break;
+                case 702: return HackDetection_VirtualMemory(protocol); break;
+                default: Console.WriteLine("Invalid key for client to server communication."); return false; break;
+            }
             
         }
 
-        bool CheckIfUserExists(string HardwareID, ref networkServer.networkClientInterface ClientInterface)
+        public bool CheckIfUserExists(string SessionID, ref networkServer.networkClientInterface ClientInterface)
         {            
             //Checks if that connection exists already. Gives back the amount of matching ClientInterfaces
-            List<networkServer.networkClientInterface> lList = ActiveConnections.Where(Client => Client.User.ID == HardwareID).ToList();
+            List<networkServer.networkClientInterface> lList = ActiveConnections.Where(Client => Client.SessionID == SessionID).ToList();
             if (lList.Count == 1)
                 ClientInterface = lList[0];
 
@@ -63,78 +60,99 @@ namespace Protega___Server.Classes.Protocol
         //}
 
         #region Authenticate User
-        public delegate void _RegisterUser(string ComputerID, Boolean architecture, String language, double version, Boolean auth);
-        public event _RegisterUser RegisterUser=null;
+        //public delegate void _RegisterUser(string ComputerID, Boolean architecture, String language, double version, Boolean auth);
+        //public event _RegisterUser RegisterUser=null;
 
-        private void AuthenticateUser(networkServer.networkClientInterface ClientInterface, Protocol prot)
+        private bool AuthenticateUser(networkServer.networkClientInterface ClientInterface, Protocol prot)
         {
+            ArrayList Objects = prot.GetValues();
+            if(Objects.Count!=4)
+            {
+                //Log error - protocol size not as expected
+
+                return false;
+            }
+
             //Computer ID, Computer Architecture, Language, Version
-            string architecture = prot.GetValues()[0].ToString();
-            String language = prot.GetValues()[1].ToString();
-            double version = Convert.ToDouble(prot.GetValues()[2]);
-
-            //Check if user is already connected
+            string ApplicationName = Objects[0].ToString();
+            string architecture = Objects[1].ToString();
+            String language = Objects[2].ToString();
             
-            if (CheckIfUserExists(prot.GetComputerID(), ref ClientInterface))
+            double version;
+            if(!Double.TryParse(Objects[3].ToString(), out version))
             {
-                //User is already registered
-                //Kick User?
-                CCstLogging.Logger.writeInLog(true, "User "+prot.GetComputerID()+" is already added to list!");
-                return;
+                //Log error - protocol index 3 is not as expected
+
+                return false;
             }
-
-            EPlayer dataClient = SPlayer.Authenticate(prot.GetComputerID(), architecture, language, "127.0.0.1");
-            if (dataClient == null)
-            {
-                //If a computer ID exists multiple times in the database, a null object is returned
-                SendProtocol("201;Contact Admin!", ClientInterface);
-                return;
-            }
-
-            //Add EPlayer to ClientInterface and to the list
-            ClientInterface.User = dataClient;
-            ActiveConnections.Add(ClientInterface);
-
-            //SendProtocol("200;16 Bit Alias Key", ClientInterface);
-
+            
+            //Check if user exists and add it to the list
+            return AddUserToActiveConnections(ClientInterface, ApplicationName, prot.GetUserID(), architecture, language, version);
         }
 
-        void AddUserToActiveConnections(networkServer.networkClientInterface ClientInterface, string ComputerID, string architecture, String language, double version, Boolean auth)
+        bool AddUserToActiveConnections(networkServer.networkClientInterface ClientInterface, string ApplicationName, string ComputerID, string architecture, String language, double version)
         {
             //Check if user is already connected
-            ActiveConnections
-                .ForEach(Client =>
+            foreach (networkServer.networkClientInterface item in ActiveConnections)
+            {
+                if(item.User.ID==ComputerID
+                    && item.User.ApplicationName==ApplicationName)
                 {
-                    if (Client.User.ID == ComputerID)
-                    {
-                        //User is already registered
-                        //Kick User?
-                        CCstLogging.Logger.writeInLog(true, "User is already added to list!");
-                        return;
-                    }
-                });
+                    //User is already registered
+                    //Kick User?
+                    CCstLogging.Logger.writeInLog(true, "User is already added to list!");
+                    return false;
+                }
+            }
 
-            EPlayer dataClient = SPlayer.Authenticate(ComputerID, architecture, language, "");
+            EPlayer dataClient = SPlayer.Authenticate(ComputerID, ApplicationName, architecture, language, "");
             if (dataClient == null)
             {
                 //If a computer ID exists multiple times in the database, a null object is returned
                 SendProtocol("201;Contact Admin", ClientInterface);
-                return;
+                return false;
+            }
+
+            //Check if user is banned
+            if (dataClient.isBanned == true)
+            {
+                //Do something and dont let him enter
+
+                //Send protocol to client that user is banned
+                //SendProtocol("201;Too many hacks", ClientInterface);
+                return false;
             }
 
             //Add EPlayer to ClientInterface and to the list
             ClientInterface.User = dataClient;
+            ClientInterface.User.ApplicationName = ApplicationName;
+
+            //Generate unique Session ID for network communication
+            while (true)
+            {
+                string SessionID = AdditionalFunctions.GenerateSessionID(CCstConfig.SessionIDLength);
+
+                //Checks if that connection exists already. Gives back the amount of matching ClientInterfaces
+                if (ActiveConnections.Where(Client => Client.SessionID == SessionID).ToList().Count == 0)
+                {
+                    ClientInterface.SessionID = SessionID;
+                    break;
+                }
+            }
+
+            //Add the new connection to the list of connected connections
             ActiveConnections.Add(ClientInterface);
+            return true;
         }
 
-            #endregion
+        #endregion
 
-            private void CheckPing(Protocol prot)
+        private bool CheckPing(Protocol prot)
         {
             networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
-            
 
-            if (CheckIfUserExists(prot.ComputerID, ref ClientInterface))
+
+            if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
                 //If additional infos are asked, what is needed is identified by an ID
                 int AdditionalInfos = prot.HasValues() ? Convert.ToInt32(prot.GetValues()[0]) : -1;
@@ -151,35 +169,70 @@ namespace Protega___Server.Classes.Protocol
                 //Reset the Ping timer
                 ClientInterface.ResetPingTimer();
 
+                return true;
                 //Send to the client that the Ping was successful
                 //If requested, additional infos will be sent
                 //SendProtocol(String.Format("{0}{1}", "300", AdditionalInfo), ClientInterface);
             }
+            return false;
         }
 
 
         #region Hack Detections
-        private void HackDetection_Heuristic(Protocol prot)
+        private bool HackDetection_Heuristic(Protocol prot)
         {
             networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
-            if (CheckIfUserExists(prot.ComputerID, ref ClientInterface))
+            if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
-                string computerID = prot.GetComputerID();
+                ArrayList Objects = prot.GetValues();
+                if(Objects.Count!=4)
+                {
+                    //Log error - protocol size not as expected
 
-                string ProcessName = Convert.ToString(prot.GetValues()[0]);
+                    return false;
+                }
 
-                //CCstDatabase.DatabaseEngine.ExecuteReader(System.Data.CommandType.StoredProcedure, CCstDatabase.SP_HackDetection_Insert_Heuristic, )
+                string ProcessName = Convert.ToString(Objects[0]);
+                string WindowName = Convert.ToString(Objects[1]);
+                string ClassName = Convert.ToString(Objects[2]);
+                string MD5Value = Convert.ToString(Objects[3]);
 
+                if(!SHackHeuristic.Insert(ClientInterface.User.ID, ClientInterface.User.ApplicationName, ProcessName, WindowName, ClassName, MD5Value))
+                {
+                    return false;
+                    //Log error - Hack insertion did not work
+                }
+                return true;
             }
+            return false;
         }
 
-        private void HackDetection_VirtualMemory(Protocol prot)
+        private bool HackDetection_VirtualMemory(Protocol prot)
         {
             networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
-            if (CheckIfUserExists(prot.ComputerID, ref ClientInterface))
+            if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
-                string computerID = prot.GetComputerID();
+                ArrayList Objects = prot.GetValues();
+                if (Objects.Count != 4)
+                {
+                    //Log error - protocol size not as expected
+
+                    return false;
+                }
+
+                string BaseAddress = Convert.ToString(Objects[0]);
+                string Offset = Convert.ToString(Objects[1]);
+                string DetectedValue = Convert.ToString(Objects[2]);
+                string DefaultValue = Convert.ToString(Objects[3]);
+
+                if (!SHackVirtual.Insert(ClientInterface.User.ID, ClientInterface.User.ApplicationName, BaseAddress, Offset, DetectedValue, DefaultValue))
+                {
+                    return false;
+                    //Log error - Hack insertion did not work
+                }
+                return true;
             }
+            return false;
         }
         #endregion
     }

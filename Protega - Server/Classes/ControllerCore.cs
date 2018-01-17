@@ -15,12 +15,13 @@ namespace Protega___Server.Classes.Core
 
         //Variablen
         networkServer TcpServer;
-        List<networkServer.networkClientInterface> ActiveConnections;
-        ProtocolController ProtocolController;
+        public List<networkServer.networkClientInterface> ActiveConnections;
+        public ProtocolController ProtocolController;
         
         private string sAesKey;
         private char   cProtocolDelimiter;
         private char   cDataDelimiter;
+        DBEngine dbEngine;
 
         //Konstruktor
         public ControllerCore(short _iPort, char _cProtocolDelimiter, char _cDataDelimiter, string _sAesKey, string _sDatabaseDriver,
@@ -38,6 +39,7 @@ namespace Protega___Server.Classes.Core
             {
                 CCstDatabase.DatabaseEngine = new DBMssqlDataManager(_sDBHostIp, _sDBUser, _sDBPass, _sDBPort, _sDBDefaultDB);
             }
+            
             //Database test
             if (CCstDatabase.DatabaseEngine.testDBConnection())
             {
@@ -47,6 +49,8 @@ namespace Protega___Server.Classes.Core
                 CCstLogging.Logger.writeInLog(true, "ERROR: Database test was not successfull!");
                 return;
             }
+
+            dbEngine = CCstDatabase.DatabaseEngine;
 
             //Network Initialisations
             ActiveConnections = new List<networkServer.networkClientInterface>();
@@ -59,16 +63,22 @@ namespace Protega___Server.Classes.Core
             CCstLogging.Logger.writeInLog(true, "TCP Server ready for start!");
             ProtocolController = new ProtocolController(ref ActiveConnections);
 
-            //TESTCASE
+            /*//TESTCASE
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
             //Registration
-            ProtocolController.ReceivedProtocol(dummy, "500;98765;Windoofs 7;Deutsch;1");
-            ProtocolController.ReceivedProtocol(dummy, "600;98765");
+            ProtocolController.ReceivedProtocol(dummy, "500;98765;Test;Windoofs 7;Deutsch;1");
+            string SessionID = "ASDASD";
+            ActiveConnections[0].SessionID = SessionID;
+
+            ProtocolController.ReceivedProtocol(dummy, String.Format("600;{0}", SessionID));
             System.Threading.Thread.Sleep(1000);
-            ProtocolController.ReceivedProtocol(dummy, "600;98765");
+            ProtocolController.ReceivedProtocol(dummy, String.Format("600;{0}", SessionID));
 
-            ProtocolController.ReceivedProtocol(dummy, "701;98765;Prozess");
+            //ProtocolController.ReceivedProtocol(dummy, String.Format("701;{0};Prozess", SessionID));
 
+            dummy.SessionID = SessionID;
+            ProtocolController.ReceivedProtocol(dummy, String.Format("701;{0};Process;Window;Class;MD5",SessionID));
+            */
             //Auth
             //  networkProtocol("#104;Anderson2;Lars;Pickelin;miau1234;l.pickelin@web.de", ref dummy);
             //  networkProtocol("#102;Anderson2;miau1x234", ref dummy);
@@ -117,8 +127,9 @@ namespace Protega___Server.Classes.Core
         }
 
         #region Protocol
-        private void NetworkProtocol(networkServer.networkClientInterface NetworkClient, string message)
+        public void NetworkProtocol(networkServer.networkClientInterface NetworkClient, string message)
         {
+            //Public for the Unit Tests
             try
             {
                 message = message.TrimEnd('\0');
@@ -139,29 +150,29 @@ namespace Protega___Server.Classes.Core
         }
 
         
-        void AddUserToActiveConnections(string ComputerID, Boolean architecture, String language, double version, Boolean auth)
-        {
+        //void AddUserToActiveConnections(string ComputerID, Boolean architecture, String language, double version, Boolean auth)
+        //{
 
-            networkServer.networkClientInterface Client = new networkServer.networkClientInterface();
-            Client.User.ID = ComputerID;
+        //    networkServer.networkClientInterface Client = new networkServer.networkClientInterface();
+        //    Client.User.ID = ComputerID;
 
-            if(ActiveConnections.Contains(Client))
-            {
-                //User is already registered
-                //Kick User?
-                CCstLogging.Logger.writeInLog(true, "User is already added to list!");
-                return;
-            }
-            else
-            {
-                //Client.User.
-            }
-
-
+        //    if(ActiveConnections.Contains(Client))
+        //    {
+        //        //User is already registered
+        //        //Kick User?
+        //        CCstLogging.Logger.writeInLog(true, "User is already added to list!");
+        //        return;
+        //    }
+        //    else
+        //    {
+        //        //Client.User.
+        //    }
 
 
-            ActiveConnections.Add(Client);
-        }
+
+
+        //    ActiveConnections.Add(Client);
+        //}
 
 
         public void SendProtocol(string Protocol, networkServer.networkClientInterface ClientInterface)
@@ -198,22 +209,22 @@ namespace Protega___Server.Classes.Core
         //    return message.Split(cProtocolDelimiter).ToList();
         //}
 
-        private string GetProtocolShortcut(string message)
-        {
-            return message.Split(cProtocolDelimiter)[0];
-        }
-        private string GetProtocolMessage(string message)
-        {
-            try
-            {
-                return message.Substring(GetProtocolShortcut(message).Length + 1);
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                return "-";
-            }
+        //private string GetProtocolShortcut(string message)
+        //{
+        //    return message.Split(cProtocolDelimiter)[0];
+        //}
+        //private string GetProtocolMessage(string message)
+        //{
+        //    try
+        //    {
+        //        return message.Substring(GetProtocolShortcut(message).Length + 1);
+        //    }
+        //    catch (ArgumentOutOfRangeException)
+        //    {
+        //        return "-";
+        //    }
             
-        }
+        //}
         #endregion
         
     }

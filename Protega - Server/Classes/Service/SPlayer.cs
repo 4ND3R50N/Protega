@@ -11,9 +11,9 @@ namespace Protega___Server.Classes
             return DPlayer.GetByName(Name);
         }
 
-        public static EPlayer Authenticate(string ComputerID, string Architecture, string Language, string Ip)
+        public static EPlayer Authenticate(string ComputerID, string ApplicationName, string Architecture, string Language, string Ip)
         {
-            return DPlayer.Authenticate(new EPlayer() { ID = ComputerID, OperatingSystem = Architecture, Language = Language, IP = Ip });
+            return DPlayer.Authenticate(new EPlayer() { ID = ComputerID, ApplicationName = ApplicationName, OperatingSystem = Architecture, Language = Language, IP = Ip });
         }
     }
 }

@@ -57,13 +57,13 @@ namespace Protega___Server.Classes.Data
             arParams[1] = new SqlParameter("@IP", SqlDbType.NVarChar, 50);
             arParams[2] = new SqlParameter("@Language", SqlDbType.NVarChar, 50);
             arParams[3] = new SqlParameter("@OperatingSystem", SqlDbType.NVarChar, 50);
-            arParams[4] = new SqlParameter("@ApplicationID", SqlDbType.Int);
+            arParams[4] = new SqlParameter("@ApplicationName", SqlDbType.NVarChar, 50);
 
             arParams[0].Value = p_oData.ID;
             arParams[1].Value = p_oData.IP;
             arParams[2].Value = p_oData.Language;
             arParams[3].Value = p_oData.OperatingSystem;
-            arParams[4].Value = CCstConfig.ApplicationID;
+            arParams[4].Value = p_oData.ApplicationName;
 
             return arParams;
         }
