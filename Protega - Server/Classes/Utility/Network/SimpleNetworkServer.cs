@@ -164,13 +164,14 @@ namespace Protega___Server
             public byte[] buffer;
             //Protes Values
             public Classes.Entity.EPlayer User;
+            public string SessionID;
 
             System.Timers.Timer tmrPing;
             
             public networkClientInterface()
             {
                 tmrPing = new System.Timers.Timer();
-                tmrPing.Interval = 10000;
+                tmrPing.Interval = Protega___Server.Classes.CCstConfig.PingTimer;
                 tmrPing.Elapsed += TmrPing_Elapsed;
                 User = new Classes.Entity.EPlayer();
                 //tmrPing.Start();

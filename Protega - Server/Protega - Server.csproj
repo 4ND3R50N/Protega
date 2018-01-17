@@ -51,13 +51,16 @@
     <Compile Include="Classes\Constant\CCstLogging.cs" />
     <Compile Include="Classes\ControllerCore.cs" />
     <Compile Include="Classes\Data\DHackHeuristic.cs" />
+    <Compile Include="Classes\Data\DHackVirtual.cs" />
     <Compile Include="Classes\Data\DLoggerType.cs" />
     <Compile Include="Classes\Data\DPlayer.cs" />
     <Compile Include="Classes\Entity\EHackHeuristic.cs" />
+    <Compile Include="Classes\Entity\EHackVirtual.cs" />
     <Compile Include="Classes\Entity\ELoggerData.cs" />
     <Compile Include="Classes\Entity\ELoggerType.cs" />
     <Compile Include="Classes\Entity\EPlayer.cs" />
     <Compile Include="Classes\Service\SHackHeuristic.cs" />
+    <Compile Include="Classes\Service\SHackVirtual.cs" />
     <Compile Include="Classes\Service\SLoggerType.cs" />
     <Compile Include="Classes\Protocol\Protocol.cs" />
     <Compile Include="Classes\Protocol\ProtocolController.cs" />
@@ -67,6 +70,7 @@
     <Compile Include="Classes\Utility\Database\MssqlDataManager.cs" />
     <Compile Include="Classes\Utility\Database\MysqlDataManager.cs" />
     <Compile Include="Classes\Utility\Network\SimpleNetworkServer.cs" />
+    <Compile Include="Classes\Utility\Support\AdditionalFunctions.cs" />
     <Compile Include="Classes\Utility\Support\AESEncoding.cs" />
     <Compile Include="Classes\Utility\Support\AES_Converter.cs" />
     <Compile Include="Classes\Utility\Support\IniEngine.cs" />

@@ -230,15 +230,19 @@ namespace Protega___Server.Classes
 
         public override bool testDBConnection()
         {
-                try
-                {
-                    sqlConnection.Open();
-                }
-                catch (Exception)
-                {
-                    //dataHandler.writeInMainlog("MSSQL Connect failed. [testDBConnection]", true);
-                    return false;
-                }
+            try
+            {
+                sqlConnection.Open();
+            }
+            catch (Exception e)
+            {
+                //dataHandler.writeInMainlog("MSSQL Connect failed. [testDBConnection]", true);
+                return false;
+            }
+            finally
+            {
+                sqlConnection.Close();
+            }
             
             return true;
         }

@@ -7,20 +7,20 @@ using System.Threading.Tasks;
 namespace Protega___Server.Classes.Entity
 {
     [Serializable]
-    class EHackHeuristic
+    class EHackVirtual
     {
         #region Declaration of values in the class
         private EPlayer _User;
-        private string _ProcessName;
-        private string _WindowName;
-        private string _ClassName;
-        private string _MD5Value;
+        private string _BaseAddress;
+        private string _Offset;
+        private string _DetectedValue;
+        private string _DefaultValue;
         private string _ApplicationName;
-        
+
         #endregion
 
         #region Constructor
-        public EHackHeuristic()
+        public EHackVirtual()
         { User = new EPlayer(); }
         #endregion
 
@@ -36,37 +36,37 @@ namespace Protega___Server.Classes.Entity
         /// <summary>
         /// Unique identifier of the player
         /// </summary>
-        public string ProcessName
+        public string BaseAddress
         {
-            get { return _ProcessName; }
-            set { _ProcessName = value; }
+            get { return _BaseAddress; }
+            set { _BaseAddress = value; }
         }
 
         /// <summary>
         /// Name of the player
         /// </summary>
-        public string WindowName
+        public string Offset
         {
-            get { return _WindowName; }
-            set { _WindowName = value; }
+            get { return _Offset; }
+            set { _Offset = value; }
         }
 
         /// <summary>
         /// Latest IP of the player
         /// </summary>
-        public string ClassName
+        public string DetectedValue
         {
-            get { return _ClassName; }
-            set { _ClassName = value; }
+            get { return _DetectedValue; }
+            set { _DetectedValue = value; }
         }
 
         /// <summary>
         /// Language of the player
         /// </summary>
-        public string MD5Value
+        public string DefaultValue
         {
-            get { return _MD5Value; }
-            set { _MD5Value = value; }
+            get { return _DefaultValue; }
+            set { _DefaultValue = value; }
         }
 
         /// <summary>
