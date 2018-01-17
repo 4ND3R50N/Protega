@@ -161,7 +161,7 @@ namespace Protega___Server.Classes.Data
 
                 //Fill the request's parameters
                 SqlParameter[] p_sqlParams = RegisterSqlParameter(_User);
-
+                
                 //Call the request
                 oReader = CCstDatabase.DatabaseEngine.ExecuteReader(CommandType.StoredProcedure, CCstDatabase.SP_User_Authenticate, p_sqlParams);
 

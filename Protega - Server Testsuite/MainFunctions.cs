@@ -9,12 +9,12 @@ using Protega___Server.Classes.Core;
 namespace Protega___Server_Testsuite
 {
     [TestClass]
-    public class UnitTest1
+    public class MainFunctions
     {
         networkServer.networkClientInterface Client = new networkServer.networkClientInterface();
         ControllerCore Core;
 
-       public UnitTest1()
+       public MainFunctions()
         {
             Core = new ControllerCore(10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()));
             Client.SessionID = "123";
@@ -51,7 +51,7 @@ namespace Protega___Server_Testsuite
         [TestMethod]
         public void AuthHackError()
         {
-            string HardwareID = "3213";
+            string HardwareID = "111";
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
             Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;{0};Test;Windoofs 7;Deutsch;1",HardwareID));
             string SessionID="";

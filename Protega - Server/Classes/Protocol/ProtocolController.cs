@@ -104,7 +104,7 @@ namespace Protega___Server.Classes.Protocol
                     return false;
                 }
             }
-
+            
             EPlayer dataClient = SPlayer.Authenticate(ComputerID, ApplicationName, architecture, language, "");
             if (dataClient == null)
             {

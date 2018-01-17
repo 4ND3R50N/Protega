@@ -36,10 +36,10 @@ namespace Protega___Server.Classes
             if (cmdText == null || cmdText.Length == 0) return;
 
             // Open connection if it isnt
-            if (sqlConnection.State != ConnectionState.Open)
-            {
-                sqlConnection.Open();
-            }
+            //if (sqlConnection.State != ConnectionState.Open)
+            //{
+            //    //sqlConnection.Open();
+            //}
 
             // Connect the connection to the command
             sqlCommand.Connection = sqlConnection;
@@ -138,7 +138,7 @@ namespace Protega___Server.Classes
                 
                 if (sqlConnection.State != ConnectionState.Open)
                     sqlConnection.Open();
-                
+
                 SqlDataReader dataReader;
                 dataReader = sqlCommand.ExecuteReader(CommandBehavior.CloseConnection);
 
@@ -154,7 +154,7 @@ namespace Protega___Server.Classes
                     sqlCommand.Parameters.Clear();
                 }
 
-                return dataReader;
+                    return dataReader;
 
             }
             catch (Exception e)
@@ -162,7 +162,9 @@ namespace Protega___Server.Classes
                 sqlConnection.Close();
                 throw e;
             }
-
+            finally
+            {
+            }
         }
 
         #endregion
@@ -218,9 +220,6 @@ namespace Protega___Server.Classes
 
         #endregion
         //Queries
-
-
-            
 
         protected override MySql.Data.MySqlClient.MySqlDataReader executeQuery(MySql.Data.MySqlClient.MySqlConnection mysqlConnection, string query)
         {

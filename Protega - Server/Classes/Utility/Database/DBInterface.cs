@@ -27,7 +27,7 @@ namespace Protega___Server.Classes
         protected short sql_port;
         protected string sql_db_default;
         
-
+        
         public DBEngine(string host_ip, string sql_user, string sql_pass, short sql_port, string sql_db_default)
         {
             this.host_ip = host_ip;
