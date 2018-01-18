@@ -15,7 +15,7 @@ namespace Protega___Server.Classes.Entity
         private string _WindowName;
         private string _ClassName;
         private string _MD5Value;
-        private string _ApplicationName;
+        private int _ApplicationID;
         
         #endregion
 
@@ -72,10 +72,10 @@ namespace Protega___Server.Classes.Entity
         /// <summary>
         /// ApplicationName of the player
         /// </summary>
-        public string ApplicationName
+        public int ApplicationID
         {
-            get { return _ApplicationName; }
-            set { _ApplicationName = value; }
+            get { return _ApplicationID; }
+            set { _ApplicationID = value; }
         }
         #endregion
     }

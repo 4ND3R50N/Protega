@@ -24,6 +24,7 @@ namespace Protega___Server.Classes.Data
 
                 //Player
                 oData.ID = oReader.GetString(oReader.GetOrdinal("HardwareID"));
+                oData.Application.ID = oReader.GetInt32(oReader.GetOrdinal("ApplicationID"));
 
                 if (!oReader.IsDBNull(oReader.GetOrdinal("LatestIP")))
                     oData.IP = oReader.GetString(oReader.GetOrdinal("LatestIP"));
@@ -57,13 +58,13 @@ namespace Protega___Server.Classes.Data
             arParams[1] = new SqlParameter("@IP", SqlDbType.NVarChar, 50);
             arParams[2] = new SqlParameter("@Language", SqlDbType.NVarChar, 50);
             arParams[3] = new SqlParameter("@OperatingSystem", SqlDbType.NVarChar, 50);
-            arParams[4] = new SqlParameter("@ApplicationName", SqlDbType.NVarChar, 50);
+            arParams[4] = new SqlParameter("@ApplicationHash", SqlDbType.NVarChar, 50);
 
             arParams[0].Value = p_oData.ID;
             arParams[1].Value = p_oData.IP;
             arParams[2].Value = p_oData.Language;
             arParams[3].Value = p_oData.OperatingSystem;
-            arParams[4].Value = p_oData.ApplicationName;
+            arParams[4].Value = p_oData.Application.Hash;
 
             return arParams;
         }
@@ -75,7 +76,7 @@ namespace Protega___Server.Classes.Data
 
         #region Method select
 
-        public static ECollectionPlayer GetList(EPlayer _pPlayer)
+        /*public static ECollectionPlayer GetList(EPlayer _pPlayer)
         {
             SqlDataReader oReader = null;
             try
@@ -112,9 +113,9 @@ namespace Protega___Server.Classes.Data
                 if (oReader != null && !oReader.IsClosed) oReader.Close();
             }
 
-        }
+        }*/
 
-        public static EPlayer GetByName(string Name)
+        /*public static EPlayer GetByName(string Name)
         {
             SqlDataReader dataReader = null;
 
@@ -149,22 +150,19 @@ namespace Protega___Server.Classes.Data
             {
                 if (dataReader != null && !dataReader.IsClosed) dataReader.Close();
             }
-        }
+        }*/
 
         public static EPlayer Authenticate(EPlayer _User)
         {
             SqlDataReader oReader = null;
             try
             {
-                //Initialize the return object
-                ECollectionPlayer oCollData = new ECollectionPlayer();
 
                 //Fill the request's parameters
                 SqlParameter[] p_sqlParams = RegisterSqlParameter(_User);
                 
                 //Call the request
-                oReader = CCstDatabase.DatabaseEngine.ExecuteReader(CommandType.StoredProcedure, CCstDatabase.SP_User_Authenticate, p_sqlParams);
-
+                oReader = CCstData.GetInstance(_User.Application.Hash).DatabaseEngine.ExecuteReader(CommandType.StoredProcedure, CCstDatabase.SP_User_Authenticate, p_sqlParams);
 
                 //If there is a result (not null)
                 if (oReader != null)

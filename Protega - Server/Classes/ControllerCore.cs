@@ -21,15 +21,17 @@ namespace Protega___Server.Classes.Core
         private string sAesKey;
         private char   cProtocolDelimiter;
         private char   cDataDelimiter;
-        DBEngine dbEngine;
+        public Classes.Entity.EApplication Application;
 
         //Konstruktor
-        public ControllerCore(short _iPort, char _cProtocolDelimiter, char _cDataDelimiter, string _sAesKey, string _sDatabaseDriver,
+        public ControllerCore(string _ApplicationName, short _iPort, char _cProtocolDelimiter, char _cDataDelimiter, string _sAesKey, string _sDatabaseDriver,
             string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath)
         {
             //Logging initialisations
-            CCstLogging.Logger = new logWriter(_sLogPath);
-            CCstLogging.Logger.writeInLog(true, "Logging class initialized!");
+            Support.logWriter Logger = new logWriter(_sLogPath);
+            Logger.writeInLog(true, "Logging class initialized!");
+            DBEngine dBEngine = null;
+            
             //Database Initialisations
             if(_sDatabaseDriver == "mysql")
             {
@@ -37,20 +39,31 @@ namespace Protega___Server.Classes.Core
 
             }else if(_sDatabaseDriver == "mssql")
             {
-                CCstDatabase.DatabaseEngine = new DBMssqlDataManager(_sDBHostIp, _sDBUser, _sDBPass, _sDBPort, _sDBDefaultDB);
+                dBEngine = new DBMssqlDataManager(_sDBHostIp, _sDBUser, _sDBPass, _sDBPort, _sDBDefaultDB);
             }
-            
+
+
             //Database test
-            if (CCstDatabase.DatabaseEngine.testDBConnection())
+            if (dBEngine.testDBConnection())
             {
-                CCstLogging.Logger.writeInLog(true, "Database test successfull!");
+                Logger.writeInLog(true, "Database test successfull!");
             }else
             {
-                CCstLogging.Logger.writeInLog(true, "ERROR: Database test was not successfull!");
+                Logger.writeInLog(true, "ERROR: Database test was not successfull!");
                 return;
             }
 
-            dbEngine = CCstDatabase.DatabaseEngine;
+            CCstData Config = new CCstData(SApplication.GetByName(_ApplicationName, dBEngine), dBEngine, Logger);
+            Application = Config.Application;
+
+            if (CCstData.GetInstance(Application.ID).DatabaseEngine.testDBConnection())
+            {
+                CCstData.GetInstance(Application.ID).Logger.writeInLog(true, "Instance successfully created!");
+            } else
+            {
+                Logger.writeInLog(true, "Instance could not be created!");
+                return;
+            }
 
             //Network Initialisations
             ActiveConnections = new List<networkServer.networkClientInterface>();
@@ -60,7 +73,7 @@ namespace Protega___Server.Classes.Core
             TcpServer = new networkServer(NetworkProtocol, _sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         
             ProtocolController.SendProtocol += this.SendProtocol;
-            CCstLogging.Logger.writeInLog(true, "TCP Server ready for start!");
+            Logger.writeInLog(true, "TCP Server ready for start!");
             ProtocolController = new ProtocolController(ref ActiveConnections);
 
             /*//TESTCASE
@@ -117,11 +130,11 @@ namespace Protega___Server.Classes.Core
         {
             if(TcpServer.startListening())
             {
-                CCstLogging.Logger.writeInLog(true, "Server has been started successfully!");
+                CCstData.GetInstance(Application).Logger.writeInLog(true, "Server has been started successfully!");
             }
             else
             {
-                CCstLogging.Logger.writeInLog(true, "ERROR: The server was not able to start!");
+                CCstData.GetInstance(Application).Logger.writeInLog(true, "ERROR: The server was not able to start!");
             }
            
         }
@@ -136,16 +149,16 @@ namespace Protega___Server.Classes.Core
                 //Decrypt received protocol
 
                 List<char> Chars = message.ToList();
-                message = AES_Converter.DecryptFromCBC(CCstConfig.EncryptionKey, CCstConfig.EncryptionIV, message);
+                message = AES_Converter.DecryptFromCBC(CCstData.EncryptionKey, CCstData.EncryptionIV, message);
             }
             catch (Exception e)
             {
                 //If decryption failed, something was probably manipulated -> Log it
-                CCstLogging.Logger.writeInLog(true, "Protocol Decryption failed! From xy - message: " + e.ToString());
+                CCstData.GetInstance(Application).Logger.writeInLog(true, "Protocol Decryption failed! From xy - message: " + e.ToString());
                 return;
             }
 
-            CCstLogging.Logger.writeInLog(true, "Protocol received: " + message);
+            CCstData.GetInstance(Application).Logger.writeInLog(true, "Protocol received: " + message);
             ProtocolController.ReceivedProtocol(NetworkClient, message);
         }
 
@@ -181,7 +194,7 @@ namespace Protega___Server.Classes.Core
             //if (Clients.Count == 1)
             //{
             //encrypt protocol
-            Protocol = AES_Converter.EncryptWithCBC(CCstConfig.EncryptionKey, CCstConfig.EncryptionIV, Protocol) + "~";
+            Protocol = AES_Converter.EncryptWithCBC(CCstData.EncryptionKey, CCstData.EncryptionIV, Protocol) + "~";
                 //TcpServer.sendMessage(Protocol, Clients[0]);
                 if (ActiveConnections.Count>0)
                     TcpServer.sendMessage(Protocol, ClientInterface);

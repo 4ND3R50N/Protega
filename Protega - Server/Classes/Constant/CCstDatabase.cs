@@ -1,12 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Support;
+using System.Net;
+using System.Net.Sockets;
+using Protega___Server.Classes.Protocol;
 
 namespace Protega___Server.Classes
 {
     public static class CCstDatabase
     {
-        public static DBEngine DatabaseEngine;
-
         #region Stored Procedures
+
+        #region Application
+        public const string SP_Application_GetByName = "Application_GetByName";
+        #endregion
 
         #region User
         public const string SP_User_GetByName = "Player_GetByName";

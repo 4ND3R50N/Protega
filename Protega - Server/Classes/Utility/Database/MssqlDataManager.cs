@@ -29,6 +29,13 @@ namespace Protega___Server.Classes
             sqlConnection = new SqlConnection("Server=" + host_ip + ";Database=" + sql_db_default + ";User Id=" + sql_user + ";Password=" + sql_pass + ";MultipleActiveResultSets=True;");
         }
 
+        public override void Dispose()
+        {
+            if (sqlConnection.State != ConnectionState.Closed)
+                sqlConnection.Close();
+            sqlConnection.Dispose();
+        }
+
         #region Private functions
         private void pPrepareCommand(SqlCommand sqlCommand, SqlTransaction sqlTransaction, CommandType p_cmdType, string cmdText, SqlParameter[] cmdParameters)
         {
@@ -36,10 +43,10 @@ namespace Protega___Server.Classes
             if (cmdText == null || cmdText.Length == 0) return;
 
             // Open connection if it isnt
-            //if (sqlConnection.State != ConnectionState.Open)
-            //{
-            //    //sqlConnection.Open();
-            //}
+            if (sqlConnection.State != ConnectionState.Open)
+            {
+                sqlConnection.Open();
+            }
 
             // Connect the connection to the command
             sqlCommand.Connection = sqlConnection;

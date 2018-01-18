@@ -106,7 +106,7 @@ namespace Protega___Server
 
         private void ReceiveCallback(IAsyncResult result)
         {
-            Classes.CCstLogging.Logger.writeInLog(true, "Callback received!");
+            //Classes.CCstLogging.Logger.writeInLog(true, "Callback received!");
             networkClientInterface connection = (networkClientInterface)result.AsyncState;
             try
             {
@@ -165,16 +165,18 @@ namespace Protega___Server
             //Protes Values
             public Classes.Entity.EPlayer User;
             public string SessionID;
+            public DateTime ConnectedTime;
 
             System.Timers.Timer tmrPing;
             
             public networkClientInterface()
             {
                 tmrPing = new System.Timers.Timer();
-                tmrPing.Interval = Protega___Server.Classes.CCstConfig.PingTimer;
+                tmrPing.Interval = Protega___Server.Classes.CCstData.PingTimer;
                 tmrPing.Elapsed += TmrPing_Elapsed;
                 User = new Classes.Entity.EPlayer();
-                //tmrPing.Start();
+                ConnectedTime = DateTime.Now;
+                tmrPing.Start();
             }
 
             private void TmrPing_Elapsed(object sender, System.Timers.ElapsedEventArgs e)

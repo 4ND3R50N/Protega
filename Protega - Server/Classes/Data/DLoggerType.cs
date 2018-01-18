@@ -79,7 +79,13 @@ namespace Protega___Server.Classes.Data
                 ECollectionLoggerType oCollData = new ECollectionLoggerType();
 
                 //Call the request
-                oReader = CCstDatabase.DatabaseEngine.ExecuteReader(CommandType.StoredProcedure, CCstDatabase.SP_LoggerType_GetList);
+                using (DBEngine DBInstance = CCstData.GetInstance("").DatabaseEngine)
+                {
+                    oReader = DBInstance.ExecuteReader(CommandType.StoredProcedure, CCstDatabase.SP_LoggerType_GetList);
+
+                }
+
+                
 
                 //If there is a result (not null)
                 if (oReader != null)

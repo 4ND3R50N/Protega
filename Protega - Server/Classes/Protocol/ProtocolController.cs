@@ -74,7 +74,7 @@ namespace Protega___Server.Classes.Protocol
             }
 
             //Computer ID, Computer Architecture, Language, Version
-            string ApplicationName = Objects[0].ToString();
+            string ApplicationHash = Objects[0].ToString();
             string architecture = Objects[1].ToString();
             String language = Objects[2].ToString();
             
@@ -87,25 +87,33 @@ namespace Protega___Server.Classes.Protocol
             }
             
             //Check if user exists and add it to the list
-            return AddUserToActiveConnections(ClientInterface, ApplicationName, prot.GetUserID(), architecture, language, version);
+            return AddUserToActiveConnections(ClientInterface, ApplicationHash, prot.GetUserID(), architecture, language, version);
         }
 
-        bool AddUserToActiveConnections(networkServer.networkClientInterface ClientInterface, string ApplicationName, string ComputerID, string architecture, String language, double version)
+        bool AddUserToActiveConnections(networkServer.networkClientInterface ClientInterface, string ApplicationHash, string ComputerID, string architecture, String language, double version)
         {
+            if(!CCstData.InstanceExists(ApplicationHash))
+            {
+                //Instance does not exist. The player must have manipulated the protocol!
+
+                return false;
+            }
+
+
             //Check if user is already connected
             foreach (networkServer.networkClientInterface item in ActiveConnections)
             {
                 if(item.User.ID==ComputerID
-                    && item.User.ApplicationName==ApplicationName)
+                    && item.User.Application.Hash==ApplicationHash)
                 {
                     //User is already registered
                     //Kick User?
-                    CCstLogging.Logger.writeInLog(true, "User is already added to list!");
+                    CCstData.GetInstance(ApplicationHash).Logger.writeInLog(true, "User is already added to list!");
                     return false;
                 }
             }
             
-            EPlayer dataClient = SPlayer.Authenticate(ComputerID, ApplicationName, architecture, language, "");
+            EPlayer dataClient = SPlayer.Authenticate(ComputerID, ApplicationHash, architecture, language, "");
             if (dataClient == null)
             {
                 //If a computer ID exists multiple times in the database, a null object is returned
@@ -125,12 +133,11 @@ namespace Protega___Server.Classes.Protocol
 
             //Add EPlayer to ClientInterface and to the list
             ClientInterface.User = dataClient;
-            ClientInterface.User.ApplicationName = ApplicationName;
 
             //Generate unique Session ID for network communication
             while (true)
             {
-                string SessionID = AdditionalFunctions.GenerateSessionID(CCstConfig.SessionIDLength);
+                string SessionID = AdditionalFunctions.GenerateSessionID(CCstData.SessionIDLength);
 
                 //Checks if that connection exists already. Gives back the amount of matching ClientInterfaces
                 if (ActiveConnections.Where(Client => Client.SessionID == SessionID).ToList().Count == 0)
@@ -197,7 +204,7 @@ namespace Protega___Server.Classes.Protocol
                 string ClassName = Convert.ToString(Objects[2]);
                 string MD5Value = Convert.ToString(Objects[3]);
 
-                if(!SHackHeuristic.Insert(ClientInterface.User.ID, ClientInterface.User.ApplicationName, ProcessName, WindowName, ClassName, MD5Value))
+                if(!SHackHeuristic.Insert(ClientInterface.User.ID, ClientInterface.User.Application.ID, ProcessName, WindowName, ClassName, MD5Value))
                 {
                     return false;
                     //Log error - Hack insertion did not work
@@ -225,7 +232,7 @@ namespace Protega___Server.Classes.Protocol
                 string DetectedValue = Convert.ToString(Objects[2]);
                 string DefaultValue = Convert.ToString(Objects[3]);
 
-                if (!SHackVirtual.Insert(ClientInterface.User.ID, ClientInterface.User.ApplicationName, BaseAddress, Offset, DetectedValue, DefaultValue))
+                if (!SHackVirtual.Insert(ClientInterface.User.ID, ClientInterface.User.Application.ID, BaseAddress, Offset, DetectedValue, DefaultValue))
                 {
                     return false;
                     //Log error - Hack insertion did not work

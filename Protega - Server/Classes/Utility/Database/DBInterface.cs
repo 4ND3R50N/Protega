@@ -18,7 +18,7 @@ using System.Collections;
 namespace Protega___Server.Classes
 {
 
-    public abstract class DBEngine
+    public abstract class DBEngine:IDisposable
     {
 
         protected string host_ip;
@@ -41,6 +41,8 @@ namespace Protega___Server.Classes
         protected abstract MySqlDataReader executeQuery(MySqlConnection MysqlConnection, string query);
         //protected abstract SqlDataReader executeQuery(SqlConnection MssqlConnection, string query);
         public abstract bool testDBConnection();
+
+        public abstract void Dispose();
 
         /// <summary>
         /// Check the Sql Parameters if it fits to the stored procedure
@@ -66,8 +68,8 @@ namespace Protega___Server.Classes
         /// <param name="SqlParameters">Table of Params</param>
         /// <param name="ParamValues">Table of object values</param>
         //protected abstract void pAssignParameters(SqlParameter[] SqlParameters, object[] ParamValues);
-        
-        
+
+
 
         #region Public methods
         /// <summary>

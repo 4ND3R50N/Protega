@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Support
 {
-    class logWriter{
+    public class logWriter{
 
         string path;
 

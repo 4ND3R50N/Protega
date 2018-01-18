@@ -16,24 +16,24 @@ namespace Protega___Server_Testsuite
 
        public MainFunctions()
         {
-            Core = new ControllerCore(10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()));
+            Core = new ControllerCore("Test",10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()));
             Client.SessionID = "123";
             Client.User.ID = "1234";
-            Client.User.ApplicationName = "Test";
+            Client.User.Application.ID = 1;
             Core.ActiveConnections.Add(Client);
         }
-        
+
         [TestMethod]
         public void DatabaseConnection()
         {
-            Assert.AreEqual(CCstDatabase.DatabaseEngine.testDBConnection(), true);
+            Assert.AreEqual(CCstData.GetInstanceByName("Test").DatabaseEngine.testDBConnection(), true);
         }
 
         [TestMethod]
         public void Authentification()
         {
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
-            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(dummy, "500;98765;Test;Windoofs 7;Deutsch;1"), true);
+            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;12312315;{0};Windoofs 7;Deutsch;1",Core.Application.Hash)), true);
         }
 
         [TestMethod]
@@ -58,7 +58,7 @@ namespace Protega___Server_Testsuite
             foreach (var item in Core.ActiveConnections)
             {
                 if (item.User.ID == HardwareID
-                    && item.User.ApplicationName == "Test")
+                    && item.User.Application.ID == 1)
                 {
                     SessionID = item.SessionID;
                     dummy = item;

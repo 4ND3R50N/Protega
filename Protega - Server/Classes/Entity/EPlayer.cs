@@ -17,7 +17,7 @@ namespace Protega___Server.Classes.Entity
         private string _IP;
         private string _Language;
         private string _OperatingSystem;
-        private string _ApplicationName;
+        private EApplication _Application;
 
         /// <summary>
         /// Ban status of the player. 0 = unpunished, 1 = banned
@@ -27,7 +27,7 @@ namespace Protega___Server.Classes.Entity
 
         #region Constructor
         public EPlayer()
-        { }
+        { _Application = new EApplication(); }
         #endregion
 
         #region Accessors functions
@@ -79,10 +79,10 @@ namespace Protega___Server.Classes.Entity
         /// <summary>
         /// Connected application of the player
         /// </summary>
-        public string ApplicationName
+        public EApplication Application
         {
-            get { return _ApplicationName; }
-            set { _ApplicationName = value; }
+            get { return _Application; }
+            set { _Application = value; }
         }
 
         /// <summary>
@@ -100,16 +100,16 @@ namespace Protega___Server.Classes.Entity
     /// Description :
     /// Define a list of Players and provide functions to interact with
     /// </summary>
-    [Serializable]
-    public class ECollectionPlayer : ArrayList
-    {
-        public List<EPlayer> ToList()
-        {
-            List<EPlayer> ListData = new List<EPlayer>();
-            ListData.AddRange(this.OfType<EPlayer>());
+    //[Serializable]
+    //public class ECollectionPlayer : ArrayList
+    //{
+    //    public List<EPlayer> ToList()
+    //    {
+    //        List<EPlayer> ListData = new List<EPlayer>();
+    //        ListData.AddRange(this.OfType<EPlayer>());
 
-            return ListData;
-        }
+    //        return ListData;
+    //    }
 
-    }
+    //}
 }
