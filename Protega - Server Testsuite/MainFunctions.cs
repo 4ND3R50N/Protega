@@ -51,9 +51,9 @@ namespace Protega___Server_Testsuite
         [TestMethod]
         public void AuthHackError()
         {
-            string HardwareID = "111";
+            string HardwareID = "11185";
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
-            Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;{0};Test;Windoofs 7;Deutsch;1",HardwareID));
+            Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;{0};{1};Windoofs 7;Deutsch;1",HardwareID, Core.Application.Hash));
             string SessionID="";
             foreach (var item in Core.ActiveConnections)
             {
