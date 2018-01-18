@@ -64,12 +64,12 @@ void ProtegaCore::StartAntihack()
 			"Downloaded data is corrupt. Please check our internet connection and restart the application. If this problem accours more often, please contact an administrator!");
 	}
 	//Dummy Lists
-	std::vector<std::string> vBlackListWindowName;
-	std::vector<std::string> vBlackListClassName;
+	std::list<std::string> lBlackListWindowName;
+	std::list<std::string> lBlackListClassName;
 
 	ProtectionManager = new Protection_Manager(std::bind(&ProtegaCore::ProtectionManagerAnswer, this, std::placeholders::_1), (int)GetCurrentProcessId(),
 		Data_Manager::GetProtectionThreadResponseDelta(), Data_Manager::GetExceptionVmErrorNumber(), Data_Manager::GetExceptionThreadErrorNumber(), 
-		Data_Manager::GetHeuristicProcessNames(), vBlackListWindowName, vBlackListClassName, Data_Manager::GetHeuristicMD5Values());
+		Data_Manager::GetHeuristicProcessNames(), lBlackListWindowName, lBlackListClassName, Data_Manager::GetHeuristicMD5Values());
 
 	ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
 	ProtectionManager->StartProtectionThreads();

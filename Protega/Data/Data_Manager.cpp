@@ -14,7 +14,7 @@ const char* Data_Manager::LOCAL_DATA_NEWLINE_DELIMITER = "~";
 const char* Data_Manager::LOCAL_DATA_DELIMITER = ";";
 const char* Data_Manager::LOCAL_DATA_FOLDER = ".\\protega\\";
 const char* Data_Manager::LOCAL_DATA_PROTEGA_IMAGE = "Protega_Logo.bmp";
-std::string Data_Manager::LOCAL_DATA_PROTECTION_TARGET = "CabalMain.exe";
+std::string Data_Manager::LOCAL_DATA_PROTECTION_TARGET = "CabalMain22.exe";
 
 //Network data
 const char* Data_Manager::NETWORK_SERVER_IP = "62.138.6.50";
@@ -25,9 +25,9 @@ const char* Data_Manager::DATA_AES_KEY = "1234567890123456";
 const char* Data_Manager::DATA_AES_IV = "bbbbbbbbbbbbbbbb";
 
 //Content data
-std::vector<std::string> Data_Manager::vHeuristicMD5Values;
-std::vector<std::wstring> Data_Manager::vHeuristicProcessNames;
-std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::pFilesToCheck;
+std::list<std::string> Data_Manager::lHeuristicMD5Values;
+std::list<std::wstring> Data_Manager::lHeuristicProcessNames;
+
 //Protection data
 double Data_Manager::PROTECTION_THREAD_RESPONSE_DELTA = 20.0;
 
@@ -42,65 +42,64 @@ int Data_Manager::EXCEPTION_THREAD_ERROR = 305;
 
 #pragma endregion
 
-//Public
 
-//Note: Maybe optimize the function. Drag out the base model of downloading + decripting
+
+//Public
 int Data_Manager::CollectDynamicProtesData()
 {
 	//Download data from web
 	std::stringstream ssUrlCombiner;
 	std::stringstream ssLocalPathCombiner;
 
-	//Get FP decrypted string
-
-	ssUrlCombiner << TARGET_ENVIORMENT_DATA_URL << TARGET_ENVIORMENT_FTC_FILE_NAME;
-	ssLocalPathCombiner << LOCAL_DATA_FOLDER << TARGET_ENVIORMENT_FTC_FILE_NAME;
-	
-	if (!Data_Gathering::DownloadWebFile(_strdup(ssUrlCombiner.str().c_str()), _strdup(ssLocalPathCombiner.str().c_str())))
-	{
-		return 1;
-	}
-
-	std::string sTempDecryptedFilesToCheckData = ConvertENCToDecryptedString(ssLocalPathCombiner.str());
-		
-	ssUrlCombiner.str("");
-	ssLocalPathCombiner.str("");
-
-	//Get heuristic md5 decrypted string
 
 	ssUrlCombiner << TARGET_ENVIORMENT_DATA_URL << TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME;
-	ssLocalPathCombiner << LOCAL_DATA_FOLDER << TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME;	
-
+	ssLocalPathCombiner << LOCAL_DATA_FOLDER << TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME;
 	if (!Data_Gathering::DownloadWebFile(_strdup(ssUrlCombiner.str().c_str()), _strdup(ssLocalPathCombiner.str().c_str())))
 	{
 		return 1;
 	}
-
-	std::string sTempDecryptedMD5Data = ConvertENCToDecryptedString(ssLocalPathCombiner.str());
-
+	std::ifstream isHeuristicMD5FileReader(ssLocalPathCombiner.str());
+	if (!isHeuristicMD5FileReader.is_open())
+	{
+		return 2;
+	}
+	std::string sTempEncryptedMD5Data((std::istreambuf_iterator<char>(isHeuristicMD5FileReader)), std::istreambuf_iterator<char>());
+	isHeuristicMD5FileReader.close();
 	ssUrlCombiner.str("");
 	ssLocalPathCombiner.str("");
-
-	//Get heuristic process name
 
 	ssUrlCombiner << TARGET_ENVIORMENT_DATA_URL << TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME;
 	ssLocalPathCombiner << LOCAL_DATA_FOLDER << TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME;
-
 	if (!Data_Gathering::DownloadWebFile(_strdup(ssUrlCombiner.str().c_str()), _strdup(ssLocalPathCombiner.str().c_str())))
 	{
 		return 1;
 	}
+	std::ifstream isHeuristicProcessNameFileReader(ssLocalPathCombiner.str());
+	if (!isHeuristicProcessNameFileReader.is_open())
+	{
+		return 2;
+	}
+	std::string sTempEncryptedProcessNameData((std::istreambuf_iterator<char>(isHeuristicProcessNameFileReader)), std::istreambuf_iterator<char>());
+	isHeuristicProcessNameFileReader.close();
+	ssUrlCombiner.str("");
+	ssLocalPathCombiner.str("");
 
-	std::string sTempDecryptedProcessNameData = ConvertENCToDecryptedString(ssLocalPathCombiner.str());
-	
-	if (sTempDecryptedFilesToCheckData == "" || sTempDecryptedMD5Data == "" || sTempDecryptedProcessNameData == "")
+	//Delete files
+	//remove(ssHeuristicFilePathCombiner.str().c_str());
+	//remove(ssFTCFilePathCombiner.str().c_str());
+
+	//Decrypt data
+	std::string sTempDecryptedMD5Data = CryptoPP_Converter::AESDecrypt(DATA_AES_KEY, DATA_AES_IV, sTempEncryptedMD5Data);
+	std::string sTempDecryptedProcessNameData = CryptoPP_Converter::AESDecrypt(DATA_AES_KEY, DATA_AES_IV, sTempEncryptedProcessNameData);
+
+	if (sTempDecryptedMD5Data == "" || sTempDecryptedProcessNameData == "")
 	{
 		return 3;
 	}
 
-	vHeuristicMD5Values = ConvertStringToStringList(sTempDecryptedMD5Data);
-	vHeuristicProcessNames = ConvertStringToWStringList(sTempDecryptedProcessNameData);
-	pFilesToCheck = ConvertStringToPairOfStringLists(sTempDecryptedFilesToCheckData);
+	//Convert data to lists
+	lHeuristicMD5Values = ConvertStringToStringList(sTempDecryptedMD5Data);
+	lHeuristicProcessNames = ConvertStringToWStringList(sTempDecryptedProcessNameData);
 
 	return 0;
 }
@@ -113,90 +112,77 @@ std::string Data_Manager::GenerateComputerID()
 }
 
 
-std::string Data_Manager::ConvertENCToDecryptedString(std::string sPathToEnc)
-{
-	//Read enc file
-	std::string sEncodedString = "";
-	std::string sCurrentLine;
-	std::ifstream ifEncFile(sPathToEnc);
-
-	while (getline(ifEncFile, sCurrentLine))  // same as: while (getline( myfile, line ).good())
-	{
-		sEncodedString += ((char)atoi(sCurrentLine.c_str()));
-	}
-	ifEncFile.close();
-	remove(sPathToEnc.c_str());
-
-	return CryptoPP_Converter::AESDecrypt(DATA_AES_KEY, DATA_AES_IV, sEncodedString);
-}
-
 //Private
-std::vector<std::string> Data_Manager::ConvertStringToStringList(std::string sData)
+std::list<std::string> Data_Manager::ConvertStringToStringList(std::string sData)
 {
+
+	////Allocate memory for the matrix
+	//std::vector<std::string> vDataParts;
+	////	important: delete the last '#\0' from string
+	//boost::split(vDataParts, sData.substr(0, sData.length() - 2), boost::is_any_of("#"));
+	//short iCurrentLocationInDataParts = 0;
+
+	////	get count of cols we need
+	//size_t iColCount = std::count(vDataParts[0].begin(), vDataParts[0].end(), LOCAL_DATA_DELIMITER);
+	////	get count of entries in csv
+	//size_t iMatrixRowCount = vDataParts.size();
+
+	//std::string** sDataMatrix = new std::string*[iMatrixRowCount];
+
+	//for (size_t iCurrentRow = 0; iCurrentRow < iMatrixRowCount; iCurrentRow++)
+	//{
+	//	sDataMatrix[iCurrentRow] = new std::string[iColCount];
+	//}
+
+
+	////Push data into matrix
+	//for (size_t iCurrentRow = 0; iCurrentRow < iMatrixRowCount; iCurrentRow++)
+	//{
+	//	for (size_t iCurrentCol = 0; iCurrentCol < iColCount; iCurrentCol++)
+	//	{
+	//		std::vector<std::string> vCurrentDataLine;
+	//		boost::split(vCurrentDataLine, vDataParts[iCurrentRow], boost::is_any_of(";"));
+	//		sDataMatrix[iCurrentRow][iCurrentCol] = vCurrentDataLine[iCurrentCol];
+	//		iCurrentLocationInDataParts++;
+	//	}
+	//}
 	std::vector<std::string> vDataParts;
 	std::vector<std::string> vTargetData;
-
+	std::list<std::string> lTargetData;
 
 	try
 	{
 		boost::split(vDataParts, sData.substr(0, sData.length() - 2), boost::is_any_of(LOCAL_DATA_NEWLINE_DELIMITER));
 		boost::split(vTargetData, vDataParts[1].substr(0, sData.length() - 2), boost::is_any_of(LOCAL_DATA_DELIMITER));
+		std::copy(vTargetData.begin(), vTargetData.end(), std::back_inserter(lTargetData));
 	}
 	catch (const std::exception&)
 	{
-		//This error case has to be handled in future!
-		return vTargetData;
+		return std::list<std::string>();
 	}
 		
-	return vTargetData;
+	return lTargetData;
 }
 
-std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::ConvertStringToPairOfStringLists(std::string sData)
-{
-	std::vector<std::string> vDataParts;
-	std::vector<std::string> vFileNames;
-	std::vector<std::string> vMd5Hashes;
-	std::pair<std::list<std::string>, std::list<std::string>> lTargetData;
-
-	try
-	{
-		boost::split(vDataParts, sData.substr(0, sData.length() - 2), boost::is_any_of(LOCAL_DATA_NEWLINE_DELIMITER));
-		boost::split(vFileNames, vDataParts[1].substr(0, sData.length() - 2), boost::is_any_of(LOCAL_DATA_DELIMITER));
-
-		int iMd5HashlistCounter = 0;
-		for (int i = 1; i <= vFileNames.size(); i++)
-		{
-			vMd5Hashes.push_back(vFileNames[i]);
-			vFileNames.erase(std::remove(vFileNames.begin(), vFileNames.end(), vFileNames[i]), vFileNames.end());
-			iMd5HashlistCounter++;
-		}
-	}
-	catch (const std::exception&)
-	{
-		return std::pair<std::vector<std::string>, std::vector<std::string>>();
-	}
-
-	return std::make_pair(vFileNames, vMd5Hashes);
-}
-
-std::vector<std::wstring> Data_Manager::ConvertStringToWStringList(std::string sData)
+std::list<std::wstring> Data_Manager::ConvertStringToWStringList(std::string sData)
 {
 	std::wstring wsConvertedString;
 	StringToWString(sData, &wsConvertedString);
 	std::vector<std::wstring> vDataParts;
 	std::vector<std::wstring> vTargetData;
-
+	std::list<std::wstring> lTargetData;
 	try
 	{
 		boost::split(vDataParts, wsConvertedString.substr(0, wsConvertedString.length() - 1), boost::is_any_of(LOCAL_DATA_NEWLINE_DELIMITER));
 		boost::split(vTargetData, vDataParts[1].substr(0, wsConvertedString.length() - 1), boost::is_any_of(LOCAL_DATA_DELIMITER));
+		std::copy(vTargetData.begin(), vTargetData.end(), std::back_inserter(lTargetData));
 	}
 	catch (const std::exception&)
 	{
-		return vTargetData;
+		return std::list<std::wstring>();;
 	}
 	
-	return vTargetData;
+	return lTargetData;
 }
 
 void Data_Manager::StringToWString(std::string sStringToConvert, std::wstring * wsOutput)
@@ -262,19 +248,14 @@ const char * Data_Manager::GetLocalProtegaImage()
 	return LOCAL_DATA_PROTEGA_IMAGE;
 }
 
-std::vector<std::wstring> Data_Manager::GetHeuristicProcessNames()
+std::list<std::wstring> Data_Manager::GetHeuristicProcessNames()
 {
-	return vHeuristicProcessNames;
+	return lHeuristicProcessNames;
 }
 
-std::vector<std::string> Data_Manager::GetHeuristicMD5Values()
+std::list<std::string> Data_Manager::GetHeuristicMD5Values()
 {
-	return vHeuristicMD5Values;
-}
-
-std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::GetFilesToCheckValues()
-{
-	return pFilesToCheck;
+	return lHeuristicMD5Values;
 }
 
 const char * Data_Manager::GetExceptionCaption()
@@ -306,3 +287,5 @@ int Data_Manager::GetExceptionThreadErrorNumber()
 {
 	return EXCEPTION_THREAD_ERROR;
 }
+
+

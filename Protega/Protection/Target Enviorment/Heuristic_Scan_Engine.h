@@ -23,10 +23,10 @@ class Heuristic_Scan_Engine
 {
 private:
 	std::list<DWORD> lProcessIDs;
-	std::vector<std::wstring> vBlackListProcessNames;
-	std::vector<std::string> vBlackListWindowNames;
-	std::vector<std::string> vBlackListClassNames;
-	std::vector<std::string> vBlackListMd5Values;
+	std::list<std::wstring> lBlackListProcessNames;
+	std::list<std::string> lBlackListWindowNames;
+	std::list<std::string> lBlackListClassNames;
+	std::list<std::string> lBlackListMd5Values;
 
 	std::function<void(std::wstring sDetectedValue) > funcErrorCallbackHandler;
 
@@ -35,10 +35,10 @@ private:
 	
 
 public:
-	Heuristic_Scan_Engine(std::vector<std::wstring> lBlackListProcessNames,
-		std::vector<std::string> lBlackListWindowNames,
-		std::vector<std::string> lBlackListClassNames,
-		std::vector<std::string> lBlackListMd5Values,
+	Heuristic_Scan_Engine(std::list<std::wstring> lBlackListProcessNames,
+		std::list<std::string> lBlackListWindowNames,
+		std::list<std::string> lBlackListClassNames,
+		std::list<std::string> lBlackListMd5Values,
 		std::function<void(std::wstring sDetectedValue) > funcErrorCallbackHandler);
 	~Heuristic_Scan_Engine();
 

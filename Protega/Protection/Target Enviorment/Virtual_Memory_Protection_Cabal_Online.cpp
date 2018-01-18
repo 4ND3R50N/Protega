@@ -34,7 +34,7 @@ bool Virtual_Memory_Protection_Cabal_Online::CloseProcessInstance()
 bool Virtual_Memory_Protection_Cabal_Online::CheckAllVmpFunctions()
 {
 	if ((VMP_CheckGameSpeed() || VMP_CheckWallBorders() || VMP_CheckZoomState() || VMP_CheckNoSkillDelay()  || 
-		VMP_CheckNoCastTime() || VMP_CheckSkillRange() || VMP_CheckSkillCooldown() /*|| VMP_CheckNation()*/) == true)
+		VMP_CheckNoCastTime() || VMP_CheckSkillRange() || VMP_CheckSkillCooldown() || VMP_CheckNation()) == true)
 	{
 		return true;
 	}

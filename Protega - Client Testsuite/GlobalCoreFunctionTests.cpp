@@ -119,33 +119,11 @@ namespace ProtegaClientTestsuite
 			isReader.close();
 			sTmp.clear();
 
-			std::vector<std::string> vAscii(3280, "0");
-			std::string sDecryptedValue = "";
 			std::string sEncryptedString = CryptoPP_Converter::AESEncrypt(sAESKey, sIV, sInput);
+
+			//Safe encode to file
 			std::ofstream file(sFileToConvert.append(".enc"));
-
-			for (int i = 0; i < sEncryptedString.size(); i++)
-			{
-				vAscii[i] = std::to_string(int(sEncryptedString.at(i)));
-				file << std::to_string(int(sEncryptedString.at(i))) << endl;
-			}
-
-			/*for (int i = 0; i < vAscii.size(); i++)
-			{
-				sDecryptedValue += ((char)atoi(vAscii[i].c_str()));
-			}*/
-			//ifstream myReadFile;
-			//string line;
-			//string result;
-			//myReadFile.open(sFileToConvert);
-			//while (getline(myReadFile, line))  // same as: while (getline( myfile, line ).good())
-			//{
-			//	result += ((char)atoi(line.c_str()));
-			//}
-
-			//std::string sTempDecryptedFilesToCheckData = CryptoPP_Converter::AESDecrypt(sAESKey, sIV, result);
-
-			//Safe encode to file			
+			file << sEncryptedString;
 			file.close();
 			isReader.clear();
 		}

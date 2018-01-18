@@ -1,0 +1,50 @@
+﻿<Controls:MetroWindow  x:Class="Protega___AES_File_Converter.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Protega___AES_File_Converter"
+        xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+        mc:Ignorable="d"
+        Title="Protega - AES File Converter (Develop)" Height="374.858" Width="537.926">
+
+
+
+    <Grid>
+        <GroupBox Header="Select the Files you want to En- or Decrypt" Height="183" Margin="10,10,10,0" VerticalAlignment="Top">
+            <Grid>
+                <ListBox x:Name="lbSelectedFiles" HorizontalAlignment="Left" Height="88" VerticalAlignment="Top" Width="230" Margin="10,46,0,0"/>
+                <Button x:Name="btnSelectFiles" Content="Select Files..." HorizontalAlignment="Left" Margin="118,10,0,0" VerticalAlignment="Top" Width="122" Click="btnSelectFiles_Click"/>
+                <Button x:Name="btnUseTextorFile" Content="Use text" HorizontalAlignment="Left" Margin="258,10,0,0" VerticalAlignment="Top" Width="230" Click="btnUseTextorFile_Click"/>
+                <TextBox x:Name="txtText" HorizontalAlignment="Left" Height="88" TextWrapping="Wrap" VerticalAlignment="Top" Width="230" Margin="258,46,0,0" IsEnabled="False"/>
+                <Button x:Name="btnDeleteSelection" Content="Delete Selection" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top" Width="113" Click="btnDeleteSelection_Click"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="AES Settings" Height="100" Margin="10,198,10,0" VerticalAlignment="Top">
+            <Grid>
+                <Label Content="Mode:" HorizontalAlignment="Left" Margin="0,17,0,0" VerticalAlignment="Top" Width="60"/>
+                <ComboBox x:Name="cbMode" HorizontalAlignment="Left" Margin="60,17,0,0" VerticalAlignment="Top" Width="96">
+                    <ComboBoxItem Content="Encrypt" HorizontalAlignment="Left" Width="118"/>
+                    <ComboBoxItem Content="Decrypt" HorizontalAlignment="Left" Width="118"/>
+                </ComboBox>
+                <Label Content="Key:" VerticalAlignment="Top" Margin="0,6,194,0" HorizontalAlignment="Right" Width="37"/>
+                <TextBox x:Name="txtKey" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Margin="0,6,10,0" HorizontalAlignment="Right" Width="185" Text="0123456789abcdef"/>
+                <Label Content="Initialisation Vektor (IV):" VerticalAlignment="Top" Margin="0,35,194,0" HorizontalAlignment="Right" Width="141"/>
+                <TextBox x:Name="txtIV" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Margin="0,35,10,0" HorizontalAlignment="Right" Width="185" ToolTip="Teeest" Text="aaaaaaaaaaaaaaaa"/>
+                <Separator HorizontalAlignment="Left" Height="29" Margin="127,17,0,0" VerticalAlignment="Top" Width="68" RenderTransformOrigin="0.5,0.5">
+                    <Separator.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform/>
+                            <RotateTransform Angle="90"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Separator.RenderTransform>
+                </Separator>
+
+            </Grid>
+        </GroupBox>
+        <Button x:Name="btnConvert" Content="Convert" HorizontalAlignment="Left" Margin="10,307,0,0" VerticalAlignment="Top" Width="510" Click="btnConvert_Click"/>
+
+    </Grid>
+</Controls:MetroWindow>
