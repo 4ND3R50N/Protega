@@ -16,24 +16,24 @@ namespace ProtegaClientTestsuite
 		bool bDetect = false;
 		
 		//HEP
-		std::list<std::wstring> lBlackListProcessNames;
-		std::list<std::string> lBlackListWindowNames;
-		std::list<std::string> lBlackListClassNames;
-		std::list<std::string> lBlackListMd5Values;
+		std::vector<std::wstring> vBlackListProcessNames;
+		std::vector<std::string> vBlackListWindowNames;
+		std::vector<std::string> vBlackListClassNames;
+		std::vector<std::string> vBlackListMd5Values;
 
 	public:
 		//Protection manager
 		TEST_METHOD(Protection_Threads_Test)
 		{
 
-			lBlackListProcessNames.push_back(L"Notepad.exe");
-			lBlackListWindowNames.push_back("ddjbneidb");
-			lBlackListMd5Values.push_back("1c32647a706fbef6faeac45a75201489");
-			lBlackListClassNames.push_back("miaudfhh");
+			vBlackListProcessNames.push_back(L"Notepad.exe");
+			vBlackListWindowNames.push_back("ddjbneidb");
+			vBlackListMd5Values.push_back("1c32647a706fbef6faeac45a75201489");
+			vBlackListClassNames.push_back("miaudfhh");
 
 			Protection_Manager* PM = new Protection_Manager(std::bind(&ProtectionTests::PM_Callback, this, std::placeholders::_1),
 				"CabalMain22.exe", 20, 1, 2,
-				lBlackListProcessNames, lBlackListWindowNames, lBlackListClassNames, lBlackListMd5Values);
+				vBlackListProcessNames, vBlackListWindowNames, vBlackListClassNames, vBlackListMd5Values);
 			PM->StartProtectionThreads();
 			//Loop "scan all addresses" function
 			do
@@ -163,15 +163,15 @@ namespace ProtegaClientTestsuite
 		//This tests emulates the usage of Heuristic_Scan_Engine class
 		TEST_METHOD(Protection_HEP_Test)
 		{
-			lBlackListProcessNames.push_back(L"Notepad.exe");
-			lBlackListWindowNames.push_back("ddjbneidb");
-			lBlackListMd5Values.push_back("12343333");
-			lBlackListClassNames.push_back("miaudfhh");
+			vBlackListProcessNames.push_back(L"Notepad.exe");
+			vBlackListWindowNames.push_back("ddjbneidb");
+			vBlackListMd5Values.push_back("12343333");
+			vBlackListClassNames.push_back("miaudfhh");
 
-			Heuristic_Scan_Engine* HEP = new Heuristic_Scan_Engine(lBlackListProcessNames,
-				lBlackListWindowNames, 
-				lBlackListClassNames, 
-				lBlackListMd5Values,
+			Heuristic_Scan_Engine* HEP = new Heuristic_Scan_Engine(vBlackListProcessNames,
+				vBlackListWindowNames, 
+				vBlackListClassNames, 
+				vBlackListMd5Values,
 				std::bind(&ProtectionTests::Heuristic_Callback, this, std::placeholders::_1));
 			
 			HEP->DoScanProcessNames();
@@ -179,15 +179,15 @@ namespace ProtegaClientTestsuite
 		
 		TEST_METHOD(Protection_HEM_Test)
 		{
-			lBlackListProcessNames.push_back(L"Notepad.exe");
-			lBlackListWindowNames.push_back("ddjbneidb");
-			lBlackListMd5Values.push_back("1c32647a706fbef6faeac45a75201489");
-			lBlackListClassNames.push_back("miaudfhh");
+			vBlackListProcessNames.push_back(L"Notepad.exe");
+			vBlackListWindowNames.push_back("ddjbneidb");
+			vBlackListMd5Values.push_back("1c32647a706fbef6faeac45a75201489");
+			vBlackListClassNames.push_back("miaudfhh");
 
-			Heuristic_Scan_Engine* HEM = new Heuristic_Scan_Engine(lBlackListProcessNames,
-				lBlackListWindowNames,
-				lBlackListClassNames,
-				lBlackListMd5Values,
+			Heuristic_Scan_Engine* HEM = new Heuristic_Scan_Engine(vBlackListProcessNames,
+				vBlackListWindowNames,
+				vBlackListClassNames,
+				vBlackListMd5Values,
 				std::bind(&ProtectionTests::Heuristic_Callback, this, std::placeholders::_1));
 
 			HEM->ScanProcessMd5Hash();
