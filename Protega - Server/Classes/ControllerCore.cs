@@ -149,7 +149,7 @@ namespace Protega___Server.Classes.Core
                 //Decrypt received protocol
 
                 List<char> Chars = message.ToList();
-                message = AES_Converter.DecryptFromCBC(CCstData.EncryptionKey, CCstData.EncryptionIV, message);
+                message = AES_Converter.DecryptFromCBC(CCstData.GetInstance(Application).EncryptionKey, CCstData.GetInstance(Application).EncryptionIV, message);
             }
             catch (Exception e)
             {
@@ -194,7 +194,7 @@ namespace Protega___Server.Classes.Core
             //if (Clients.Count == 1)
             //{
             //encrypt protocol
-            Protocol = AES_Converter.EncryptWithCBC(CCstData.EncryptionKey, CCstData.EncryptionIV, Protocol) + "~";
+            Protocol = AES_Converter.EncryptWithCBC(CCstData.GetInstance(Application).EncryptionKey, CCstData.GetInstance(Application).EncryptionIV, Protocol) + "~";
                 //TcpServer.sendMessage(Protocol, Clients[0]);
                 if (ActiveConnections.Count>0)
                     TcpServer.sendMessage(Protocol, ClientInterface);

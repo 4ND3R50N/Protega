@@ -172,10 +172,13 @@ namespace Protega___Server
             public networkClientInterface()
             {
                 tmrPing = new System.Timers.Timer();
-                tmrPing.Interval = Protega___Server.Classes.CCstData.PingTimer;
                 tmrPing.Elapsed += TmrPing_Elapsed;
                 User = new Classes.Entity.EPlayer();
                 ConnectedTime = DateTime.Now;
+            }
+            public void SetPingTimer(int Interval)
+            {
+                tmrPing.Interval = Interval;
                 tmrPing.Start();
             }
 

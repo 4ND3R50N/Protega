@@ -8,18 +8,20 @@ namespace Protega___Server.Classes
 {
     public class CCstData
     {
-        private static List<CCstData> ListeTest = new List<CCstData>();
-        
+        #region Settings
+        public string EncryptionKey = "1234567890123456";
+        public string EncryptionIV = "bbbbbbbbbbbbbbbb";
+
+        public int SessionIDLength = 10;
+        public int PingTimer = 9999000;
+        #endregion
+
+
+        #region Manager Classes
+        public Entity.EApplication Application;
         public DBEngine DatabaseEngine;
         public Support.logWriter Logger;
-
-        public const string EncryptionKey = "1234567890123456";
-        public const string EncryptionIV = "bbbbbbbbbbbbbbbb";
-
-        public const int SessionIDLength = 10;
-        public const int PingTimer = 9999000;
-
-        public Classes.Entity.EApplication Application;
+        #endregion
 
         #region Constructor
         public CCstData(Entity.EApplication _Application, DBEngine _DatabaseEngine, Support.logWriter _Logger)
@@ -27,14 +29,16 @@ namespace Protega___Server.Classes
             Application = _Application;
             DatabaseEngine = _DatabaseEngine;
             Logger = _Logger;
-            ListeTest.Add(this);
+            Instances.Add(this);
         }
         #endregion
 
         #region Instance Management
+        private static List<CCstData> Instances = new List<CCstData>();
+
         public static CCstData GetInstance(Entity.EApplication _Application)
         {
-            foreach (CCstData item in ListeTest)
+            foreach (CCstData item in Instances)
             {
                 if (item.Application == _Application)
                     return item;
@@ -43,27 +47,27 @@ namespace Protega___Server.Classes
         }
         public static CCstData GetInstance(int _ID)
         {
-            foreach (CCstData item in ListeTest)
+            foreach (CCstData item in Instances)
             {
                 if (item.Application.ID == _ID)
                     return item;
             }
             return null;
         }
-        public static CCstData GetInstanceByName(string _Name)
+        public static CCstData GetInstance(string _Hash)
         {
-            foreach (CCstData item in ListeTest)
+            foreach (CCstData item in Instances)
             {
-                if (item.Application.Name == _Name)
+                if (item.Application.Hash == _Hash)
                     return item;
             }
             return null;
         }
-        public static CCstData GetInstance(string _Hash)
+        public static CCstData GetInstanceByName(string _Name)
         {
-            foreach (CCstData item in ListeTest)
+            foreach (CCstData item in Instances)
             {
-                if (item.Application.Hash == _Hash)
+                if (item.Application.Name == _Name)
                     return item;
             }
             return null;
@@ -71,7 +75,7 @@ namespace Protega___Server.Classes
 
         public static bool InstanceExists(string _HashID)
         {
-            foreach (CCstData item in ListeTest)
+            foreach (CCstData item in Instances)
             {
                 if (item.Application.Hash == _HashID)
                     return true;
@@ -81,11 +85,11 @@ namespace Protega___Server.Classes
 
         public static bool InstanceClose(int _ID)
         {
-            foreach (CCstData item in ListeTest)
+            foreach (CCstData item in Instances)
             {
                 if (item.Application.ID == _ID)
                 {
-                    ListeTest.Remove(item);
+                    Instances.Remove(item);
                     return true;
                 }
             }

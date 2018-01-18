@@ -137,7 +137,7 @@ namespace Protega___Server.Classes.Protocol
             //Generate unique Session ID for network communication
             while (true)
             {
-                string SessionID = AdditionalFunctions.GenerateSessionID(CCstData.SessionIDLength);
+                string SessionID = AdditionalFunctions.GenerateSessionID(CCstData.GetInstance(ApplicationHash).SessionIDLength);
 
                 //Checks if that connection exists already. Gives back the amount of matching ClientInterfaces
                 if (ActiveConnections.Where(Client => Client.SessionID == SessionID).ToList().Count == 0)
@@ -148,6 +148,7 @@ namespace Protega___Server.Classes.Protocol
             }
 
             //Add the new connection to the list of connected connections
+            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer);
             ActiveConnections.Add(ClientInterface);
             return true;
         }
