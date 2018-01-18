@@ -49,19 +49,19 @@ public:
 		double dThreadResponseDelta,
 		int iVMErrorCode,
 		int iThreadErrorCode,
-		std::list<std::wstring> lBlackListProcessNames,
-		std::list<std::string> lBlackListWindowNames,
-		std::list<std::string> lBlackListClassNames,
-		std::list<std::string> lBlackListMd5Values);
+		std::vector<std::wstring> vBlackListProcessNames,
+		std::vector<std::string> vBlackListWindowNames,
+		std::vector<std::string> vBlackListClassNames,
+		std::vector<std::string> vBlackListMd5Values);
 	Protection_Manager(std::function<void(std::list<std::wstring> lDetectionInformation)> funcCallbackHandler,
 		int iTargetApplicationId,
 		double dThreadResponseDelta,
 		int iVMErrorCode,
 		int iThreadErrorCode,
-		std::list<std::wstring> lBlackListProcessNames,
-		std::list<std::string> lBlackListWindowNames,
-		std::list<std::string> lBlackListClassNames,
-		std::list<std::string> lBlackListMd5Values);
+		std::vector<std::wstring> vBlackListProcessNames,
+		std::vector<std::string> vBlackListWindowNames,
+		std::vector<std::string> vBlackListClassNames,
+		std::vector<std::string> vBlackListMd5Values);
 	//Functions
 	//	User
 	bool StartProtectionThreads();

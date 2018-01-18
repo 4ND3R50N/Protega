@@ -1,7 +1,15 @@
 #include "../stdafx.h"
 #include "Protection_Manager.h"
 
-Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring>lDetectionInformation)> funcCallbackHandler, std::string sTargetApplicationId, double dThreadResponseDelta, int iVMErrorCode, int iThreadErrorCode, std::list<std::wstring> lBlackListProcessNames, std::list<std::string> lBlackListWindowNames, std::list<std::string> lBlackListClassNames, std::list<std::string> lBlackListMd5Values)
+Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring>lDetectionInformation)> funcCallbackHandler, 
+	std::string sTargetApplicationId, 
+	double dThreadResponseDelta, 
+	int iVMErrorCode, 
+	int iThreadErrorCode, 
+	std::vector<std::wstring> vBlackListProcessNames, 
+	std::vector<std::string> vBlackListWindowNames, 
+	std::vector<std::string> vBlackListClassNames, 
+	std::vector<std::string> vBlackListMd5Values)
 {
 	this->dThreadResponseDelta = dThreadResponseDelta;
 	this->iVMErrorCode = iVMErrorCode;
@@ -18,7 +26,7 @@ Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring
 
 	//Build protection classes
 	//	HE
-	HE = new Heuristic_Scan_Engine(lBlackListProcessNames, lBlackListWindowNames, lBlackListClassNames, lBlackListMd5Values,
+	HE = new Heuristic_Scan_Engine(vBlackListProcessNames, vBlackListWindowNames, vBlackListClassNames, vBlackListMd5Values,
 		std::bind(&Protection_Manager::HE_Callback, this, std::placeholders::_1));
 	//	VMP
 	VMP = new Virtual_Memory_Protection_Cabal_Online(iTargetProcessId,
@@ -32,10 +40,10 @@ Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring
 	double dThreadResponseDelta,
 	int iVMErrorCode,
 	int iThreadErrorCode,
-	std::list<std::wstring> lBlackListProcessNames, 
-	std::list<std::string> lBlackListWindowNames, 
-	std::list<std::string> lBlackListClassNames, 
-	std::list<std::string> lBlackListMd5Values)
+	std::vector<std::wstring> vBlackListProcessNames,
+	std::vector<std::string> vBlackListWindowNames,
+	std::vector<std::string> vBlackListClassNames,
+	std::vector<std::string> vBlackListMd5Values)
 {
 	this->dThreadResponseDelta = dThreadResponseDelta;
 	this->iVMErrorCode = iVMErrorCode;
@@ -52,7 +60,7 @@ Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring
 
 	//Build protection classes
 	//	HE
-	HE = new Heuristic_Scan_Engine(lBlackListProcessNames, lBlackListWindowNames, lBlackListClassNames, lBlackListMd5Values, 
+	HE = new Heuristic_Scan_Engine(vBlackListProcessNames, vBlackListWindowNames, vBlackListClassNames, vBlackListMd5Values, 
 		std::bind(&Protection_Manager::HE_Callback, this, std::placeholders::_1));
 	//	VMP
 	VMP = new Virtual_Memory_Protection_Cabal_Online(iTargetProcessId,
