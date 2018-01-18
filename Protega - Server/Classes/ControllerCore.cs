@@ -53,8 +53,15 @@ namespace Protega___Server.Classes.Core
                 return;
             }
 
-            CCstData Config = new CCstData(SApplication.GetByName(_ApplicationName, dBEngine), dBEngine, Logger);
-            Application = Config.Application;
+            Application = SApplication.GetByName(_ApplicationName, dBEngine);
+            if(Application==null)
+            {
+                Logger.writeInLog(true, "The application name was not found in the database!");
+                return;
+            }
+
+
+            CCstData Config = new CCstData(Application, dBEngine, Logger);
 
             if (CCstData.GetInstance(Application.ID).DatabaseEngine.testDBConnection())
             {

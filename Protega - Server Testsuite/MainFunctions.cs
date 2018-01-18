@@ -76,5 +76,40 @@ namespace Protega___Server_Testsuite
 
 
         }
+
+
+        [TestMethod]
+        public void InstanceManagement()
+        {
+            string HardwareID = "12312315";
+
+            ControllerCore Core2 = new ControllerCore("Test2", 10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()));
+            networkServer.networkClientInterface Client2 = new networkServer.networkClientInterface();
+            Client2.SessionID = "123";
+            Client2.User.ID = "1234";
+            Client2.User.Application.ID = 1;
+            Core2.ActiveConnections.Add(Client2);
+
+            //Authentificate in Core 2
+
+            networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
+            Assert.AreEqual(Core2.ProtocolController.ReceivedProtocol(dummy, String.Format("500;{0};{1};Windoofs 7;Deutsch;1", HardwareID, Core2.Application.Hash)), true);
+
+            //Get Session ID of dummy
+            string SessionID = "";
+            foreach (var item in Core2.ActiveConnections)
+            {
+                if (item.User.ID == HardwareID
+                    && item.User.Application.ID == 2)
+                {
+                    SessionID = item.SessionID;
+                    dummy = item;
+                }
+            }
+
+            //Ping to Core 2
+            Assert.AreEqual(Core2.ProtocolController.ReceivedProtocol(new networkServer.networkClientInterface(), String.Format("600;{0}", SessionID)), true);
+            
+        }
     }
 }
