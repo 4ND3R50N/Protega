@@ -42,12 +42,15 @@ private:
 	static int EXCEPTION_THREAD_ERROR;
 
 	//Dynamic Data Storage Vars
-	static std::list<std::string> lHeuristicMD5Values;
-	static std::list<std::wstring> lHeuristicProcessNames;
+	static std::vector<std::string> vHeuristicMD5Values;
+	static std::vector<std::wstring> vHeuristicProcessNames;
+	static std::pair<std::vector<std::string>, std::vector<std::string>> pFilesToCheck;
 
 	//Functions
-	static std::list<std::string> ConvertStringToStringList(std::string sData);
-	static std::list<std::wstring> ConvertStringToWStringList(std::string sData);
+	static std::string ConvertENCToDecryptedString(std::string sPathToEnc);
+	static std::vector<std::string> ConvertStringToStringList(std::string sData);
+	static std::pair<std::vector<std::string>, std::vector<std::string>> ConvertStringToPairOfStringLists(std::string sData);
+	static std::vector<std::wstring> ConvertStringToWStringList(std::string sData);
 	static void StringToWString(std::string sStringToConvert, std::wstring* wsOutput);
 
 public:
@@ -66,9 +69,10 @@ public:
 	static std::string GetLocalDataProtectionTarget();
 	static const char* GetLocalDataFolder();
 	static const char* GetLocalProtegaImage();
-	static std::list<std::wstring> GetHeuristicProcessNames();
-	static std::list<std::string> GetHeuristicMD5Values();
-	
+	static std::vector<std::wstring> GetHeuristicProcessNames();
+	static std::vector<std::string> GetHeuristicMD5Values();
+	static std::pair<std::vector<std::string>, std::vector<std::string>> GetFilesToCheckValues();
+
 	static const char* GetExceptionCaption();
 	static int GetExceptionLocalFileErrorNumber();
 	static int GetExceptionWebDownloadErrorNumber();
