@@ -11,6 +11,7 @@ private:
 	bool iProtectionIsRunning = false;
 	int iTargetProcessId = 0;
 	int iVMErrorCode = 0;
+	int iFPErrorCode = 0;
 	int iThreadErrorCode = 0;
 
 	std::thread* tHeThread;
@@ -49,6 +50,7 @@ public:
 		int iTargetApplicationId,
 		double dThreadResponseDelta,
 		int iVMErrorCode,
+		int iFPErrorCode,
 		int iThreadErrorCode,
 		std::vector<std::wstring> vBlackListProcessNames,
 		std::vector<std::string> vBlackListWindowNames,

@@ -39,6 +39,7 @@ private:
 	static int EXCEPTION_WEB_DOWNLOAD_ERROR;
 	static int EXCEPTION_DATA_CONVERSION_ERROR;
 	static int EXCEPTION_VM_ERROR;
+	static int EXCEPTION_FP_ERROR;
 	static int EXCEPTION_THREAD_ERROR;
 
 	//Dynamic Data Storage Vars
@@ -78,6 +79,7 @@ public:
 	static int GetExceptionWebDownloadErrorNumber();
 	static int GetExceptionDataConversionErrorNumber();
 	static int GetExceptionVmErrorNumber();
+	static int GetExceptionFpErrorNumber();
 	static int GetExceptionThreadErrorNumber();
 
 };

@@ -10,17 +10,24 @@ File_Protection_Engine::File_Protection_Engine(int iTargetApplicationId,
 	this->funcDetectCallbackHandler = funcDetectCallbackHandler;
 }
 
-bool File_Protection_Engine::DetectLocalFileChange()
+//Public
+int File_Protection_Engine::DetectLocalFileChange()
 {
 	for (int i = 0; i < pFileAndMd5.first.size(); i++)
 	{
-		if (CryptoPP_Converter::GetMD5ofFile(pFileAndMd5.first[i].c_str()) != pFileAndMd5.second[i])
+		std::string sActualMd5 = CryptoPP_Converter::GetMD5ofFile(pFileAndMd5.first[i].c_str());
+
+		if (sActualMd5 == "") {
+			return 1;
+		}
+
+		if (sActualMd5 != pFileAndMd5.second[i])
 		{
 			funcDetectCallbackHandler(pFileAndMd5.first[i], pFileAndMd5.second[i], false);
-			return true;
+			return 2;
 		}
 	}
-	return false;
+	return 0;
 }
 
 bool File_Protection_Engine::DetectInjection()

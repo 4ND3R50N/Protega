@@ -5,6 +5,7 @@ Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring
 	int iTargetApplicationId,
 	double dThreadResponseDelta,
 	int iVMErrorCode,
+	int iFPErrorCode,
 	int iThreadErrorCode,
 	std::vector<std::wstring> vBlackListProcessNames,
 	std::vector<std::string> vBlackListWindowNames,
@@ -14,6 +15,7 @@ Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring
 {
 	this->dThreadResponseDelta = dThreadResponseDelta;
 	this->iVMErrorCode = iVMErrorCode;
+	this->iFPErrorCode = iFPErrorCode;
 	this->iThreadErrorCode = iThreadErrorCode;
 	this->funcCallbackHandler = funcCallbackHandler;
 	//Get Target process id
@@ -84,6 +86,7 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 
 	if (dCurrentDuration > dThreadResponseDelta)
 	{
+		iProtectionIsRunning = false;
 		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
 			"Thread Error [M]. Please restart the application!");
 		return false;
@@ -93,6 +96,7 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 
 	if (dCurrentDuration > dThreadResponseDelta)
 	{
+		iProtectionIsRunning = false;
 		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
 			"Thread Error [HE]. Please restart the application!");
 		return false;
@@ -102,17 +106,21 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 
 	if (dCurrentDuration > dThreadResponseDelta)
 	{
+		iProtectionIsRunning = false;
 		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
 			"Thread Error [VM]. Please restart the application!");
 		return false;
 	}
 	//	FP
-	/*dCurrentDuration = (std::clock() - ctFpResponse) / (double)CLOCKS_PER_SEC;
+	dCurrentDuration = (std::clock() - ctFpResponse) / (double)CLOCKS_PER_SEC;
 
 	if (dCurrentDuration > dThreadResponseDelta)
 	{
-	return false;
-	}*/
+		iProtectionIsRunning = false;
+		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
+			"Thread Error [FP]. Please restart the application!");
+		return false;
+	}
 
 	return true;
 }
@@ -168,7 +176,16 @@ void Protection_Manager::FP_Thread()
 {
 	do
 	{
-		if (FP->DetectLocalFileChange())
+		int iStatus = FP->DetectLocalFileChange();
+		if (iStatus == 1)
+		{
+			iProtectionIsRunning = false;
+			Exception_Manager::HandleProtegaStandardError(iFPErrorCode,
+				"Not able to read game files. Please restart the application. If this problem continues, please contact the administrator!");
+
+			return;
+		}
+		if (iStatus == 2)
 		{
 			iProtectionIsRunning = false;
 			return;
@@ -220,7 +237,28 @@ void Protection_Manager::VMP_Callback(std::string sDetectedBaseAddress, std::str
 
 void Protection_Manager::FP_Callback(std::string sFile, std::string sMd5, bool bInjection)
 {
+	std::wstring wsFile;
+	std::wstring wsMd5;
+	std::wstring wsInjection;
 
+	StringToWString(sFile, &wsFile);
+	StringToWString(sMd5, &wsMd5);
+
+	if (bInjection)
+	{
+		wsInjection = L"1";
+	}
+	else
+	{
+		wsInjection = L"0";
+	}
+	std::list<std::wstring> lDetectionInformation;
+	lDetectionInformation.push_back(L"FP");
+	lDetectionInformation.push_back(wsFile);
+	lDetectionInformation.push_back(wsMd5);
+	lDetectionInformation.push_back(wsInjection);
+
+	funcCallbackHandler(lDetectionInformation);
 }
 
 
@@ -252,4 +290,3 @@ void Protection_Manager::StringToWString(std::string sStringToConvert, std::wstr
 	ws.resize(std::mbstowcs(&ws[0], sStringToConvert.c_str(), sStringToConvert.size())); // Shrink to fit.
 	*wsOutput = ws;
 }
-
