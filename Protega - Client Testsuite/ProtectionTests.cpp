@@ -32,8 +32,9 @@ namespace ProtegaClientTestsuite
 			vBlackListClassNames.push_back("miaudfhh");
 
 			Protection_Manager* PM = new Protection_Manager(std::bind(&ProtectionTests::PM_Callback, this, std::placeholders::_1),
-				"CabalMain22.exe", 20, 1, 2,
-				vBlackListProcessNames, vBlackListWindowNames, vBlackListClassNames, vBlackListMd5Values);
+				9999, 20, 1, 2,
+				vBlackListProcessNames, vBlackListWindowNames, vBlackListClassNames, vBlackListMd5Values,
+				std::pair<std::vector<std::string>,std::vector<std::string>>());
 			PM->StartProtectionThreads();
 			//Loop "scan all addresses" function
 			do
@@ -174,7 +175,7 @@ namespace ProtegaClientTestsuite
 				vBlackListMd5Values,
 				std::bind(&ProtectionTests::Heuristic_Callback, this, std::placeholders::_1));
 			
-			HEP->DoScanProcessNames();
+			HEP->DetectBlacklistedProcessNames();
 		}
 		
 		TEST_METHOD(Protection_HEM_Test)
@@ -190,10 +191,30 @@ namespace ProtegaClientTestsuite
 				vBlackListMd5Values,
 				std::bind(&ProtectionTests::Heuristic_Callback, this, std::placeholders::_1));
 
-			HEM->ScanProcessMd5Hash();
+			HEM->DetectBlacklistedProcessMd5Hash();
 		}
 
+
 		void Heuristic_Callback(std::wstring sDetection)
+		{
+
+		}
+
+
+		//This tests emulates the usage of File_Protection_Engine
+		TEST_METHOD(Protection_FP_Test)
+		{
+			unsigned int processId = GetProcessId(sProcessName);
+			vBlackListWindowNames.push_back(".\\Data\Map\world_01.mcl");
+			vBlackListMd5Values.push_back("B5865AAAFB570F68DCA4C6326587E939");
+
+			File_Protection_Engine* FP = new File_Protection_Engine(processId, std::bind(&ProtectionTests::FP_Callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+				std::make_pair(vBlackListWindowNames, vBlackListMd5Values));
+			
+			
+
+		}
+		void FP_Callback(std::string sFile, std::string sMd5, bool bInjection)
 		{
 
 		}
