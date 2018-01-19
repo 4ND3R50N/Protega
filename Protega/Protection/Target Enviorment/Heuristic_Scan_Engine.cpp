@@ -92,7 +92,7 @@ bool Heuristic_Scan_Engine::DetectBlacklistedProcessNames()
 		}
 		iForCounter++;
 	}
-	return true;
+	return false;
 }
 
 bool Heuristic_Scan_Engine::DetectBlacklistedWindowNames()
