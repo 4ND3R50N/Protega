@@ -43,10 +43,10 @@ public:
 	~Heuristic_Scan_Engine();
 
 	//Main thread functions
-	bool DoScanProcessNames();
-	bool ScanWindowNames();
-	bool ScanClassNames();
-	bool ScanProcessMd5Hash();
+	bool DetectBlacklistedProcessNames();
+	bool DetectBlacklistedWindowNames();
+	bool DetectBlacklistedClassNames();
+	bool DetectBlacklistedProcessMd5Hash();
 
 };
 

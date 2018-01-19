@@ -81,7 +81,7 @@ public:
 	
 	bool OpenProcessInstance();
 	bool CloseProcessInstance();
-	bool CheckAllVmpFunctions();
+	bool DetectManipulatedMemory();
 
 
 

@@ -31,7 +31,7 @@ bool Virtual_Memory_Protection_Cabal_Online::CloseProcessInstance()
 	return CloseHandle(hProcessHandle);
 }
 
-bool Virtual_Memory_Protection_Cabal_Online::CheckAllVmpFunctions()
+bool Virtual_Memory_Protection_Cabal_Online::DetectManipulatedMemory()
 {
 	if ((VMP_CheckGameSpeed() || VMP_CheckWallBorders() || VMP_CheckZoomState() || VMP_CheckNoSkillDelay()  || 
 		VMP_CheckNoCastTime() || VMP_CheckSkillRange() || VMP_CheckSkillCooldown() /*|| VMP_CheckNation()*/) == true)

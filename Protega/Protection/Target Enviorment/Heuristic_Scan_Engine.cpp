@@ -53,7 +53,7 @@ Heuristic_Scan_Engine::~Heuristic_Scan_Engine()
 
 
 
-bool Heuristic_Scan_Engine::DoScanProcessNames()
+bool Heuristic_Scan_Engine::DetectBlacklistedProcessNames()
 {
 	//get current process names
 	std::list<std::wstring> lCurrentProcessNames;
@@ -95,17 +95,17 @@ bool Heuristic_Scan_Engine::DoScanProcessNames()
 	return true;
 }
 
-bool Heuristic_Scan_Engine::ScanWindowNames()
+bool Heuristic_Scan_Engine::DetectBlacklistedWindowNames()
 {
 	return false;
 }
 
-bool Heuristic_Scan_Engine::ScanClassNames()
+bool Heuristic_Scan_Engine::DetectBlacklistedClassNames()
 {
 	return false;
 }
 
-bool Heuristic_Scan_Engine::ScanProcessMd5Hash()
+bool Heuristic_Scan_Engine::DetectBlacklistedProcessMd5Hash()
 {
 	//get current process names
 	std::stringstream ss;
