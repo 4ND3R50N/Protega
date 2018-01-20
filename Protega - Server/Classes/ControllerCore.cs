@@ -28,8 +28,8 @@ namespace Protega___Server.Classes.Core
             string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath)
         {
             //Logging initialisations
-            Support.logWriter Logger = new logWriter(_sLogPath);
-            Logger.writeInLog(true, "Logging class initialized!");
+            Support.logWriter Logger = new logWriter("ControllerCore", _sLogPath);
+            Logger.writeInLog(true, LoggingStatus.OKAY, "Logging class initialized!");
             DBEngine dBEngine = null;
             
             //Database Initialisations
@@ -46,17 +46,17 @@ namespace Protega___Server.Classes.Core
             //Database test
             if (dBEngine.testDBConnection())
             {
-                Logger.writeInLog(true, "Database test successfull!");
+                Logger.writeInLog(true, LoggingStatus.OKAY, "Database test successfull!");
             }else
             {
-                Logger.writeInLog(true, "ERROR: Database test was not successfull!");
+                Logger.writeInLog(true, LoggingStatus.ERROR, "Database test was not successfull!");
                 return;
             }
 
             Application = SApplication.GetByName(_ApplicationName, dBEngine);
             if(Application==null)
             {
-                Logger.writeInLog(true, "The application name was not found in the database!");
+                Logger.writeInLog(true, LoggingStatus.ERROR, "The application name was not found in the database!");
                 return;
             }
 
@@ -65,10 +65,10 @@ namespace Protega___Server.Classes.Core
 
             if (CCstData.GetInstance(Application.ID).DatabaseEngine.testDBConnection())
             {
-                CCstData.GetInstance(Application.ID).Logger.writeInLog(true, "Instance successfully created!");
+                CCstData.GetInstance(Application.ID).Logger.writeInLog(true, LoggingStatus.OKAY, "Instance successfully created!");
             } else
             {
-                Logger.writeInLog(true, "Instance could not be created!");
+                Logger.writeInLog(true, LoggingStatus.ERROR, "Instance could not be created!");
                 return;
             }
 
@@ -80,7 +80,7 @@ namespace Protega___Server.Classes.Core
             TcpServer = new networkServer(NetworkProtocol, _sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         
             ProtocolController.SendProtocol += this.SendProtocol;
-            Logger.writeInLog(true, "TCP Server ready for start!");
+            Logger.writeInLog(true, LoggingStatus.OKAY, "TCP Server ready for start!");
             ProtocolController = new ProtocolController(ref ActiveConnections);
 
             /*//TESTCASE
@@ -137,11 +137,11 @@ namespace Protega___Server.Classes.Core
         {
             if(TcpServer.startListening())
             {
-                CCstData.GetInstance(Application).Logger.writeInLog(true, "Server has been started successfully!");
+                CCstData.GetInstance(Application).Logger.writeInLog(true, LoggingStatus.OKAY, "Server has been started successfully!");
             }
             else
             {
-                CCstData.GetInstance(Application).Logger.writeInLog(true, "ERROR: The server was not able to start!");
+                CCstData.GetInstance(Application).Logger.writeInLog(true, LoggingStatus.ERROR, "The server was not able to start!");
             }
            
         }
@@ -161,11 +161,11 @@ namespace Protega___Server.Classes.Core
             catch (Exception e)
             {
                 //If decryption failed, something was probably manipulated -> Log it
-                CCstData.GetInstance(Application).Logger.writeInLog(true, "Protocol Decryption failed! From xy - message: " + e.ToString());
+                CCstData.GetInstance(Application).Logger.writeInLog(true, LoggingStatus.ERROR, "Protocol Decryption failed! From xy - message: " + e.ToString());
                 return;
             }
 
-            CCstData.GetInstance(Application).Logger.writeInLog(true, "Protocol received: " + message);
+            CCstData.GetInstance(Application).Logger.writeInLog(true, LoggingStatus.OKAY, "Protocol received: " + message);
             ProtocolController.ReceivedProtocol(NetworkClient, message);
         }
 
