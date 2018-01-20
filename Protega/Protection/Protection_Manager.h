@@ -52,6 +52,7 @@ public:
 		int iVMErrorCode,
 		int iFPErrorCode,
 		int iThreadErrorCode,
+		int iFPMaxDlls,
 		std::vector<std::wstring> vBlackListProcessNames,
 		std::vector<std::string> vBlackListWindowNames,
 		std::vector<std::string> vBlackListClassNames,

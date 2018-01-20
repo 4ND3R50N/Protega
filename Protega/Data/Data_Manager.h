@@ -33,6 +33,7 @@ private:
 	static const char* DATA_AES_IV;
 	
 	static double PROTECTION_THREAD_RESPONSE_DELTA;
+	static int PROTECTION_FP_MAX_DLL;
 
 	static const char* EXCEPTION_CAPTION;
 	static int EXCEPTION_LOCAL_FILE_ERROR;
@@ -67,6 +68,7 @@ public:
 	static const char* GetNetworkAesKey();
 	static const char* GetNetworkAesIV();
 	static double GetProtectionThreadResponseDelta();
+	static int GetProtectionMaxFpDll();
 	static std::string GetLocalDataProtectionTarget();
 	static const char* GetLocalDataFolder();
 	static const char* GetLocalProtegaImage();

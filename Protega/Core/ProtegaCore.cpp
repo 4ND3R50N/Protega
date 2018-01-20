@@ -69,7 +69,7 @@ void ProtegaCore::StartAntihack()
 
 	ProtectionManager = new Protection_Manager(std::bind(&ProtegaCore::ProtectionManagerAnswer, this, std::placeholders::_1), (int)GetCurrentProcessId(),
 		Data_Manager::GetProtectionThreadResponseDelta(), Data_Manager::GetExceptionVmErrorNumber(), Data_Manager::GetExceptionFpErrorNumber(),Data_Manager::GetExceptionThreadErrorNumber(),
-		Data_Manager::GetHeuristicProcessNames(), vBlackListWindowName, vBlackListClassName, Data_Manager::GetHeuristicMD5Values(),
+		Data_Manager::GetProtectionMaxFpDll(), Data_Manager::GetHeuristicProcessNames(), vBlackListWindowName, vBlackListClassName, Data_Manager::GetHeuristicMD5Values(),
 		Data_Manager::GetFilesToCheckValues());
 
 	ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());

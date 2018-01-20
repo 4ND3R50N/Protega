@@ -30,6 +30,7 @@ std::vector<std::wstring> Data_Manager::vHeuristicProcessNames;
 std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::pFilesToCheck;
 //Protection data
 double Data_Manager::PROTECTION_THREAD_RESPONSE_DELTA = 45.0;
+int Data_Manager::PROTECTION_FP_MAX_DLL = 99;
 
 //Exceptions
 const char* Data_Manager::EXCEPTION_CAPTION = "Protega Anti-Hack Engine";
@@ -246,6 +247,11 @@ const char * Data_Manager::GetNetworkAesIV()
 double Data_Manager::GetProtectionThreadResponseDelta()
 {
 	return PROTECTION_THREAD_RESPONSE_DELTA;
+}
+
+int Data_Manager::GetProtectionMaxFpDll()
+{
+	return PROTECTION_FP_MAX_DLL;
 }
 
 std::string Data_Manager::GetLocalDataProtectionTarget()

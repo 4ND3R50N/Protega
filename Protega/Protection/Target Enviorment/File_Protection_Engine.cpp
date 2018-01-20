@@ -3,10 +3,11 @@
 
 File_Protection_Engine::File_Protection_Engine(int iTargetApplicationId, 
 	std::function<void(std::string sFile, std::string sMd5, bool bInjection) > funcDetectCallbackHandler,
-	std::pair<std::vector<std::string>, std::vector<std::string>> pFileAndMd5)
+	std::pair<std::vector<std::string>, std::vector<std::string>> pFileAndMd5, int iMaxPossibleDlls)
 {
 	this->pFileAndMd5 = pFileAndMd5;
 	this->iTargetApplicationId = iTargetApplicationId;
+	this->iMaxPossibleDlls = iMaxPossibleDlls;
 	this->funcDetectCallbackHandler = funcDetectCallbackHandler;
 }
 
@@ -30,9 +31,42 @@ int File_Protection_Engine::DetectLocalFileChange()
 	return 0;
 }
 
-bool File_Protection_Engine::DetectInjection()
+int File_Protection_Engine::DetectInjection()
 {
-	return false;
+	int iModuleCounter = 0;
+	HMODULE hMods[1024];
+	DWORD cbNeeded;
+	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
+	PROCESS_VM_READ,
+	FALSE, iTargetApplicationId);
+	if (hProcess == NULL)
+	{
+		return 1;
+	}
+
+	if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
+	{
+		for (int i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
+		{
+			TCHAR szModName[MAX_PATH];
+			// Get the full path to the module's file.
+			if (GetModuleFileNameEx(hProcess, hMods[i], szModName,
+				sizeof(szModName) / sizeof(TCHAR)))
+			{
+				// Print the module name and handle value.
+				iModuleCounter++;
+			}
+		}
+	}
+	
+	if (iModuleCounter > iMaxPossibleDlls)
+	{
+		funcDetectCallbackHandler("Main Application", "-", true);
+		return 2;
+	}
+	
+
+	return 0;
 }
 
 bool File_Protection_Engine::DetectInjection(int iTargetApplicationId)

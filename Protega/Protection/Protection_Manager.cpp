@@ -7,6 +7,7 @@ Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring
 	int iVMErrorCode,
 	int iFPErrorCode,
 	int iThreadErrorCode,
+	int iFPMaxDlls,
 	std::vector<std::wstring> vBlackListProcessNames,
 	std::vector<std::string> vBlackListWindowNames,
 	std::vector<std::string> vBlackListClassNames,
@@ -36,7 +37,7 @@ Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring
 		std::bind(&Protection_Manager::VMP_Callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 	//	File
 	FP = new File_Protection_Engine(iTargetProcessId,
-		std::bind(&Protection_Manager::FP_Callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), pFilesAndMd5);
+		std::bind(&Protection_Manager::FP_Callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), pFilesAndMd5, iFPMaxDlls);
 
 }
 
@@ -177,22 +178,34 @@ void Protection_Manager::FP_Thread()
 	do
 	{
 		int iStatus = FP->DetectLocalFileChange();
+
 		if (iStatus == 1)
 		{
 			iProtectionIsRunning = false;
 			Exception_Manager::HandleProtegaStandardError(iFPErrorCode,
-				"Not able to read game files. Please restart the application. If this problem continues, please contact the administrator!");
+				"Not able to read game files. Please restart the application. If this problem continues, please contact the administrator! [1]");
 
 			return;
 		}
-		if (iStatus == 2)
+		if (iStatus == 1)
 		{
 			iProtectionIsRunning = false;
 			return;
 		}
 		CheckClocks(&ctFpResponse);
 
-		if (FP->DetectInjection())
+		iStatus = FP->DetectInjection();
+
+		if (iStatus == 1)
+		{
+			iProtectionIsRunning = false;
+			Exception_Manager::HandleProtegaStandardError(iFPErrorCode,
+				"Not able to read game files. Please restart the application. If this problem continues, please contact the administrator! [2]");
+
+			return;
+		}
+
+		if (iStatus == 2)
 		{
 			iProtectionIsRunning = false;
 			return;
@@ -260,8 +273,6 @@ void Protection_Manager::FP_Callback(std::string sFile, std::string sMd5, bool b
 
 	funcCallbackHandler(lDetectionInformation);
 }
-
-
 
 //	Normal functions
 int Protection_Manager::GetProcessIdByName(char* ProcName) {
