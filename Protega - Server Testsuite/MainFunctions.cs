@@ -15,12 +15,12 @@ namespace Protega___Server_Testsuite
         ControllerCore Core;
 
        public MainFunctions()
-        {
+        {/*
             Core = new ControllerCore("Test",10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()));
             Client.SessionID = "123";
             Client.User.ID = "1234";
             Client.User.Application.ID = 1;
-            Core.ActiveConnections.Add(Client);
+            Core.ActiveConnections.Add(Client);*/
         }
 
         [TestMethod]
@@ -77,6 +77,12 @@ namespace Protega___Server_Testsuite
 
         }
 
+        [TestMethod]
+        public void Registration()
+        {
+            System.Threading.Thread.Sleep(5000);
+            Assert.AreEqual(true, true);
+        }
 
         [TestMethod]
         public void InstanceManagement()
