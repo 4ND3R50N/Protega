@@ -40,7 +40,13 @@ std::string CryptoPP_Converter::GetMD5ofFile(const char * sFilePath)
 {
 	std::string sMD5Value;
 	CryptoPP::Weak1::MD5 hash;
-	CryptoPP::FileSource(sFilePath, true, new CryptoPP::HashFilter(hash, new CryptoPP::HexEncoder(new CryptoPP::StringSink(sMD5Value))));
-
+	try
+	{
+		CryptoPP::FileSource(sFilePath, true, new CryptoPP::HashFilter(hash, new CryptoPP::HexEncoder(new CryptoPP::StringSink(sMD5Value))));
+	}
+	catch (const std::exception&)
+	{
+		return "";
+	}
 	return sMD5Value;
 }

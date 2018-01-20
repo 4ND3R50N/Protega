@@ -29,16 +29,18 @@ std::vector<std::string> Data_Manager::vHeuristicMD5Values;
 std::vector<std::wstring> Data_Manager::vHeuristicProcessNames;
 std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::pFilesToCheck;
 //Protection data
-double Data_Manager::PROTECTION_THREAD_RESPONSE_DELTA = 20.0;
+double Data_Manager::PROTECTION_THREAD_RESPONSE_DELTA = 45.0;
+int Data_Manager::PROTECTION_FP_MAX_DLL = 99;
 
 //Exceptions
 const char* Data_Manager::EXCEPTION_CAPTION = "Protega Anti-Hack Engine";
-//This exception code includes all errors that could appear in the operation folders. That COULD also include hack detections of the FP class.
+
 int Data_Manager::EXCEPTION_LOCAL_FILE_ERROR = 301;
 int Data_Manager::EXCEPTION_WEB_DOWNLOAD_ERROR = 302;
 int Data_Manager::EXCEPTION_DATA_CONVERSION_ERROR = 303;
 int Data_Manager::EXCEPTION_VM_ERROR = 304;
-int Data_Manager::EXCEPTION_THREAD_ERROR = 305;
+int Data_Manager::EXCEPTION_FP_ERROR = 305;
+int Data_Manager::EXCEPTION_THREAD_ERROR = 306;
 
 #pragma endregion
 
@@ -247,6 +249,11 @@ double Data_Manager::GetProtectionThreadResponseDelta()
 	return PROTECTION_THREAD_RESPONSE_DELTA;
 }
 
+int Data_Manager::GetProtectionMaxFpDll()
+{
+	return PROTECTION_FP_MAX_DLL;
+}
+
 std::string Data_Manager::GetLocalDataProtectionTarget()
 {
 	return LOCAL_DATA_PROTECTION_TARGET;
@@ -300,6 +307,11 @@ int Data_Manager::GetExceptionDataConversionErrorNumber()
 int Data_Manager::GetExceptionVmErrorNumber()
 {
 	return EXCEPTION_VM_ERROR;
+}
+
+int Data_Manager::GetExceptionFpErrorNumber()
+{
+	return EXCEPTION_FP_ERROR;
 }
 
 int Data_Manager::GetExceptionThreadErrorNumber()

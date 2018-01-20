@@ -11,6 +11,7 @@ private:
 	bool iProtectionIsRunning = false;
 	int iTargetProcessId = 0;
 	int iVMErrorCode = 0;
+	int iFPErrorCode = 0;
 	int iThreadErrorCode = 0;
 
 	std::thread* tHeThread;
@@ -38,6 +39,7 @@ private:
 	//	Callbacks
 	void HE_Callback(std::wstring sDetectionValue);
 	void VMP_Callback(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sDefaultValue);
+	void FP_Callback(std::string sFile, std::string sMd5, bool bInjection);
 	// Test
 
 	// Normal functions
@@ -45,23 +47,17 @@ private:
 	void StringToWString(std::string sStringToConvert, std::wstring* wsOutput);
 public:
 	Protection_Manager(std::function<void(std::list<std::wstring> lDetectionInformation)> funcCallbackHandler,
-		std::string sTargetApplicationId,
-		double dThreadResponseDelta,
-		int iVMErrorCode,
-		int iThreadErrorCode,
-		std::vector<std::wstring> vBlackListProcessNames,
-		std::vector<std::string> vBlackListWindowNames,
-		std::vector<std::string> vBlackListClassNames,
-		std::vector<std::string> vBlackListMd5Values);
-	Protection_Manager(std::function<void(std::list<std::wstring> lDetectionInformation)> funcCallbackHandler,
 		int iTargetApplicationId,
 		double dThreadResponseDelta,
 		int iVMErrorCode,
+		int iFPErrorCode,
 		int iThreadErrorCode,
+		int iFPMaxDlls,
 		std::vector<std::wstring> vBlackListProcessNames,
 		std::vector<std::string> vBlackListWindowNames,
 		std::vector<std::string> vBlackListClassNames,
-		std::vector<std::string> vBlackListMd5Values);
+		std::vector<std::string> vBlackListMd5Values, 
+		std::pair<std::vector<std::string>, std::vector<std::string>> pFilesAndMd5);
 	//Functions
 	//	User
 	bool StartProtectionThreads();

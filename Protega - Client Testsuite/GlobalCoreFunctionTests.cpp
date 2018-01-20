@@ -104,7 +104,7 @@ namespace ProtegaClientTestsuite
 
 		TEST_METHOD(Task_ConvertFileToEnc)
 		{
-			std::string sFileToConvert = ".\\..\\docs\\client\\Heuristic_Process_Names.csv";
+			std::string sFileToConvert = ".\\..\\docs\\client\\Files_To_Check.csv";
 			const char* sAESKey = "1234567890123456";
 			const char* sIV = "bbbbbbbbbbbbbbbb";
 			std::ifstream isReader;
@@ -119,14 +119,12 @@ namespace ProtegaClientTestsuite
 			isReader.close();
 			sTmp.clear();
 
-			std::vector<std::string> vAscii(3280, "0");
 			std::string sDecryptedValue = "";
 			std::string sEncryptedString = CryptoPP_Converter::AESEncrypt(sAESKey, sIV, sInput);
 			std::ofstream file(sFileToConvert.append(".enc"));
 
 			for (int i = 0; i < sEncryptedString.size(); i++)
 			{
-				vAscii[i] = std::to_string(int(sEncryptedString.at(i)));
 				file << std::to_string(int(sEncryptedString.at(i))) << endl;
 			}
 
