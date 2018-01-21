@@ -28,6 +28,7 @@ public:
 	static uint16_t GetVolumeHash();
 	static uint16_t GetCpuHash();
 	static std::string GetMachineName();
+	static std::wstring GetLanguage();
 	static int GetSystemDefaultLocaleName(LPWSTR lpLocaleName, int cchLocaleName);
 };
 

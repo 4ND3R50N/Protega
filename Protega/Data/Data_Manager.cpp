@@ -3,7 +3,8 @@
 
 #pragma region PROTES_STATIC_DATA_CONFIG
 //Web data
-char* Data_Manager::TARGET_ENVIORMENT_OWNER_NAME = "CodeZero";
+std::string Data_Manager::TARGET_ENVIORMENT_SID = "";
+std::string Data_Manager::SOFTWARE_VERSION = "1.0.0";
 char* Data_Manager::TARGET_ENVIORMENT_DATA_URL = "http://62.138.6.50:13011/CabalOnline/";
 char* Data_Manager::TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME = "Heuristic_MD5.csv.enc";
 char* Data_Manager::TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME = "Heuristic_Process_Names.csv.enc";
@@ -19,15 +20,19 @@ std::string Data_Manager::LOCAL_DATA_PROTECTION_TARGET = "CabalMain.exe";
 //Network data
 const char* Data_Manager::NETWORK_SERVER_IP = "62.138.6.50";
 const char* Data_Manager::NETWORK_SERVER_PORT = "13001";
+int Data_Manager::NETWORK_MAX_SEND_RETRIES = 3;
 const char* Data_Manager::NETWORK_PROTOCOL_DELIMITER = "~";
 const char* Data_Manager::NETWORK_DATA_DELIMITER = ";";
 const char* Data_Manager::DATA_AES_KEY = "1234567890123456";
 const char* Data_Manager::DATA_AES_IV = "bbbbbbbbbbbbbbbb";
 
+
+
 //Content data
 std::vector<std::string> Data_Manager::vHeuristicMD5Values;
 std::vector<std::wstring> Data_Manager::vHeuristicProcessNames;
 std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::pFilesToCheck;
+
 //Protection data
 double Data_Manager::PROTECTION_THREAD_RESPONSE_DELTA = 45.0;
 int Data_Manager::PROTECTION_FP_MAX_DLL = 99;
@@ -41,8 +46,104 @@ int Data_Manager::EXCEPTION_DATA_CONVERSION_ERROR = 303;
 int Data_Manager::EXCEPTION_VM_ERROR = 304;
 int Data_Manager::EXCEPTION_FP_ERROR = 305;
 int Data_Manager::EXCEPTION_THREAD_ERROR = 306;
-
+int Data_Manager::EXCEPTION_NETWORK_ERROR = 307;
 #pragma endregion
+
+
+//Private
+
+std::string Data_Manager::ConvertENCToDecryptedString(std::string sPathToEnc)
+{
+	//Read enc file
+	std::string sEncodedString = "";
+	std::string sCurrentLine;
+	std::ifstream ifEncFile(sPathToEnc);
+
+	while (getline(ifEncFile, sCurrentLine))  // same as: while (getline( myfile, line ).good())
+	{
+		sEncodedString += ((char)atoi(sCurrentLine.c_str()));
+	}
+	ifEncFile.close();
+	remove(sPathToEnc.c_str());
+
+	return CryptoPP_Converter::AESDecrypt(DATA_AES_KEY, DATA_AES_IV, sEncodedString);
+}
+
+std::vector<std::string> Data_Manager::ConvertStringToStringList(std::string sData)
+{
+	std::vector<std::string> vDataParts;
+	std::vector<std::string> vTargetData;
+
+
+	try
+	{
+		boost::split(vDataParts, sData.substr(0, sData.length() - 2), boost::is_any_of(LOCAL_DATA_NEWLINE_DELIMITER));
+		boost::split(vTargetData, vDataParts[1].substr(0, sData.length() - 2), boost::is_any_of(LOCAL_DATA_DELIMITER));
+	}
+	catch (const std::exception&)
+	{
+		//This error case has to be handled in future!
+		return vTargetData;
+	}
+
+	return vTargetData;
+}
+
+std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::ConvertStringToPairOfStringLists(std::string sData)
+{
+	std::vector<std::string> vDataParts;
+	std::vector<std::string> vFileNames;
+	std::vector<std::string> vMd5Hashes;
+	std::pair<std::list<std::string>, std::list<std::string>> lTargetData;
+
+	try
+	{
+		boost::split(vDataParts, sData.substr(0, sData.length() - 2), boost::is_any_of(LOCAL_DATA_NEWLINE_DELIMITER));
+		boost::split(vFileNames, vDataParts[1].substr(0, sData.length() - 2), boost::is_any_of(LOCAL_DATA_DELIMITER));
+
+		int iMd5HashlistCounter = 0;
+		for (int i = 1; i <= vFileNames.size(); i++)
+		{
+			vMd5Hashes.push_back(vFileNames[i]);
+			vFileNames.erase(std::remove(vFileNames.begin(), vFileNames.end(), vFileNames[i]), vFileNames.end());
+			iMd5HashlistCounter++;
+		}
+	}
+	catch (const std::exception&)
+	{
+		return std::pair<std::vector<std::string>, std::vector<std::string>>();
+	}
+
+	return std::make_pair(vFileNames, vMd5Hashes);
+}
+
+std::vector<std::wstring> Data_Manager::ConvertStringToWStringList(std::string sData)
+{
+	std::wstring wsConvertedString;
+	StringToWString(sData, &wsConvertedString);
+	std::vector<std::wstring> vDataParts;
+	std::vector<std::wstring> vTargetData;
+
+	try
+	{
+		boost::split(vDataParts, wsConvertedString.substr(0, wsConvertedString.length() - 1), boost::is_any_of(LOCAL_DATA_NEWLINE_DELIMITER));
+		boost::split(vTargetData, vDataParts[1].substr(0, wsConvertedString.length() - 1), boost::is_any_of(LOCAL_DATA_DELIMITER));
+	}
+	catch (const std::exception&)
+	{
+		return vTargetData;
+	}
+
+	return vTargetData;
+}
+
+void Data_Manager::StringToWString(std::string sStringToConvert, std::wstring * wsOutput)
+{
+	std::wstring ws(sStringToConvert.size(), L' '); // Overestimate number of code points.
+	ws.resize(std::mbstowcs(&ws[0], sStringToConvert.c_str(), sStringToConvert.size())); // Shrink to fit.
+	*wsOutput = ws;
+}
+
 
 //Public
 
@@ -111,104 +212,48 @@ std::string Data_Manager::GenerateComputerID()
 {
 	std::stringstream ssComputerID;
 	ssComputerID << Data_Gathering::GetCpuHash() << "-" << Data_Gathering::GetVolumeHash();
-	return ssComputerID.str();
+	TARGET_ENVIORMENT_SID = ssComputerID.str();
+	return TARGET_ENVIORMENT_SID;
 }
 
-
-std::string Data_Manager::ConvertENCToDecryptedString(std::string sPathToEnc)
+std::string Data_Manager::GetSoftwareArchitecture()
 {
-	//Read enc file
-	std::string sEncodedString = "";
-	std::string sCurrentLine;
-	std::ifstream ifEncFile(sPathToEnc);
-
-	while (getline(ifEncFile, sCurrentLine))  // same as: while (getline( myfile, line ).good())
+	if (Data_Gathering::Is64BitOS())
 	{
-		sEncodedString += ((char)atoi(sCurrentLine.c_str()));
+		return "x64";
 	}
-	ifEncFile.close();
-	remove(sPathToEnc.c_str());
-
-	return CryptoPP_Converter::AESDecrypt(DATA_AES_KEY, DATA_AES_IV, sEncodedString);
+	else
+	{
+		return "x86";
+	}
 }
 
-//Private
-std::vector<std::string> Data_Manager::ConvertStringToStringList(std::string sData)
+std::string Data_Manager::GetSoftwareLanguage()
 {
-	std::vector<std::string> vDataParts;
-	std::vector<std::string> vTargetData;
+	std::wstring wsLanguageCode = Data_Gathering::GetLanguage();
+	std::string sLanguageCode = "";
+	using convert_type = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_type, wchar_t> converter;
 
+	//use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
+	sLanguageCode = converter.to_bytes(wsLanguageCode);
 
-	try
-	{
-		boost::split(vDataParts, sData.substr(0, sData.length() - 2), boost::is_any_of(LOCAL_DATA_NEWLINE_DELIMITER));
-		boost::split(vTargetData, vDataParts[1].substr(0, sData.length() - 2), boost::is_any_of(LOCAL_DATA_DELIMITER));
-	}
-	catch (const std::exception&)
-	{
-		//This error case has to be handled in future!
-		return vTargetData;
-	}
-		
-	return vTargetData;
+	return sLanguageCode;
 }
 
-std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::ConvertStringToPairOfStringLists(std::string sData)
+
+//Getter 
+
+std::string Data_Manager::GetTargetEnviormentSID()
 {
-	std::vector<std::string> vDataParts;
-	std::vector<std::string> vFileNames;
-	std::vector<std::string> vMd5Hashes;
-	std::pair<std::list<std::string>, std::list<std::string>> lTargetData;
-
-	try
-	{
-		boost::split(vDataParts, sData.substr(0, sData.length() - 2), boost::is_any_of(LOCAL_DATA_NEWLINE_DELIMITER));
-		boost::split(vFileNames, vDataParts[1].substr(0, sData.length() - 2), boost::is_any_of(LOCAL_DATA_DELIMITER));
-
-		int iMd5HashlistCounter = 0;
-		for (int i = 1; i <= vFileNames.size(); i++)
-		{
-			vMd5Hashes.push_back(vFileNames[i]);
-			vFileNames.erase(std::remove(vFileNames.begin(), vFileNames.end(), vFileNames[i]), vFileNames.end());
-			iMd5HashlistCounter++;
-		}
-	}
-	catch (const std::exception&)
-	{
-		return std::pair<std::vector<std::string>, std::vector<std::string>>();
-	}
-
-	return std::make_pair(vFileNames, vMd5Hashes);
+	return TARGET_ENVIORMENT_SID;
 }
 
-std::vector<std::wstring> Data_Manager::ConvertStringToWStringList(std::string sData)
+std::string Data_Manager::GetSoftwareVersion()
 {
-	std::wstring wsConvertedString;
-	StringToWString(sData, &wsConvertedString);
-	std::vector<std::wstring> vDataParts;
-	std::vector<std::wstring> vTargetData;
-
-	try
-	{
-		boost::split(vDataParts, wsConvertedString.substr(0, wsConvertedString.length() - 1), boost::is_any_of(LOCAL_DATA_NEWLINE_DELIMITER));
-		boost::split(vTargetData, vDataParts[1].substr(0, wsConvertedString.length() - 1), boost::is_any_of(LOCAL_DATA_DELIMITER));
-	}
-	catch (const std::exception&)
-	{
-		return vTargetData;
-	}
-	
-	return vTargetData;
+	return SOFTWARE_VERSION;
 }
 
-void Data_Manager::StringToWString(std::string sStringToConvert, std::wstring * wsOutput)
-{
-	std::wstring ws(sStringToConvert.size(), L' '); // Overestimate number of code points.
-	ws.resize(std::mbstowcs(&ws[0], sStringToConvert.c_str(), sStringToConvert.size())); // Shrink to fit.
-	*wsOutput = ws;
-}
-
-//Getter Setter
 std::string Data_Manager::GetTargetEnviormentDataUrl()
 {
 	return TARGET_ENVIORMENT_DATA_URL;
@@ -222,6 +267,11 @@ const char * Data_Manager::GetNetworkServerIP()
 const char * Data_Manager::GetNetworkServerPort()
 {
 	return NETWORK_SERVER_PORT;
+}
+
+const int Data_Manager::GetNetworkMaxSendRetries()
+{
+	return NETWORK_MAX_SEND_RETRIES;
 }
 
 const char * Data_Manager::GetProtocolDelimiter()
@@ -317,4 +367,16 @@ int Data_Manager::GetExceptionFpErrorNumber()
 int Data_Manager::GetExceptionThreadErrorNumber()
 {
 	return EXCEPTION_THREAD_ERROR;
+}
+
+int Data_Manager::GetExceptionNetworkErrorNumber()
+{
+	return EXCEPTION_NETWORK_ERROR;
+}
+
+//Setter
+
+void Data_Manager::SetTargetEnviormentSID(std::string sSID)
+{
+	TARGET_ENVIORMENT_SID = sSID;
 }

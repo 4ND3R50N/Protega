@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <locale>
+#include <codecvt>
 #include "../Tools/CryptoPP_Converter.h"
 #include "Data_Gathering.h"
 
@@ -11,7 +13,8 @@ private:
 	//Constructor
 	Data_Manager(){}
 	//Static Data Storage Vars
-	static char* TARGET_ENVIORMENT_OWNER_NAME;
+	static std::string TARGET_ENVIORMENT_SID;
+	static std::string SOFTWARE_VERSION;
 	static char* TARGET_ENVIORMENT_DATA_URL;
 	static char* TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME;
 	static char* TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME;
@@ -25,6 +28,7 @@ private:
 
 	static const char* NETWORK_SERVER_IP;
 	static const char* NETWORK_SERVER_PORT;
+	static int NETWORK_MAX_SEND_RETRIES;
 	static const char* NETWORK_PROTOCOL_DELIMITER;
 	static const char* NETWORK_DATA_DELIMITER;
 
@@ -42,6 +46,7 @@ private:
 	static int EXCEPTION_VM_ERROR;
 	static int EXCEPTION_FP_ERROR;
 	static int EXCEPTION_THREAD_ERROR;
+	static int EXCEPTION_NETWORK_ERROR;
 
 	//Dynamic Data Storage Vars
 	static std::vector<std::string> vHeuristicMD5Values;
@@ -56,13 +61,20 @@ private:
 	static void StringToWString(std::string sStringToConvert, std::wstring* wsOutput);
 
 public:
-	//Functions
+	//Functions that collect data from Data_Gathering
 	static int CollectDynamicProtesData();
 	static std::string GenerateComputerID();
+	static std::string GetSoftwareArchitecture();
+	static std::string GetSoftwareLanguage();
+
 	//Getter
+
+	static std::string GetTargetEnviormentSID();
+	static std::string GetSoftwareVersion();
 	static std::string GetTargetEnviormentDataUrl();
 	static const char* GetNetworkServerIP();
 	static const char* GetNetworkServerPort();
+	static const int GetNetworkMaxSendRetries();
 	static const char* GetProtocolDelimiter();
 	static const char* GetDataDelimiter();
 	static const char* GetNetworkAesKey();
@@ -83,6 +95,12 @@ public:
 	static int GetExceptionVmErrorNumber();
 	static int GetExceptionFpErrorNumber();
 	static int GetExceptionThreadErrorNumber();
+	static int GetExceptionNetworkErrorNumber();
+
+
+
+	//Setter
+	static void SetTargetEnviormentSID(std::string sSID);
 
 };
 

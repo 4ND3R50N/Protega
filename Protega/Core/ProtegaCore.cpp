@@ -24,6 +24,8 @@ ProtegaCore::~ProtegaCore()
 
 void ProtegaCore::StartAntihack()
 {
+
+#pragma region Check local protega files
 	//Get logo file path
 	std::stringstream ss;
 	ss << Data_Manager::GetLocalDataFolder() << Data_Manager::GetLocalProtegaImage();
@@ -31,10 +33,12 @@ void ProtegaCore::StartAntihack()
 	//Check if logo/Other files are here
 	if (!CheckProtegaFiles(ss.str().c_str()))
 	{
-		Exception_Manager::HandleProtegaStandardError(Data_Manager::GetExceptionLocalFileErrorNumber(), 
+		Exception_Manager::HandleProtegaStandardError(Data_Manager::GetExceptionLocalFileErrorNumber(),
 			"Files are missing. Please restart the application or download the latest gamefiles again!");
 		return;
 	}
+
+#pragma endregion
 	
 	//Show logo, wait for some time
 	//	Convert const char* to CA2T (LPCTSTR)
@@ -44,7 +48,19 @@ void ProtegaCore::StartAntihack()
 
 	Sleep(1000);
 	
-	//Collect dynamic data
+#pragma region Authenticate to server
+	//Collect necessary data (Hardware ID)
+	NetworkManager->Authentication_500(Data_Manager::GenerateComputerID(), Data_Manager::GetTargetEnviormentSID(), Data_Manager::GetSoftwareVersion(),
+		Data_Manager::GetSoftwareArchitecture(), Data_Manager::GetSoftwareLanguage());
+	do
+	{
+		Sleep(1000);
+	} while (!NetworkManager->GetAuthentificationSuccessStatus());
+
+#pragma endregion
+
+
+#pragma region Collect Dynamic Data
 	int iErrorCode = Data_Manager::CollectDynamicProtesData();
 	if (iErrorCode == 1)
 	{
@@ -63,33 +79,47 @@ void ProtegaCore::StartAntihack()
 		Exception_Manager::HandleProtegaStandardError(Data_Manager::GetExceptionDataConversionErrorNumber(),
 			"Downloaded data is corrupt. Please check our internet connection and restart the application. If this problem accours more often, please contact an administrator!");
 	}
+#pragma endregion
+
+#pragma region Start Protections
 	//Dummy Lists
 	std::vector<std::string> vBlackListWindowName;
 	std::vector<std::string> vBlackListClassName;
 
 	ProtectionManager = new Protection_Manager(std::bind(&ProtegaCore::ProtectionManagerAnswer, this, std::placeholders::_1), (int)GetCurrentProcessId(),
-		Data_Manager::GetProtectionThreadResponseDelta(), Data_Manager::GetExceptionVmErrorNumber(), Data_Manager::GetExceptionFpErrorNumber(),Data_Manager::GetExceptionThreadErrorNumber(),
+		Data_Manager::GetProtectionThreadResponseDelta(), Data_Manager::GetExceptionVmErrorNumber(), Data_Manager::GetExceptionFpErrorNumber(), Data_Manager::GetExceptionThreadErrorNumber(),
 		Data_Manager::GetProtectionMaxFpDll(), Data_Manager::GetHeuristicProcessNames(), vBlackListWindowName, vBlackListClassName, Data_Manager::GetHeuristicMD5Values(),
 		Data_Manager::GetFilesToCheckValues());
 
 	ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
 	ProtectionManager->StartProtectionThreads();
+#pragma endregion
 	
-
 	Splash.CloseSplash();
 	Splash.~SplashDisplayer();
+
+
 	Update();
 
 }
 
 //Private
-void ProtegaCore::ServerAnswer(NetworkTelegram NetworkTelegramMessage)
+void ProtegaCore::ServerAnswer(NetworkTelegram NetworkTelegramMessage, bool * bActualProtocolSuccessVar)
 {
 	//Handles incoming telegrams
 
+	switch (NetworkTelegramMessage.iTelegramNumber)
+	{
+		//Authentication Successfull
+	case 200:
+		Data_Manager::SetTargetEnviormentSID(NetworkTelegramMessage.lParameters[0]);
+		break;
+		//Authentication Unsuccessfull
+	case 201:
 
-	MessageBoxA(NULL, NetworkTelegramMessage.lParameters[0].c_str(), "Protega antihack engine", NULL);
-	int retval = ::_tsystem(_T("taskkill /F /T /IM CabalMain22.exe"));
+	default:
+		break;
+	}
 }
 
 void ProtegaCore::ProtectionManagerAnswer(std::list<std::wstring> wsDetectionInformation)

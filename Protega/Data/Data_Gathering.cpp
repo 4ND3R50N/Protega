@@ -143,6 +143,17 @@ std::string Data_Gathering::GetMachineName()
 	}
 }
 
+std::wstring Data_Gathering::GetLanguage()
+{
+	WCHAR wcBuffer[16];
+	if (GetSystemDefaultLocaleName(wcBuffer, 16)) {
+		printf("%S\n", wcBuffer);
+	}
+
+	std::wstring wsOsLanguageC(wcBuffer);
+	return wsOsLanguageC;
+}
+
 int Data_Gathering::GetSystemDefaultLocaleName(LPWSTR lpLocaleName, int cchLocaleName) // by Napalm
 {
 	int nRet1, nRet2 = 0;
