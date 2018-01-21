@@ -11,7 +11,8 @@ ProtegaCore::ProtegaCore()
 {
 	//Init classes	
 	NetworkManager = new Network_Manager(Data_Manager::GetNetworkServerIP(), Data_Manager::GetNetworkServerPort(),
-		Data_Manager::GetProtocolDelimiter(), Data_Manager::GetDataDelimiter(), std::bind(&ProtegaCore::ServerAnswer, this, std::placeholders::_1));
+		Data_Manager::GetProtocolDelimiter(), Data_Manager::GetDataDelimiter(), Data_Manager::GetNetworkMaxSendRetries(), Data_Manager::GetExceptionNetworkErrorNumber(),
+		std::bind(&ProtegaCore::ServerAnswer, this, std::placeholders::_1));
 	//Set exception vars
 	Exception_Manager::SetExeptionCaption(Data_Manager::GetExceptionCaption());
 	Exception_Manager::SetTargetName(Data_Manager::GetLocalDataProtectionTarget().c_str());
@@ -50,7 +51,7 @@ void ProtegaCore::StartAntihack()
 	
 #pragma region Authenticate to server
 	//Collect necessary data (Hardware ID)
-	NetworkManager->Authentication_500(Data_Manager::GenerateComputerID(), Data_Manager::GetTargetEnviormentSID(), Data_Manager::GetSoftwareVersion(),
+	NetworkManager->Authentication_500(Data_Manager::GenerateComputerID(), Data_Manager::GetSoftwareVersion(),
 		Data_Manager::GetSoftwareArchitecture(), Data_Manager::GetSoftwareLanguage());
 	do
 	{
@@ -104,7 +105,7 @@ void ProtegaCore::StartAntihack()
 }
 
 //Private
-void ProtegaCore::ServerAnswer(NetworkTelegram NetworkTelegramMessage, bool * bActualProtocolSuccessVar)
+void ProtegaCore::ServerAnswer(NetworkTelegram NetworkTelegramMessage)
 {
 	//Handles incoming telegrams
 
@@ -112,7 +113,7 @@ void ProtegaCore::ServerAnswer(NetworkTelegram NetworkTelegramMessage, bool * bA
 	{
 		//Authentication Successfull
 	case 200:
-		Data_Manager::SetTargetEnviormentSID(NetworkTelegramMessage.lParameters[0]);
+		Data_Manager::SetLocalHardwareSID(NetworkTelegramMessage.lParameters[0]);
 		break;
 		//Authentication Unsuccessfull
 	case 201:

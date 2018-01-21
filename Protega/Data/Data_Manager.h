@@ -13,13 +13,13 @@ private:
 	//Constructor
 	Data_Manager(){}
 	//Static Data Storage Vars
-	static std::string TARGET_ENVIORMENT_SID;
 	static std::string SOFTWARE_VERSION;
 	static char* TARGET_ENVIORMENT_DATA_URL;
 	static char* TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME;
 	static char* TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME;
 	static char* TARGET_ENVIORMENT_FTC_FILE_NAME;
 
+	static std::string LOCAL_HARDWARE_SID;
 	static const char* LOCAL_DATA_FOLDER;
 	static const char* LOCAL_DATA_PROTEGA_IMAGE;
 	static const char* LOCAL_DATA_NEWLINE_DELIMITER;
@@ -69,18 +69,18 @@ public:
 
 	//Getter
 
-	static std::string GetTargetEnviormentSID();
 	static std::string GetSoftwareVersion();
 	static std::string GetTargetEnviormentDataUrl();
 	static const char* GetNetworkServerIP();
 	static const char* GetNetworkServerPort();
-	static const int GetNetworkMaxSendRetries();
+	static int GetNetworkMaxSendRetries();
 	static const char* GetProtocolDelimiter();
 	static const char* GetDataDelimiter();
 	static const char* GetNetworkAesKey();
 	static const char* GetNetworkAesIV();
 	static double GetProtectionThreadResponseDelta();
 	static int GetProtectionMaxFpDll();
+	static std::string GetLocalHardwareSID();
 	static std::string GetLocalDataProtectionTarget();
 	static const char* GetLocalDataFolder();
 	static const char* GetLocalProtegaImage();
@@ -100,7 +100,7 @@ public:
 
 
 	//Setter
-	static void SetTargetEnviormentSID(std::string sSID);
+	static void SetLocalHardwareSID(std::string sSID);
 
 };
 

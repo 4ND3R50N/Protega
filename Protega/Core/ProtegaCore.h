@@ -16,7 +16,7 @@ private:
 
 	//Main functions
 	//	Callbacks
-	void ServerAnswer(NetworkTelegram NetworkTelegramMessage, bool * bActualProtocolSuccessVar);
+	void ServerAnswer(NetworkTelegram NetworkTelegramMessage);
 	void ProtectionManagerAnswer(std::list<std::wstring> wsDetectionInformation);
 	//	Thread routine after start
 	void Update();

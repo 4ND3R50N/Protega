@@ -2,15 +2,18 @@
 #include "Data_Manager.h"
 
 #pragma region PROTES_STATIC_DATA_CONFIG
-//Web data
-std::string Data_Manager::TARGET_ENVIORMENT_SID = "";
+
 std::string Data_Manager::SOFTWARE_VERSION = "1.0.0";
+
+//Web data
+
 char* Data_Manager::TARGET_ENVIORMENT_DATA_URL = "http://62.138.6.50:13011/CabalOnline/";
 char* Data_Manager::TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME = "Heuristic_MD5.csv.enc";
 char* Data_Manager::TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME = "Heuristic_Process_Names.csv.enc";
 char* Data_Manager::TARGET_ENVIORMENT_FTC_FILE_NAME = "Files_To_Check.csv.enc";
 
 //Local data
+std::string Data_Manager::LOCAL_HARDWARE_SID = "";
 const char* Data_Manager::LOCAL_DATA_NEWLINE_DELIMITER = "~";
 const char* Data_Manager::LOCAL_DATA_DELIMITER = ";";
 const char* Data_Manager::LOCAL_DATA_FOLDER = ".\\protega\\";
@@ -212,8 +215,8 @@ std::string Data_Manager::GenerateComputerID()
 {
 	std::stringstream ssComputerID;
 	ssComputerID << Data_Gathering::GetCpuHash() << "-" << Data_Gathering::GetVolumeHash();
-	TARGET_ENVIORMENT_SID = ssComputerID.str();
-	return TARGET_ENVIORMENT_SID;
+	LOCAL_HARDWARE_SID = ssComputerID.str();
+	return LOCAL_HARDWARE_SID;
 }
 
 std::string Data_Manager::GetSoftwareArchitecture()
@@ -244,11 +247,6 @@ std::string Data_Manager::GetSoftwareLanguage()
 
 //Getter 
 
-std::string Data_Manager::GetTargetEnviormentSID()
-{
-	return TARGET_ENVIORMENT_SID;
-}
-
 std::string Data_Manager::GetSoftwareVersion()
 {
 	return SOFTWARE_VERSION;
@@ -269,7 +267,7 @@ const char * Data_Manager::GetNetworkServerPort()
 	return NETWORK_SERVER_PORT;
 }
 
-const int Data_Manager::GetNetworkMaxSendRetries()
+int Data_Manager::GetNetworkMaxSendRetries()
 {
 	return NETWORK_MAX_SEND_RETRIES;
 }
@@ -302,6 +300,11 @@ double Data_Manager::GetProtectionThreadResponseDelta()
 int Data_Manager::GetProtectionMaxFpDll()
 {
 	return PROTECTION_FP_MAX_DLL;
+}
+
+std::string Data_Manager::GetLocalHardwareSID()
+{
+	return LOCAL_HARDWARE_SID;
 }
 
 std::string Data_Manager::GetLocalDataProtectionTarget()
@@ -376,7 +379,7 @@ int Data_Manager::GetExceptionNetworkErrorNumber()
 
 //Setter
 
-void Data_Manager::SetTargetEnviormentSID(std::string sSID)
+void Data_Manager::SetLocalHardwareSID(std::string sSID)
 {
-	TARGET_ENVIORMENT_SID = sSID;
+	LOCAL_HARDWARE_SID = sSID;
 }

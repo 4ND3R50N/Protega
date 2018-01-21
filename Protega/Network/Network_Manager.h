@@ -44,7 +44,7 @@ public:
 		std::function<void(NetworkTelegram Telegram)> funcCallbackHandler);
 	~Network_Manager();
 	bool TestMessage_001();
-	void Authentication_500(std::string sHardwareID, std::string sApplicationID, std::string sVersion, std::string sComputerArchitecture, std::string sLanguage);
+	void Authentication_500(std::string sHardwareID, std::string sVersion, std::string sComputerArchitecture, std::string sLanguage);
 	bool Ping_600(std::string sSessionID);
 
 	//Getter

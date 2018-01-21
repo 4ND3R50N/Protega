@@ -27,17 +27,17 @@ bool Network_Manager::TestMessage_001()
 	return true;
 }
 
-void Network_Manager::Authentication_500(std::string sHardwareID, std::string sApplicationID, std::string sVersion, 
+void Network_Manager::Authentication_500(std::string sHardwareID, std::string sVersion, 
 	std::string sComputerArchitecture, std::string sLanguage)
 {
 	iAuthenticationTries = 0;
 	bAuthenticationSuccess = false;
 
 	std::stringstream ss;
-	ss << iAuthenticationProtocolID << sDataDelimiter << sHardwareID << sDataDelimiter << sApplicationID << sDataDelimiter << sVersion 
+	ss << iAuthenticationProtocolID << sDataDelimiter << sHardwareID << sDataDelimiter << sVersion 
 		<< sDataDelimiter << sComputerArchitecture << sDataDelimiter << sLanguage;
 	
-	std::thread th(&Network_Manager::SendAndGet, this, &bPingSuccess, &iAuthenticationTries, ss.str());
+	std::thread th(&Network_Manager::SendAndGet, this, &bPingSuccess, &iAuthenticationTries, ss.str().c_str());
 	th.join();
 }
 
