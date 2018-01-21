@@ -13,13 +13,12 @@ namespace Protega___Server.Classes.Protocol
     public class ProtocolController
     {
         List<networkServer.networkClientInterface> ActiveConnections;
-        Support.logWriter Logger;
+        int ApplicationID;
 
-        public ProtocolController(ref List<networkServer.networkClientInterface> ActiveConnections)
+        public ProtocolController(ref List<networkServer.networkClientInterface> ActiveConnections, int _ApplicationID)
         {
-            Logger = new logWriter("ProtocolController");
-            Logger.writeInLog(true, LoggingStatus.OKAY, "Logging class initialized!");
             this.ActiveConnections = ActiveConnections;
+            ApplicationID = _ApplicationID;
         }
 
 
@@ -36,24 +35,19 @@ namespace Protega___Server.Classes.Protocol
 
         public bool ReceivedProtocol(networkServer.networkClientInterface NetworkClient, string protocolString)
         {
-            Logger.writeInLog(true, LoggingStatus.OKAY, "Receieved protocol ["+protocolString+"] from session: "+NetworkClient.SessionID);
             Protocol protocol = new Protocol(protocolString);
             switch (protocol.GetKey())
             {
                 case 600:
-                    Logger.writeInLog(true, LoggingStatus.OKAY, "Received protocol for ping");
                     return CheckPing(protocol); 
                 case 500:
-                    Logger.writeInLog(true, LoggingStatus.OKAY, "Received protocol for authentication");
                     return AuthenticateUser(NetworkClient, protocol); 
                 case 701:
-                    Logger.writeInLog(true, LoggingStatus.OKAY, "Received protocol for heuristic hack detection");
                     return HackDetection_Heuristic(protocol); 
                 case 702:
-                    Logger.writeInLog(true, LoggingStatus.OKAY, "Received protocol for virtual hack detection");
                     return HackDetection_VirtualMemory(protocol); 
                 default:
-                    Logger.writeInLog(true, LoggingStatus.ERROR, "Received unvalid protocol");
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "Received unvalid protocol");
                     return false; 
             }
             
@@ -62,26 +56,25 @@ namespace Protega___Server.Classes.Protocol
         // QUESTION: why do we give session ID here? It is saved in ClientInterface isn't it???????????????????????????????????????????????
         public bool CheckIfUserExists(string SessionID, ref networkServer.networkClientInterface ClientInterface)
         {
-            Logger.writeInLog(true, LoggingStatus.OKAY, "Called method CheckIfUserExists for session "+ClientInterface.SessionID);
             //Checks if that connection exists already. Gives back the amount of matching ClientInterfaces
             List<networkServer.networkClientInterface> lList = ActiveConnections.Where(Client => Client.SessionID == SessionID).ToList();
             if (lList.Count == 1)
                 ClientInterface = lList[0];
-            if(lList.Count == 1)
-            {
-                Logger.writeInLog(true, LoggingStatus.OKAY, "Client Interface " +ClientInterface.SessionID+" exists in active connections");
+            //if(lList.Count == 1)
+            //{
+            //    Logger.writeInLog(true, LoggingStatus.LOW, "Client Interface " +ClientInterface.SessionID+" exists in active connections");
 
-            }else if (lList.Count == 0)
-            {
-                // QUESTION: Is this one already an error or just a warning????????????????????????????????????????????????????????????????
-                Logger.writeInLog(true, LoggingStatus.WARNING, "Client Interface " + ClientInterface.SessionID + " DOES NOT exists in active connections");
+            //}else if (lList.Count == 0)
+            //{
+            //    // QUESTION: Is this one already an error or just a warning????????????????????????????????????????????????????????????????
+            //    Logger.writeInLog(true, LoggingStatus.MIDDLE, "Client Interface " + ClientInterface.SessionID + " DOES NOT exists in active connections");
 
-            }
-            else
-            {
-                // QUESTION: Is this one already an error or just a warning????????????????????????????????????????????????????????????????
-                Logger.writeInLog(true, LoggingStatus.ERROR, "Client Interface " + ClientInterface.SessionID + " is saved "+lList.Count+" times in active connections");
-            }
+            //}
+            //else
+            //{
+            //    // QUESTION: Is this one already an error or just a warning????????????????????????????????????????????????????????????????
+            //    Logger.writeInLog(true, LoggingStatus.CRITICAL, "Client Interface " + ClientInterface.SessionID + " is saved "+lList.Count+" times in active connections");
+            //}
             //True if an interface exists, false if not or more
             return lList.Count == 1;
         }
@@ -95,14 +88,14 @@ namespace Protega___Server.Classes.Protocol
         //public delegate void _RegisterUser(string ComputerID, Boolean architecture, String language, double version, Boolean auth);
         //public event _RegisterUser RegisterUser=null;
 
-        private bool AuthenticateUser(networkServer.networkClientInterface ClientInterface, Protocol prot)
+        private bool AuthenticateUser( networkServer.networkClientInterface ClientInterface, Protocol prot)
         {
-            Logger.writeInLog(true, LoggingStatus.OKAY, "Called method AuthenticateUser for session " + ClientInterface.SessionID);
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "Called method AuthenticateUser");
             ArrayList Objects = prot.GetValues();
             if(Objects.Count!=4)
             {
                 //Log error - protocol size not as expected
-                Logger.writeInLog(true, LoggingStatus.ERROR, "Unexpected size of protocol. Expected are 4 but it was "+Objects.Count);
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "Unexpected size of protocol. Expected are 4 but it was "+Objects.Count);
                 return false;
             }
 
@@ -114,10 +107,10 @@ namespace Protega___Server.Classes.Protocol
             if (!Double.TryParse(Objects[3].ToString(), out version))
             {
                 //Log error - protocol index 3 is not as expected
-                Logger.writeInLog(true, LoggingStatus.ERROR, "Unexpected type of version (Objects[3]). Should be double but was "+version);
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "Double expected but received " + Objects[3].ToString());
                 return false;
             }
-            Logger.writeInLog(true, LoggingStatus.OKAY, "Saved protocol values: ApplicationHash: "+ApplicationHash+", architecture: "+architecture+", language: "+language+", version: "+version);
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, String.Format("Authentification protocol correct. ApplicationHash={0}, Architecture={1}, Language={2}, Version={3}", ApplicationHash, architecture, language, version));
 
             //Check if user exists and add it to the list
             return AddUserToActiveConnections(ClientInterface, ApplicationHash, prot.GetUserID(), architecture, language, version);
@@ -125,11 +118,10 @@ namespace Protega___Server.Classes.Protocol
 
         bool AddUserToActiveConnections(networkServer.networkClientInterface ClientInterface, string ApplicationHash, string ComputerID, string architecture, String language, double version)
         {
-            Logger.writeInLog(true, LoggingStatus.OKAY, "Called method AddUserToActiveConnections for session " + ClientInterface.SessionID);
             if (!CCstData.InstanceExists(ApplicationHash))
             {
                 //Instance does not exist. The player must have manipulated the protocol!
-                Logger.writeInLog(true, LoggingStatus.ERROR, "Instance does not exist. The player must have manipulated the protocol");
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "Invalid application hash received in authentification protocol!");
                 return false;
             }
 
@@ -144,7 +136,7 @@ namespace Protega___Server.Classes.Protocol
                     //Kick User?
                     // QUESTION: Why are we using this logger??????????????????????????????????????????????????????????????????????????????????
                     // QUESTION: Is this one already an error or just a warning????????????????????????????????????????????????????????????????
-                    CCstData.GetInstance(ApplicationHash).Logger.writeInLog(true, LoggingStatus.WARNING, "User is already added to list");
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, "Authentification: User is already added to list!");
                     return false;
                 }
             }
@@ -153,7 +145,7 @@ namespace Protega___Server.Classes.Protocol
             if (dataClient == null)
             {
                 //If a computer ID exists multiple times in the database, a null object is returned
-                Logger.writeInLog(true, LoggingStatus.ERROR, "Computer ID exists multiple times in the database");
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "Authentification: Hardware ID exists multiple times in the database");
                 SendProtocol("201;Contact Admin", ClientInterface);
                 return false;
             }
@@ -163,7 +155,7 @@ namespace Protega___Server.Classes.Protocol
             {
                 //Do something and dont let him enter
                 // QUESTION: Is this one already an error or just a warning????????????????????????????????????????????????????????????????
-                Logger.writeInLog(true, LoggingStatus.WARNING, "User is banned");
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, String.Format("Authentification: Banned user tried to authentificate. User: {0}", dataClient.ID));
                 //Send protocol to client that user is banned
                 //SendProtocol("201;Too many hacks", ClientInterface);
                 return false;
@@ -173,7 +165,7 @@ namespace Protega___Server.Classes.Protocol
             ClientInterface.User = dataClient;
 
             //Generate unique Session ID for network communication
-            Logger.writeInLog(true, LoggingStatus.OKAY, "Start creating an unique session ID");
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "Authentification: Start creating a unique session ID");
             while (true)
             {
                 string SessionID = AdditionalFunctions.GenerateSessionID(CCstData.GetInstance(ApplicationHash).SessionIDLength);
@@ -181,7 +173,7 @@ namespace Protega___Server.Classes.Protocol
                 if (ActiveConnections.Where(Client => Client.SessionID == SessionID).ToList().Count == 0)
                 {
                     ClientInterface.SessionID = SessionID;
-                    Logger.writeInLog(true, LoggingStatus.OKAY, "Created unique session ID " + SessionID);
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "Unique session ID created + " + SessionID);
                     break;
                 }
             }
@@ -196,13 +188,13 @@ namespace Protega___Server.Classes.Protocol
 
         private bool CheckPing(Protocol prot)
         {
-            Logger.writeInLog(true, LoggingStatus.OKAY, "Called method CheckPing");
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "Ping: Protocol received. User: " + prot.GetUserID());
             networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
 
 
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
-                Logger.writeInLog(true, LoggingStatus.OKAY, "Given user exists in connections");
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "Ping: User found in the list.");
                 //If additional infos are asked, what is needed is identified by an ID
                 /*
                  * Different logic is needed here. Admin is able to add additional information for user to a queue
@@ -228,7 +220,7 @@ namespace Protega___Server.Classes.Protocol
                 //If requested, additional infos will be sent
                 //SendProtocol(String.Format("{0}{1}", "300", AdditionalInfo), ClientInterface);
             }
-            Logger.writeInLog(true, LoggingStatus.ERROR, "Given user DOES NOT exist in connections");
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "Ping: User does not exist in the active connections");
             return false;
         }
 
@@ -236,16 +228,16 @@ namespace Protega___Server.Classes.Protocol
         #region Hack Detections
         private bool HackDetection_Heuristic(Protocol prot)
         {
-            Logger.writeInLog(true, LoggingStatus.OKAY, "Called method HackDetection_Heuristic");
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "H-Detection received. User: "+ prot.GetUserID());
             networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
-                Logger.writeInLog(true, LoggingStatus.OKAY, "User exists");
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "H-Detection: User found in the active connections");
                 ArrayList Objects = prot.GetValues();
                 if(Objects.Count!=4)
                 {
                     //Log error - protocol size not as expected
-                    Logger.writeInLog(true, LoggingStatus.ERROR, "Unexpected size of protocol. Expected are 4 but it was " + Objects.Count);
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "H-Detection: Unexpected size of protocol. Expected are 4 but it was " + Objects.Count);
 
                     return false;
                 }
@@ -255,24 +247,24 @@ namespace Protega___Server.Classes.Protocol
                 string ClassName = Convert.ToString(Objects[2]);
                 string MD5Value = Convert.ToString(Objects[3]);
 
-                Logger.writeInLog(true, LoggingStatus.OKAY, "Saved protocol values: ProcessName: " + ProcessName + ", WindowName: " + WindowName + ", ClassName: " + ClassName + ", MD5Value: " + MD5Value);
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "H-Detection: Saved protocol values: ProcessName: " + ProcessName + ", WindowName: " + WindowName + ", ClassName: " + ClassName + ", MD5Value: " + MD5Value);
 
                 if (!SHackHeuristic.Insert(ClientInterface.User.ID, ClientInterface.User.Application.ID, ProcessName, WindowName, ClassName, MD5Value))
                 {
-                    Logger.writeInLog(true, LoggingStatus.ERROR, "Isertion of the hack in database DID NOT work");
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "H-Detection: Insertion in database failed!");
                     return false;
                     //Log error - Hack insertion did not work
                 }
-                Logger.writeInLog(true, LoggingStatus.OKAY, "Hack successfully inserted in database");
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "H-Detection: Database interaction successful");
                 return true;
             }
-            Logger.writeInLog(true, LoggingStatus.ERROR, "User DOES NOT exist");
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, "H-Detection: User not found in active connections!");
             return false;
         }
 
         private bool HackDetection_VirtualMemory(Protocol prot)
         {
-            Logger.writeInLog(true, LoggingStatus.OKAY, "Called method HackDetection_VirtualMemory");
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "V-Detection received. User: "+prot.GetUserID());
             networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
@@ -280,7 +272,7 @@ namespace Protega___Server.Classes.Protocol
                 if (Objects.Count != 4)
                 {
                     //Log error - protocol size not as expected
-                    Logger.writeInLog(true, LoggingStatus.ERROR, "Unexpected size of protocol. Expected are 4 but it was " + Objects.Count);
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, "V-Detection: Unexpected size of protocol. Expected are 4 but it was " + Objects.Count);
 
                     return false;
                 }
@@ -290,18 +282,18 @@ namespace Protega___Server.Classes.Protocol
                 string DetectedValue = Convert.ToString(Objects[2]);
                 string DefaultValue = Convert.ToString(Objects[3]);
 
-                Logger.writeInLog(true, LoggingStatus.OKAY, "Saved protocol values: BaseAddress: " + BaseAddress + ", Offset: " + Offset + ", DetectedValue: " + DetectedValue + ", DefaultValue: " + DefaultValue);
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "V-Detection: Saved protocol successfully. Values: BaseAddress: " + BaseAddress + ", Offset: " + Offset + ", DetectedValue: " + DetectedValue + ", DefaultValue: " + DefaultValue);
 
                 if (!SHackVirtual.Insert(ClientInterface.User.ID, ClientInterface.User.Application.ID, BaseAddress, Offset, DetectedValue, DefaultValue))
                 {
-                    Logger.writeInLog(true, LoggingStatus.ERROR, "Isertion of the hack in database DID NOT work");
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, "V-Detection: Insertion in database failed!");
                     return false;
                     //Log error - Hack insertion did not work
                 }
-                Logger.writeInLog(true, LoggingStatus.OKAY, "Hack successfully inserted in database");
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "V-Detection: Database interaction successful");
                 return true;
             }
-            Logger.writeInLog(true, LoggingStatus.ERROR, "User DOES NOT exist");
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, "V-Detection: User not found in active connections!");
             return false;
         }
         #endregion

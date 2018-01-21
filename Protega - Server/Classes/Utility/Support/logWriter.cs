@@ -4,56 +4,74 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Collections;
 
 namespace Support
 {
     public class logWriter
     {
-
         string path;
-        string classs;
-
-        public logWriter(string classs)
-        {
-            this.path = Directory.GetCurrentDirectory();
-            this.classs = classs;
-        }
-
-        public logWriter(string path, string classs)
+        int LogLevel;
+        
+        public logWriter(string path, int LogLevel)
         {
             this.path = path;
-            this.classs = classs;
+            this.LogLevel = LogLevel;
         }
 
-        public void writeInLog(bool consoleOutput, LoggingStatus status, string text)
+        public void writeInLog(int Importance, string Message)
         {
-            if (consoleOutput)
+            switch (Importance)
             {
-                conOut(status, text);
+                case 1:
+                    Message = "Low" + Message;
+                    break;
+                case 2:
+                    Message = "Medium" + Message;
+                    break;
+                case 3:
+                    Message = "Critical" + Message;
+                    break;
+                default:
+                    break;
             }
-            //logFile(text);
-            logFile(status, text);
+
+            
+            conOut(Message);
+            logFile(Message);
+            //if (Importance >= 3)
+            //    LogDatabase(BasicInformation, DetailledInformation);
         }
 
-        private void conOut(LoggingStatus status, string text)
+        private void conOut(string Message)
         {
-            DateTime DateTime = DateTime.Now;
-            Console.WriteLine(String.Format("[{0}]: {1} - [{2}]: {3}!", DateTime, status, classs, text));
+            Message= String.Format("[{0} {1}]]: {2}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), Message);
+            Console.WriteLine(Message);
         }
 
-        private void logFile(LoggingStatus status, string text)
+        void LogDatabase(string BasicInformation, string DetailledInformation)
         {
-            DateTime DateTime = DateTime.Now;
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(path, true))
+            
+        }
+
+        private void logFile(string Message)
+        {
+
+            Message = String.Format("[{0} {1}]]: {2}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), Message);
+            using (StreamWriter file = new StreamWriter(path))
             {
-                file.WriteLine(String.Format("[{0}]: {1} - [{2}]: {3}!", DateTime, status, classs, text));
+                file.WriteLine(Message);
             }
+            //using (System.IO.StreamWriter file = new System.IO.StreamWriter(path, true))
+            //{
+            //    file.WriteLine(String.Format("[{0}]: {1} - [{2}]: {3}!", DateTime, status, classs, text));
+            //}
         }
-        //private void LogInDatabase(string Text)
+
+        
     }
-
-    public enum LoggingStatus
+    public enum LogLevel
     {
-        OKAY, WARNING, ERROR
+        LOW, MEDIUM, CRITICAL
     }
 }
