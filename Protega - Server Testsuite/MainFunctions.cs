@@ -15,12 +15,12 @@ namespace Protega___Server_Testsuite
         ControllerCore Core;
 
        public MainFunctions()
-        {/*
-            Core = new ControllerCore("Test",10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()));
+        {
+            Core = new ControllerCore("Test",10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()),3);
             Client.SessionID = "123";
             Client.User.ID = "1234";
             Client.User.Application.ID = 1;
-            Core.ActiveConnections.Add(Client);*/
+            Core.ActiveConnections.Add(Client);
         }
 
         [TestMethod]
@@ -89,7 +89,7 @@ namespace Protega___Server_Testsuite
         {
             string HardwareID = "12312315";
 
-            ControllerCore Core2 = new ControllerCore("Test2", 10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()));
+            ControllerCore Core2 = new ControllerCore("Test2", 10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()),3);
             networkServer.networkClientInterface Client2 = new networkServer.networkClientInterface();
             Client2.SessionID = "123";
             Client2.User.ID = "1234";

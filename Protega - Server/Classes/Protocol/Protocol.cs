@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using Support;
 
 namespace Protega___Server.Classes.Protocol
 {
@@ -10,7 +11,7 @@ namespace Protega___Server.Classes.Protocol
         private ArrayList values = new ArrayList();
         
         public Protocol(String protocol)
-        {
+        {;
             Object[] elements = null;
             // split the protocol at the delimiter ; to get the parts of the protocol
             if (protocol.Contains(";"))
@@ -20,6 +21,7 @@ namespace Protega___Server.Classes.Protocol
             // the key is always saved at the first entry
             key =  Convert.ToInt32(elements[0]);
             UserID = elements[1].ToString();
+            
 
             // if the protocol has not only the key, save the values.
             if (elements.Length > 1)

@@ -25,11 +25,11 @@ namespace Protega___Server.Classes.Core
 
         //Konstruktor
         public ControllerCore(string _ApplicationName, short _iPort, char _cProtocolDelimiter, char _cDataDelimiter, string _sAesKey, string _sDatabaseDriver,
-            string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath)
+            string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath, int LogLevel)
         {
             //Logging initialisations
-            Support.logWriter Logger = new logWriter(_sLogPath);
-            Logger.writeInLog(true, "Logging class initialized!");
+            Support.logWriter Logger = new logWriter("_sLogPath", LogLevel);
+            Logger.writeInLog(1, "Logging class initialized!");
             DBEngine dBEngine = null;
             
             //Database Initialisations
@@ -46,17 +46,17 @@ namespace Protega___Server.Classes.Core
             //Database test
             if (dBEngine.testDBConnection())
             {
-                Logger.writeInLog(true, "Database test successfull!");
+                Logger.writeInLog(1, "Database test successfull!");
             }else
             {
-                Logger.writeInLog(true, "ERROR: Database test was not successfull!");
+                Logger.writeInLog(1, "Database test was not successfull!");
                 return;
             }
 
             Application = SApplication.GetByName(_ApplicationName, dBEngine);
             if(Application==null)
             {
-                Logger.writeInLog(true, "The application name was not found in the database!");
+                Logger.writeInLog(1, "The application name was not found in the database!");
                 return;
             }
 
@@ -65,13 +65,13 @@ namespace Protega___Server.Classes.Core
 
             if (CCstData.GetInstance(Application.ID).DatabaseEngine.testDBConnection())
             {
-                CCstData.GetInstance(Application.ID).Logger.writeInLog(true, "Instance successfully created!");
+                CCstData.GetInstance(Application.ID).Logger.writeInLog(1, "Instance successfully created!");
             } else
             {
-                Logger.writeInLog(true, "Instance could not be created!");
+                Logger.writeInLog(1, "Instance could not be created!");
                 return;
             }
-
+            
             //Network Initialisations
             ActiveConnections = new List<networkServer.networkClientInterface>();
             sAesKey = _sAesKey;
@@ -80,8 +80,8 @@ namespace Protega___Server.Classes.Core
             TcpServer = new networkServer(NetworkProtocol, _sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         
             ProtocolController.SendProtocol += this.SendProtocol;
-            Logger.writeInLog(true, "TCP Server ready for start!");
-            ProtocolController = new ProtocolController(ref ActiveConnections);
+            Logger.writeInLog(1, "TCP Server ready for start!");
+            ProtocolController = new ProtocolController(ref ActiveConnections, Application.ID);
 
             /*//TESTCASE
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
@@ -119,29 +119,16 @@ namespace Protega___Server.Classes.Core
             //NetworkProtocol("#213;114", ref dummy);
 
         }
-
-        // QUESTION: what exactly is the authenticating here? It looks for me more like:
-        // is there someone saved? No? -> save him! And if there is already someone saved
-        // I don't add him so the list only have one active connection? What is that for?
-
-            //Answer
-            //I only added this to test with Lars (max 1 connection).
-            //Because currently every protocol is seen as a new authentication
-        void AuthenticateClient(networkServer.networkClientInterface Client)
-        {
-            if(ActiveConnections.Count==0)
-            ActiveConnections.Add(Client);
-        }
-
+        
         public void Start()
         {
             if(TcpServer.startListening())
             {
-                CCstData.GetInstance(Application).Logger.writeInLog(true, "Server has been started successfully!");
+                CCstData.GetInstance(Application).Logger.writeInLog(1, "Server has been started successfully!");
             }
             else
             {
-                CCstData.GetInstance(Application).Logger.writeInLog(true, "ERROR: The server was not able to start!");
+                CCstData.GetInstance(Application).Logger.writeInLog(1, "The server was not able to start!");
             }
            
         }
@@ -161,11 +148,11 @@ namespace Protega___Server.Classes.Core
             catch (Exception e)
             {
                 //If decryption failed, something was probably manipulated -> Log it
-                CCstData.GetInstance(Application).Logger.writeInLog(true, "Protocol Decryption failed! From xy - message: " + e.ToString());
+                CCstData.GetInstance(Application).Logger.writeInLog(1, "Protocol Decryption failed! Message: " + e.ToString());
                 return;
             }
 
-            CCstData.GetInstance(Application).Logger.writeInLog(true, "Protocol received: " + message);
+            CCstData.GetInstance(Application).Logger.writeInLog(2, "Protocol received: " + message);
             ProtocolController.ReceivedProtocol(NetworkClient, message);
         }
 
