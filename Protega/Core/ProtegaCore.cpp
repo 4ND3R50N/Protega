@@ -110,14 +110,23 @@ void ProtegaCore::ServerAnswer(NetworkTelegram NetworkTelegramMessage)
 	//Handles incoming telegrams
 
 	switch (NetworkTelegramMessage.iTelegramNumber)
-	{
-		//Authentication Successfull
-	case 200:
+	{		
+	case 200: //Authentication Successfull
+		//Overwrites the Computer ID with the session id from the server
 		Data_Manager::SetLocalHardwareSID(NetworkTelegramMessage.lParameters[0]);
+		break;		
+	case 201: //Authentication Unsuccessfull
+		//Writes the problem as a exception
+		Exception_Manager::HandleProtegaStandardError(atoi(NetworkTelegramMessage.lParameters[0].c_str()),
+			NetworkTelegramMessage.lParameters[1].c_str());
 		break;
-		//Authentication Unsuccessfull
-	case 201:
+	case 300: //Ping without message
+		//Nothing happens here. The ping must not fail, that is the only condition. If the ping failes, there
+		//is a error message in Network_Manager::SendAndGet anyway.
+		break;
+	case 301: //Ping with message
 
+		break;
 	default:
 		break;
 	}
@@ -147,7 +156,7 @@ void ProtegaCore::Update()
 	do
 	{
 		//Ping to server. Check answer.
-
+		NetworkManager->Ping_600(Data_Manager::GetLocalHardwareSID());
 		ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
 		Sleep(1000);
 	} while (true);

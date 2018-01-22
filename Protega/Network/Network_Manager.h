@@ -43,11 +43,13 @@ public:
 	Network_Manager(std::string sIP, std::string iPort, const char* sProtocolDelimiter, const char* sDataDelimiter, int iMaxRetries, int iNetworkErrorCode, 
 		std::function<void(NetworkTelegram Telegram)> funcCallbackHandler);
 	~Network_Manager();
+	//Protocols C2S
 	bool TestMessage_001();
 	void Authentication_500(std::string sHardwareID, std::string sVersion, std::string sComputerArchitecture, std::string sLanguage);
-	bool Ping_600(std::string sSessionID);
+	void Ping_600(std::string sSessionID);
 
 	//Getter
 	bool GetAuthentificationSuccessStatus();
+	bool GetPingSuccessStatus();
 };
 

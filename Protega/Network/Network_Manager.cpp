@@ -33,23 +33,38 @@ void Network_Manager::Authentication_500(std::string sHardwareID, std::string sV
 	iAuthenticationTries = 0;
 	bAuthenticationSuccess = false;
 
+	//Build protocol
 	std::stringstream ss;
 	ss << iAuthenticationProtocolID << sDataDelimiter << sHardwareID << sDataDelimiter << sVersion 
 		<< sDataDelimiter << sComputerArchitecture << sDataDelimiter << sLanguage;
 	
+	//Call SendAndGet threaded with parameters
 	std::thread th(&Network_Manager::SendAndGet, this, &bPingSuccess, &iAuthenticationTries, ss.str().c_str());
 	th.join();
 }
 
-bool Network_Manager::Ping_600(std::string sSessionID)
+void Network_Manager::Ping_600(std::string sSessionID)
 {
-	return bAuthenticationSuccess;
+	iPingTries = 0;
+	bPingSuccess = false;
+
+	//Build protocol
+	std::stringstream ss;
+	ss << iPingProtocolID;
+
+	std::thread th(&Network_Manager::SendAndGet, this, &bPingSuccess, &iPingTries, ss.str().c_str());
+	th.join();
 }
 
 //Getter
 bool Network_Manager::GetAuthentificationSuccessStatus()
 {
-	return false;
+	return bAuthenticationSuccess;
+}
+
+bool Network_Manager::GetPingSuccessStatus()
+{
+	return bPingSuccess;
 }
 
 
@@ -80,6 +95,7 @@ bool Network_Manager::SendAndGet(bool * bActualProtocolSuccessVar, int * iActual
 		if (iActualTries <= iMaxRetries)
 		{
 			SendAndGet(bActualProtocolSuccessVar, iActualProtocolTryVar, sMessage);
+			return false;
 		}
 		else
 		{
