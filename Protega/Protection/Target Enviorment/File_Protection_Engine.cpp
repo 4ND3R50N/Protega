@@ -14,7 +14,7 @@ File_Protection_Engine::File_Protection_Engine(int iTargetApplicationId,
 //Public
 int File_Protection_Engine::DetectLocalFileChange()
 {
-	for (int i = 0; i < pFileAndMd5.first.size(); i++)
+	for (unsigned int i = 0; i < pFileAndMd5.first.size(); i++)
 	{
 		std::string sActualMd5 = CryptoPP_Converter::GetMD5ofFile(pFileAndMd5.first[i].c_str());
 
@@ -46,7 +46,7 @@ int File_Protection_Engine::DetectInjection()
 
 	if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
 	{
-		for (int i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
+		for (unsigned int i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
 		{
 			TCHAR szModName[MAX_PATH];
 			// Get the full path to the module's file.

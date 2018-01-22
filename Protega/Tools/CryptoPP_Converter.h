@@ -1,10 +1,13 @@
 #pragma once
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
 #include <iostream>
 #include "osrng.h"
 #include "modes.h"
 #include "md5.h"
 #include "files.h"
 #include "hex.h"
+
+
 
 class CryptoPP_Converter
 {

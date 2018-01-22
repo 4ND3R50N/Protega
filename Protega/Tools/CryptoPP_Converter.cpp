@@ -2,6 +2,7 @@
 #include "CryptoPP_Converter.h"
 
 
+
 std::string CryptoPP_Converter::AESEncrypt(const char * sKey, const char * sIV, std::string sData)
 {
 	std::string ciphertext;

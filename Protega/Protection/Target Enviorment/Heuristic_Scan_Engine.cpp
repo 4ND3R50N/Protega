@@ -134,7 +134,7 @@ bool Heuristic_Scan_Engine::DetectBlacklistedProcessMd5Hash()
 				sMD5Hash = GetMD5Hash(bstrFilePath);
 				boost::to_upper(sMD5Hash);
 			}
-			catch (const std::exception& e)
+			catch (const std::exception&)
 			{
 				continue;
 			}

@@ -105,7 +105,7 @@ std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::Conv
 		boost::split(vFileNames, vDataParts[1].substr(0, sData.length() - 2), boost::is_any_of(LOCAL_DATA_DELIMITER));
 
 		int iMd5HashlistCounter = 0;
-		for (int i = 1; i <= vFileNames.size(); i++)
+		for (unsigned int i = 1; i <= vFileNames.size(); i++)
 		{
 			vMd5Hashes.push_back(vFileNames[i]);
 			vFileNames.erase(std::remove(vFileNames.begin(), vFileNames.end(), vFileNames[i]), vFileNames.end());
