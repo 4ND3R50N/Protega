@@ -12,7 +12,7 @@ This is a c++ dll which prevents other programms to manipulate the target proces
     - A watchdog dll also check the thread of the antihack dll. 
     - Heartbeat System (Client to server). The server kicks the user, if the client stops pinging.
     
-### Hack Detection - Heursitic Scans:
+### Hack Detection - Heuristic Scans:
       - Blacklisted process names
       - Blacklisted MD5 Hashes
 ### Hack Detection - File Protection
@@ -32,3 +32,21 @@ This is a c++ dll which prevents other programms to manipulate the target proces
       - No Skill cooldown
       Other sorts of hacks follow soon...
  ## Server
+ 
+ ## Network
+ - TCP Based
+ - AES-128 Encrypted network stream
+
+# Future Updates - 1.X:
+## Client
+### Heuristic Scans:
+- Blacklisted class names
+
+### Hack Detection - Virtual Memory Protection:
+Fixes for the following hacks:
+- No stun
+- No BM/Aura cooldown
+- Kill gate
+- No entry
+
+## Server
