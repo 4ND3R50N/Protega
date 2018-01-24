@@ -51,12 +51,12 @@ void ProtegaCore::StartAntihack()
 	
 #pragma region Authenticate to server
 	//Collect necessary data (Hardware ID)
-	NetworkManager->Authentication_500(Data_Manager::GenerateComputerID(), Data_Manager::GetSoftwareVersion(),
+	/*NetworkManager->Authentication_500(Data_Manager::GenerateComputerID(), Data_Manager::GetSoftwareVersion(),
 		Data_Manager::GetSoftwareArchitecture(), Data_Manager::GetSoftwareLanguage());
 	do
 	{
 		Sleep(1000);
-	} while (!NetworkManager->GetAuthentificationSuccessStatus());
+	} while (!NetworkManager->GetAuthentificationSuccessStatus());*/
 
 #pragma endregion
 
@@ -156,7 +156,7 @@ void ProtegaCore::Update()
 	do
 	{
 		//Ping to server. Check answer.
-		NetworkManager->Ping_600(Data_Manager::GetLocalHardwareSID());
+		//NetworkManager->Ping_600(Data_Manager::GetLocalHardwareSID());
 		ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
 		Sleep(1000);
 	} while (true);
