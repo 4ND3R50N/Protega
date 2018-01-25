@@ -70,8 +70,4 @@ namespace Support
 
         
     }
-    public enum LogLevel
-    {
-        LOW, MEDIUM, CRITICAL
-    }
 }
