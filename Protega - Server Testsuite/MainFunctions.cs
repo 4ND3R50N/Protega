@@ -21,36 +21,55 @@ namespace Protega___Server_Testsuite
             Client.User.ID = "1234";
             Client.User.Application.ID = 1;
             Core.ActiveConnections.Add(Client);
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
         }
 
         [TestMethod]
         public void DatabaseConnection()
         {
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
+            CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test Database connection started!");
             Assert.AreEqual(CCstData.GetInstanceByName("Test").DatabaseEngine.testDBConnection(), true);
+            CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test Database connection finished!");
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
         }
 
         [TestMethod]
         public void Authentification()
         {
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
+            CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test Authentification started!");
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
             Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;12312315;{0};Windoofs 7;Deutsch;1",Core.Application.Hash)), true);
+            CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test Authentification finished!");
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
         }
 
         [TestMethod]
         public void HackDetectionHeuristic()
         {
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
+            CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test HackDetection Heuristic started!");
             Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(Client, "701;123;Process;Window;Class;MD5"), true);
+            CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test HackDetection nHeuristic finished!");
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
         }
 
         [TestMethod]
         public void HackDetectionVirtual()
         {
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
+            CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test HackDetection Virtual started!");
             Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(Client, "702;123;Base;OfS;DetectedV;DefaultV"), true);
+            CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test HackDetection Virtual finished!");
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
         }
 
         [TestMethod]
         public void AuthHackError()
         {
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
+            CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test AuthHackError started!");
             Random Ran = new Random();
             string HardwareID = Ran.Next(1, 50000).ToString();
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
@@ -72,21 +91,24 @@ namespace Protega___Server_Testsuite
             Test = Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID));
             Test = Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID));
             Core.ActiveConnections.Remove(dummy);
-            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;{0};Test;Windoofs 7;Deutsch;1", HardwareID)), false);
+            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;{0};{1};Windoofs 7;Deutsch;1", HardwareID, Core.Application.Hash)), false);
 
-
+            CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test AuthHackError finished!");
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
         }
 
-        [TestMethod]
-        public void Registration()
-        {
-            System.Threading.Thread.Sleep(5000);
-            Assert.AreEqual(true, true);
-        }
+        //[TestMethod]
+        //public void Registration()
+        //{
+        //    System.Threading.Thread.Sleep(5000);
+        //    Assert.AreEqual(true, true);
+        //}
 
         [TestMethod]
         public void InstanceManagement()
         {
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
+            CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test Instance Management started!");
             string HardwareID = "12312315";
 
             ControllerCore Core2 = new ControllerCore("Test2", 10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()),3);
@@ -115,7 +137,9 @@ namespace Protega___Server_Testsuite
 
             //Ping to Core 2
             Assert.AreEqual(Core2.ProtocolController.ReceivedProtocol(new networkServer.networkClientInterface(), String.Format("600;{0}", SessionID)), true);
-            
+
+            CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test Instance Management finished!");
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
         }
     }
 }
