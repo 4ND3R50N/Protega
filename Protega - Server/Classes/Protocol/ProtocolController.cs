@@ -47,7 +47,7 @@ namespace Protega___Server.Classes.Protocol
                 case 702:
                     return HackDetection_VirtualMemory(protocol); 
                 default:
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "Received unvalid protocol");
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, "Received invalid protocol: " + protocolString);
                     return false; 
             }
             
@@ -90,12 +90,12 @@ namespace Protega___Server.Classes.Protocol
 
         private bool AuthenticateUser( networkServer.networkClientInterface ClientInterface, Protocol prot)
         {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "Called method AuthenticateUser");
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, String.Format("Authenticating new user ({0})", prot.GetUserID()));
             ArrayList Objects = prot.GetValues();
             if(Objects.Count!=4)
             {
                 //Log error - protocol size not as expected
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "Unexpected size of protocol. Expected are 4 but it was "+Objects.Count);
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("Unexpected size of protocol. Expected are 4 but it was {0}. Protocol: {1}", Objects.Count, prot.GetOriginalString()));
                 return false;
             }
 
@@ -107,10 +107,10 @@ namespace Protega___Server.Classes.Protocol
             if (!Double.TryParse(Objects[3].ToString(), out version))
             {
                 //Log error - protocol index 3 is not as expected
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "Double expected but received " + Objects[3].ToString());
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, "Double expected but received " + Objects[3].ToString());
                 return false;
             }
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, String.Format("Authentification protocol correct. ApplicationHash={0}, Architecture={1}, Language={2}, Version={3}", ApplicationHash, architecture, language, version));
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, String.Format("Authentification protocol correct. ApplicationHash={0}, Architecture={1}, Language={2}, Version={3}", ApplicationHash, architecture, language, version));
 
             //Check if user exists and add it to the list
             return AddUserToActiveConnections(ClientInterface, ApplicationHash, prot.GetUserID(), architecture, language, version);
@@ -121,7 +121,7 @@ namespace Protega___Server.Classes.Protocol
             if (!CCstData.InstanceExists(ApplicationHash))
             {
                 //Instance does not exist. The player must have manipulated the protocol!
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "Invalid application hash received in authentification protocol!");
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("Invalid application hash received in authentification protocol! ComputerID: {0}, ApplicationHash: {1}", ComputerID, ApplicationHash));
                 return false;
             }
 
@@ -136,7 +136,8 @@ namespace Protega___Server.Classes.Protocol
                     //Kick User?
                     // QUESTION: Why are we using this logger??????????????????????????????????????????????????????????????????????????????????
                     // QUESTION: Is this one already an error or just a warning????????????????????????????????????????????????????????????????
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, "Authentification: User is already added to list!");
+                    //Answer: This can only happen if someone tries to log in with multiple accounts. It's not critical but could be logged (that's why it's only lv 2)
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, "Authentification: User is already added to list!");
                     return false;
                 }
             }
@@ -145,7 +146,7 @@ namespace Protega___Server.Classes.Protocol
             if (dataClient == null)
             {
                 //If a computer ID exists multiple times in the database, a null object is returned
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "Authentification: Hardware ID exists multiple times in the database");
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, "Authentification: Hardware ID exists multiple times in the database");
                 SendProtocol("201;Contact Admin", ClientInterface);
                 return false;
             }
@@ -155,7 +156,8 @@ namespace Protega___Server.Classes.Protocol
             {
                 //Do something and dont let him enter
                 // QUESTION: Is this one already an error or just a warning????????????????????????????????????????????????????????????????
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, String.Format("Authentification: Banned user tried to authentificate. User: {0}", dataClient.ID));
+                //Just an Info
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, String.Format("Authentification: Banned user tried to authentificate. User: {0}", dataClient.ID));
                 //Send protocol to client that user is banned
                 //SendProtocol("201;Too many hacks", ClientInterface);
                 return false;
@@ -165,7 +167,7 @@ namespace Protega___Server.Classes.Protocol
             ClientInterface.User = dataClient;
 
             //Generate unique Session ID for network communication
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "Authentification: Start creating a unique session ID");
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Authentification: Start creating a unique session ID");
             while (true)
             {
                 string SessionID = AdditionalFunctions.GenerateSessionID(CCstData.GetInstance(ApplicationHash).SessionIDLength);
@@ -173,7 +175,7 @@ namespace Protega___Server.Classes.Protocol
                 if (ActiveConnections.Where(Client => Client.SessionID == SessionID).ToList().Count == 0)
                 {
                     ClientInterface.SessionID = SessionID;
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "Unique session ID created + " + SessionID);
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Unique session ID created + " + SessionID);
                     break;
                 }
             }
@@ -188,13 +190,13 @@ namespace Protega___Server.Classes.Protocol
 
         private bool CheckPing(Protocol prot)
         {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "Ping: Protocol received. User: " + prot.GetUserID());
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Ping: Protocol received. User: " + prot.GetUserID());
             networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
 
 
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "Ping: User found in the list.");
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Ping: User found in the list.");
                 //If additional infos are asked, what is needed is identified by an ID
                 /*
                  * Different logic is needed here. Admin is able to add additional information for user to a queue
@@ -220,7 +222,7 @@ namespace Protega___Server.Classes.Protocol
                 //If requested, additional infos will be sent
                 //SendProtocol(String.Format("{0}{1}", "300", AdditionalInfo), ClientInterface);
             }
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "Ping: User does not exist in the active connections");
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.ERROR, "Ping: User does not exist in the active connections");
             return false;
         }
 
@@ -228,16 +230,16 @@ namespace Protega___Server.Classes.Protocol
         #region Hack Detections
         private bool HackDetection_Heuristic(Protocol prot)
         {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "H-Detection received. User: "+ prot.GetUserID());
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "H-Detection received. User: "+ prot.GetUserID());
             networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "H-Detection: User found in the active connections");
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "H-Detection: User found in the active connections");
                 ArrayList Objects = prot.GetValues();
                 if(Objects.Count!=4)
                 {
                     //Log error - protocol size not as expected
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "H-Detection: Unexpected size of protocol. Expected are 4 but it was " + Objects.Count);
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("H-Detection: Unexpected size of protocol. Expected are 4 but it was {0}. Protocol: {1}", Objects.Count, prot.GetOriginalString()));
 
                     return false;
                 }
@@ -247,24 +249,24 @@ namespace Protega___Server.Classes.Protocol
                 string ClassName = Convert.ToString(Objects[2]);
                 string MD5Value = Convert.ToString(Objects[3]);
 
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "H-Detection: Saved protocol values: ProcessName: " + ProcessName + ", WindowName: " + WindowName + ", ClassName: " + ClassName + ", MD5Value: " + MD5Value);
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "H-Detection: Saved protocol values: ProcessName: " + ProcessName + ", WindowName: " + WindowName + ", ClassName: " + ClassName + ", MD5Value: " + MD5Value);
 
                 if (!SHackHeuristic.Insert(ClientInterface.User.ID, ClientInterface.User.Application.ID, ProcessName, WindowName, ClassName, MD5Value))
                 {
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, "H-Detection: Insertion in database failed!");
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("H-Detection: Insertion in database failed! Protocol: {0}", prot.GetOriginalString()));
                     return false;
                     //Log error - Hack insertion did not work
                 }
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "H-Detection: Database interaction successful");
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "H-Detection: Database interaction successful");
                 return true;
             }
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, "H-Detection: User not found in active connections!");
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, "H-Detection: User not found in active connections!");
             return false;
         }
 
         private bool HackDetection_VirtualMemory(Protocol prot)
         {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "V-Detection received. User: "+prot.GetUserID());
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "V-Detection received. User: "+prot.GetUserID());
             networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
@@ -272,7 +274,7 @@ namespace Protega___Server.Classes.Protocol
                 if (Objects.Count != 4)
                 {
                     //Log error - protocol size not as expected
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, "V-Detection: Unexpected size of protocol. Expected are 4 but it was " + Objects.Count);
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("V-Detection: Unexpected size of protocol. Expected are 4 but it was {0}. Protocol: {1}", Objects.Count, prot.GetOriginalString()));
 
                     return false;
                 }
@@ -282,18 +284,18 @@ namespace Protega___Server.Classes.Protocol
                 string DetectedValue = Convert.ToString(Objects[2]);
                 string DefaultValue = Convert.ToString(Objects[3]);
 
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "V-Detection: Saved protocol successfully. Values: BaseAddress: " + BaseAddress + ", Offset: " + Offset + ", DetectedValue: " + DetectedValue + ", DefaultValue: " + DefaultValue);
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "V-Detection: Saved protocol successfully. Values: BaseAddress: " + BaseAddress + ", Offset: " + Offset + ", DetectedValue: " + DetectedValue + ", DefaultValue: " + DefaultValue);
 
                 if (!SHackVirtual.Insert(ClientInterface.User.ID, ClientInterface.User.Application.ID, BaseAddress, Offset, DetectedValue, DefaultValue))
                 {
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, "V-Detection: Insertion in database failed!");
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("V-Detection: Insertion in database failed! Protocol: {0}", prot.GetOriginalString()));
                     return false;
                     //Log error - Hack insertion did not work
                 }
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, "V-Detection: Database interaction successful");
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "V-Detection: Database interaction successful");
                 return true;
             }
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, "V-Detection: User not found in active connections!");
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, "V-Detection: User not found in active connections!");
             return false;
         }
         #endregion

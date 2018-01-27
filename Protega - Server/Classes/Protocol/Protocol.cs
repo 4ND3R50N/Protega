@@ -8,10 +8,12 @@ namespace Protega___Server.Classes.Protocol
     {
         public int key;
         public string UserID;
+        private string ReceivedString;
         private ArrayList values = new ArrayList();
         
         public Protocol(String protocol)
-        {;
+        {
+            ReceivedString = protocol;
             Object[] elements = null;
             // split the protocol at the delimiter ; to get the parts of the protocol
             if (protocol.Contains(";"))
@@ -40,6 +42,10 @@ namespace Protega___Server.Classes.Protocol
         public string GetUserID()
         {
             return UserID;
+        }
+        public string GetOriginalString()
+        {
+            return ReceivedString != null ? ReceivedString : "";
         }
         public ArrayList GetValues()
         {
