@@ -14,7 +14,7 @@ namespace Protega___Server.Classes.Core
     {
 
         //Variablen
-        networkServer TcpServer;
+        public networkServer TcpServer;
         public List<networkServer.networkClientInterface> ActiveConnections;
         public ProtocolController ProtocolController;
         

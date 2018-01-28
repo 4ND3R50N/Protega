@@ -5,6 +5,8 @@ using Protega___Server;
 using Protega___Server.Classes;
 using Protega___Server.Classes.Protocol;
 using Protega___Server.Classes.Core;
+using System.Net.Sockets;
+using System.Net;
 
 namespace Protega___Server_Testsuite
 {
@@ -97,12 +99,17 @@ namespace Protega___Server_Testsuite
             CCstData.GetInstance(Core.Application).Logger.Seperate();
         }
 
-        //[TestMethod]
-        //public void Registration()
-        //{
-        //    System.Threading.Thread.Sleep(5000);
-        //    Assert.AreEqual(true, true);
-        //}
+        [TestMethod]
+        public void SendMessage()
+        {
+            networkServer.networkClientInterface dummy = new networkServer.networkClientInterface()
+            //Core.TcpServer.sendMessage("Test", Client);
+        }
+
+        void SendMessage(string network_AKey, IPAddress ip, short port, AddressFamily familyType, SocketType socketType, ProtocolType protocolType)
+        {
+
+        }
 
         [TestMethod]
         public void InstanceManagement()
