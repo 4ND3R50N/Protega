@@ -79,8 +79,7 @@ namespace Protega___Server
         {
             networkClientInterface connection = new networkClientInterface((Socket)result.AsyncState, result);
             try
-            { 
-               
+            {
                 // Start Receive
                 connection.networkSocket.BeginReceive(connection.buffer, 0,
                     connection.buffer.Length, SocketFlags.None,
@@ -196,7 +195,9 @@ namespace Protega___Server
 
             public networkClientInterface(Socket connection, IAsyncResult result)
             {
+                AddressFamily test= connection.AddressFamily;
                 networkSocket = connection.EndAccept(result);
+                
                 networkSocket.Blocking = false;
                 buffer = new byte[1024];
 
