@@ -139,13 +139,22 @@ namespace Protega___Server.Classes.Core
         public void NetworkProtocol(networkServer.networkClientInterface NetworkClient, string message)
         {
             //Public for the Unit Tests
+            CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, "Protocol received: " + message);
             try
             {
-                message = message.TrimEnd('\0');
+                //Öañ4\u001b3[\b\nÎbÞö}\u0010VDYZ‚\u009d\u0005sQ˜e@p•\u001e\ab{ó¥Ÿ›¨YÉ`\\wõˆ¹éî\0
+                if (message[message.Length-1]=='\0')
+                {
+                    message = message.Substring(0, message.Length - 1);
+                }
                 //Decrypt received protocol
 
                 List<char> Chars = message.ToList();
                 message = AES_Converter.DecryptFromCBC(CCstData.GetInstance(Application).EncryptionKey, CCstData.GetInstance(Application).EncryptionIV, message);
+                if (message[message.Length - 1] == '\0')
+                {
+                    message = message.Substring(0, message.Length - 1);
+                }
             }
             catch (Exception e)
             {
@@ -154,63 +163,19 @@ namespace Protega___Server.Classes.Core
                 return;
             }
 
-            CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, "Protocol received: " + message);
+            CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, "Protocol received decrypted: " + message);
             ProtocolController.ReceivedProtocol(NetworkClient, message);
         }
 
-        
-        //void AddUserToActiveConnections(string ComputerID, Boolean architecture, String language, double version, Boolean auth)
-        //{
-
-        //    networkServer.networkClientInterface Client = new networkServer.networkClientInterface();
-        //    Client.User.ID = ComputerID;
-
-        //    if(ActiveConnections.Contains(Client))
-        //    {
-        //        //User is already registered
-        //        //Kick User?
-        //        CCstLogging.Logger.writeInLog(true, "User is already added to list!");
-        //        return;
-        //    }
-        //    else
-        //    {
-        //        //Client.User.
-        //    }
-
-
-
-
-        //    ActiveConnections.Add(Client);
-        //}
-
-
         public void SendProtocol(string Protocol, networkServer.networkClientInterface ClientInterface)
         {
-            //List<networkServer.networkClientInterface> Clients = ActiveConnections.Where(asd => asd.User.ID == computerID).ToList();
-            //if (Clients.Count == 1)
-            //{
             //encrypt protocol
-            Protocol = AES_Converter.EncryptWithCBC(CCstData.GetInstance(Application).EncryptionKey, CCstData.GetInstance(Application).EncryptionIV, Protocol) + "~";
-                //TcpServer.sendMessage(Protocol, Clients[0]);
-                if (ActiveConnections.Count>0)
-                    TcpServer.sendMessage(Protocol, ClientInterface);
-            //}
-            //else
-            //{
-            //    //Usually there cannot be 2 clients with the same Computer ID
-            //    CCstLogging.Logger.writeInLog(true, String.Format("SendProtocol - found Clients with same Computer ID: {0}, ID: {1}, Protocol: {2}", Clients.Count, computerID, Protocol));
-            //}
-                
+            string EncryptedProt = AES_Converter.EncryptWithCBC(CCstData.GetInstance(Application).EncryptionKey, CCstData.GetInstance(Application).EncryptionIV, Protocol) + "~";
+            CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, String.Format("Protocol encrypted: {0} ({1})", EncryptedProt, Protocol));
+
+            TcpServer.sendMessage(EncryptedProt, ClientInterface);
         }
         #endregion
-
-        //private void NetworkProtocol(string message)
-        //{
-        //    ProtocolController contr = new ProtocolController(this);
-
-        //    contr.RecievedProtocol(message);
-        //}
-
 
         #region Support functions
         //private List<string> GetProtocolData(string message)

@@ -14,11 +14,13 @@ namespace Protega___Server_Testsuite
     public class MainFunctions
     {
         networkServer.networkClientInterface Client = new networkServer.networkClientInterface();
+        
         ControllerCore Core;
 
        public MainFunctions()
         {
             Core = new ControllerCore("Test",10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()),3);
+            Client.User = new Protega___Server.Classes.Entity.EPlayer();
             Client.SessionID = "123";
             Client.User.ID = "1234";
             Client.User.Application.ID = 1;
@@ -102,7 +104,13 @@ namespace Protega___Server_Testsuite
         [TestMethod]
         public void SendMessage()
         {
-            networkServer.networkClientInterface dummy = new networkServer.networkClientInterface()
+            networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
+            string Test = "Test\0\0";
+            string Test2 = Test.TrimEnd('\0');
+            if (Test.EndsWith("\0"))
+            {
+                Test2 = Test.Substring(0, Test.Length - 1);
+            }
             //Core.TcpServer.sendMessage("Test", Client);
         }
 

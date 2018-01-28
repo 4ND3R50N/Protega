@@ -39,7 +39,7 @@ namespace Protega___Server.Classes.Protocol
             switch (protocol.GetKey())
             {
                 case 600:
-                    return CheckPing(protocol); 
+                    return CheckPing(NetworkClient, protocol); 
                 case 500:
                     return AuthenticateUser(NetworkClient, protocol); 
                 case 701:
@@ -59,7 +59,12 @@ namespace Protega___Server.Classes.Protocol
             //Checks if that connection exists already. Gives back the amount of matching ClientInterfaces
             List<networkServer.networkClientInterface> lList = ActiveConnections.Where(Client => Client.SessionID == SessionID).ToList();
             if (lList.Count == 1)
+            {
+                lList[0].networkSocket = ClientInterface.networkSocket;
                 ClientInterface = lList[0];
+            }
+            
+
             //if(lList.Count == 1)
             //{
             //    Logger.writeInLog(true, LoggingStatus.LOW, "Client Interface " +ClientInterface.SessionID+" exists in active connections");
@@ -100,11 +105,11 @@ namespace Protega___Server.Classes.Protocol
             }
 
             //Computer ID, Computer Architecture, Language, Version
-            string ApplicationHash = Objects[0].ToString();
-            string architecture = Objects[1].ToString();
-            string language = Objects[2].ToString();            
+            string ApplicationHash = Objects[1].ToString();
+            string architecture = Objects[2].ToString();
+            string language = Objects[3].ToString();            
             double version;
-            if (!Double.TryParse(Objects[3].ToString(), out version))
+            if (!Double.TryParse(Objects[0].ToString(), out version))
             {
                 //Log error - protocol index 3 is not as expected
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, "Double expected but received " + Objects[3].ToString());
@@ -125,6 +130,10 @@ namespace Protega___Server.Classes.Protocol
                 return false;
             }
 
+            //CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, "201 sent");
+            //SendProtocol("201;1;Es war einmal ein Engellein, fdg hatte keine Flügel mehr", ClientInterface);
+            ////SendProtocol("201;1;Contact Admin#!sG36&§$-ENDE", ClientInterface);
+            //return false;
 
             //Check if user is already connected
             foreach (networkServer.networkClientInterface item in ActiveConnections)
@@ -138,18 +147,21 @@ namespace Protega___Server.Classes.Protocol
                     // QUESTION: Is this one already an error or just a warning????????????????????????????????????????????????????????????????
                     //Answer: This can only happen if someone tries to log in with multiple accounts. It's not critical but could be logged (that's why it's only lv 2)
                     CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, "Authentification: User is already added to list!");
+                    SendProtocol("201;2;Contact Admin", ClientInterface);
                     return false;
                 }
             }
             
             EPlayer dataClient = SPlayer.Authenticate(ComputerID, ApplicationHash, architecture, language, "");
+            
             if (dataClient == null)
             {
                 //If a computer ID exists multiple times in the database, a null object is returned
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, "Authentification: Hardware ID exists multiple times in the database");
-                SendProtocol("201;Contact Admin", ClientInterface);
+                SendProtocol("201;3;Contact Admin", ClientInterface);
                 return false;
             }
+            dataClient.Application.Hash = ApplicationHash;
 
             //Check if user is banned
             if (dataClient.isBanned == true)
@@ -183,17 +195,20 @@ namespace Protega___Server.Classes.Protocol
             //Add the new connection to the list of connected connections
             ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer);
             ActiveConnections.Add(ClientInterface);
+
+            SendProtocol("200;" + ClientInterface.SessionID, ClientInterface);
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Protocol sent. Session ID + " + ClientInterface.SessionID);
             return true;
         }
 
         #endregion
 
-        private bool CheckPing(Protocol prot)
+        private bool CheckPing(networkServer.networkClientInterface Client, Protocol prot)
         {
+
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Ping: Protocol received. User: " + prot.GetUserID());
-            networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
-
-
+            networkServer.networkClientInterface ClientInterface = Client;
+            
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Ping: User found in the list.");
@@ -216,6 +231,14 @@ namespace Protega___Server.Classes.Protocol
 
                 //Reset the Ping timer
                 ClientInterface.ResetPingTimer();
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Ping resetted.");
+
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Additional Infos: "+AdditionalInfo);
+
+                if (AdditionalInfo.Length == 0)
+                    SendProtocol("300", ClientInterface);
+                else
+                    SendProtocol(String.Format("301;{0}",AdditionalInfo), ClientInterface);
 
                 return true;
                 //Send to the client that the Ping was successful

@@ -54,7 +54,7 @@ namespace Protega___Server.Classes.Data
         {
             SqlParameter[] arParams = new SqlParameter[5];
 
-            arParams[0] = new SqlParameter("@ComputerID", SqlDbType.Int);
+            arParams[0] = new SqlParameter("@ComputerID", SqlDbType.NVarChar,50);
             arParams[1] = new SqlParameter("@IP", SqlDbType.NVarChar, 50);
             arParams[2] = new SqlParameter("@Language", SqlDbType.NVarChar, 50);
             arParams[3] = new SqlParameter("@OperatingSystem", SqlDbType.NVarChar, 50);
