@@ -173,7 +173,6 @@ namespace Protega___Server
             public void SetPingTimer(int Interval)
             {
                 IP = (networkSocket.RemoteEndPoint as IPEndPoint).Address;
-                
 
                 tmrPing = new System.Timers.Timer();
                 tmrPing.Elapsed += TmrPing_Elapsed;
