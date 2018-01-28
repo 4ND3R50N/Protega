@@ -3,7 +3,7 @@
 
 #pragma region PROTES_STATIC_DATA_CONFIG
 
-std::string Data_Manager::SOFTWARE_VERSION = "1.0.0";
+int Data_Manager::SOFTWARE_VERSION = 100;
 
 //Web data
 
@@ -22,9 +22,9 @@ std::string Data_Manager::LOCAL_DATA_PROTECTION_TARGET = "CabalMain.exe";
 
 //Network data
 const char* Data_Manager::NETWORK_SERVER_IP = "62.138.6.50";
-const char* Data_Manager::NETWORK_SERVER_PORT = "13001";
+int Data_Manager::NETWORK_SERVER_PORT = 13010;
 int Data_Manager::NETWORK_MAX_SEND_RETRIES = 3;
-const char* Data_Manager::NETWORK_PROTOCOL_DELIMITER = "~";
+std::string Data_Manager::NETWORK_PROTOCOL_DELIMITER = "~";
 const char* Data_Manager::NETWORK_DATA_DELIMITER = ";";
 const char* Data_Manager::DATA_AES_KEY = "1234567890123456";
 const char* Data_Manager::DATA_AES_IV = "bbbbbbbbbbbbbbbb";
@@ -247,7 +247,7 @@ std::string Data_Manager::GetSoftwareLanguage()
 
 //Getter 
 
-std::string Data_Manager::GetSoftwareVersion()
+int Data_Manager::GetSoftwareVersion()
 {
 	return SOFTWARE_VERSION;
 }
@@ -262,7 +262,7 @@ const char * Data_Manager::GetNetworkServerIP()
 	return NETWORK_SERVER_IP;
 }
 
-const char * Data_Manager::GetNetworkServerPort()
+int Data_Manager::GetNetworkServerPort()
 {
 	return NETWORK_SERVER_PORT;
 }
@@ -272,7 +272,7 @@ int Data_Manager::GetNetworkMaxSendRetries()
 	return NETWORK_MAX_SEND_RETRIES;
 }
 
-const char * Data_Manager::GetProtocolDelimiter()
+std::string Data_Manager::GetProtocolDelimiter()
 {
 	return NETWORK_PROTOCOL_DELIMITER;
 }

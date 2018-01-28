@@ -24,7 +24,7 @@ private:
 	string m_SendBuffer;
 	boost::array<char, 128> m_ReceiveBuffer;
 	boost::system::error_code m_Error;
-	const char* sProtocolDelimiter;
+	std::string sProtocolDelimiter;
 
 	bool bEncryptedNetworking = false;
 	const char* sAesKey;
@@ -37,8 +37,8 @@ private:
 	void DoClose();
 	
 public:
-	Tcp_Connector(boost::asio::io_service & IO_Service, tcp::resolver::iterator EndPointIter, std::function<void(string sMessage)> funcCallbackHandler, const char * sProtocolDelimiter);
-	Tcp_Connector(boost::asio::io_service & IO_Service, tcp::resolver::iterator EndPointIter, std::function<void(string sMessage)> funcCallbackHandler, const char * sProtocolDelimiter,
+	Tcp_Connector(boost::asio::io_service & IO_Service, tcp::resolver::iterator EndPointIter, std::function<void(string sMessage)> funcCallbackHandler, std::string  sProtocolDelimiter);
+	Tcp_Connector(boost::asio::io_service & IO_Service, tcp::resolver::iterator EndPointIter, std::function<void(string sMessage)> funcCallbackHandler, std::string  sProtocolDelimiter,
 		const char* sAesKey, const char* sAesIV);
 	~Tcp_Connector();
 	bool Connect();

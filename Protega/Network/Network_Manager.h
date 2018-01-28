@@ -15,8 +15,8 @@ class Network_Manager
 private:
 	//Vars
 	string sIP;
-	string iPort;
-	const char* sProtocolDelimiter;
+	int iPort;
+	std::string sProtocolDelimiter;
 	const char* sDataDelimiter;
 	NetworkTelegram NetworkTelegramMessage;
 
@@ -36,16 +36,16 @@ private:
 	const int iPingProtocolID = 600;
 
 	//Functions
-	bool SendAndGet(bool * bActualProtocolSuccessVar, int * iActualProtocolTryVar, const char * sMessage);
+	bool SendAndGet(bool * bActualProtocolSuccessVar, int * iActualProtocolTryVar, std::string sMessage);
 	void OnReceiveConverter(string sMessage);
 	std::function<void(NetworkTelegram Telegram)> funcCallbackHandler;
 public:
-	Network_Manager(std::string sIP, std::string iPort, const char* sProtocolDelimiter, const char* sDataDelimiter, int iMaxRetries, int iNetworkErrorCode, 
+	Network_Manager(std::string sIP, int iPort, std::string sProtocolDelimiter, const char* sDataDelimiter, int iMaxRetries, int iNetworkErrorCode,
 		std::function<void(NetworkTelegram Telegram)> funcCallbackHandler);
 	~Network_Manager();
 	//Protocols C2S
 	bool TestMessage_001();
-	void Authentication_500(std::string sHardwareID, std::string sVersion, std::string sComputerArchitecture, std::string sLanguage);
+	void Authentication_500(std::string sHardwareID, int iVersion, std::string sComputerArchitecture, std::string sLanguage);
 	void Ping_600(std::string sSessionID);
 
 	//Getter

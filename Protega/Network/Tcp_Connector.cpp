@@ -2,7 +2,7 @@
 #include "Tcp_Connector.h"
 
 Tcp_Connector::Tcp_Connector(boost::asio::io_service & IO_Service, tcp::resolver::iterator EndPointIter,
-	std::function<void(string sMessage)> funcCallbackHandler, const char * sProtocolDelimiter) : m_IOService(IO_Service), m_Socket(IO_Service), m_SendBuffer("")
+	std::function<void(string sMessage)> funcCallbackHandler, std::string sProtocolDelimiter) : m_IOService(IO_Service), m_Socket(IO_Service), m_SendBuffer("")
 { 
 	EndPoint = *EndPointIter;
 	this->EndPointIter = EndPointIter;
@@ -11,7 +11,7 @@ Tcp_Connector::Tcp_Connector(boost::asio::io_service & IO_Service, tcp::resolver
 }
 
 Tcp_Connector::Tcp_Connector(boost::asio::io_service & IO_Service, tcp::resolver::iterator EndPointIter, 
-	std::function<void(string sMessage)> funcCallbackHandler, const char * sProtocolDelimiter, const char * sAesKey, const char * sAesIV) : m_IOService(IO_Service), m_Socket(IO_Service), m_SendBuffer("")
+	std::function<void(string sMessage)> funcCallbackHandler, std::string sProtocolDelimiter, const char * sAesKey, const char * sAesIV) : m_IOService(IO_Service), m_Socket(IO_Service), m_SendBuffer("")
 {
 	EndPoint = *EndPointIter;
 	this->EndPointIter = EndPointIter;
@@ -19,7 +19,7 @@ Tcp_Connector::Tcp_Connector(boost::asio::io_service & IO_Service, tcp::resolver
 	this->sProtocolDelimiter = sProtocolDelimiter;
 	this->sAesKey = sAesKey;
 	this->sAesIV = sAesIV; 
-	bEncryptedNetworking = true;
+	this->bEncryptedNetworking = true;
 }
 
 Tcp_Connector::~Tcp_Connector()
@@ -48,18 +48,27 @@ bool Tcp_Connector::SendAndReceive(string sMessage)
 	}
 	
 	m_Socket.send(boost::asio::buffer(m_SendBuffer.c_str(), m_SendBuffer.length() + 1));
+	char *cTmpJunk;
 	char *cJunk;
+
 	std::string sDecryptedMessage;
 	//INFO: This "for" runs the entire time
 	for (;;)
 	{
+		//NOTE: This block waits forever, if nothing gets send back
 		size_t len = m_Socket.read_some(boost::asio::buffer(m_ReceiveBuffer), m_Error);
 		
-		//INFO: Globallize the delimiter
-		cJunk = strstr(m_ReceiveBuffer.c_array(), sProtocolDelimiter);
+		cTmpJunk = strstr(m_ReceiveBuffer.c_array(), sProtocolDelimiter.c_str());
 
-		if (cJunk == NULL)
+		if (cTmpJunk == NULL)
 			return false; // Connection closed cleanly by peer.
+
+		while ((cTmpJunk = strstr(cTmpJunk, sProtocolDelimiter.c_str())) != NULL)
+		{
+			cJunk = cTmpJunk;
+			++cTmpJunk;
+		}			
+				
 		if (m_Error)
 			//INFO: Error must be called in the core class
 			throw boost::system::system_error(m_Error); // Some other error.

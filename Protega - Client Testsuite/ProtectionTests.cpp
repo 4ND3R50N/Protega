@@ -209,7 +209,7 @@ namespace ProtegaClientTestsuite
 			vBlackListMd5Values.push_back("B5865AAAFB570F68DCA4C6326587E939");
 
 			File_Protection_Engine* FP = new File_Protection_Engine(processId, std::bind(&ProtectionTests::FP_Callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
-				std::make_pair(vBlackListWindowNames, vBlackListMd5Values));
+				std::make_pair(vBlackListWindowNames, vBlackListMd5Values), 100);
 			
 			FP->DetectLocalFileChange();
 
@@ -222,7 +222,7 @@ namespace ProtegaClientTestsuite
 			vBlackListMd5Values.push_back("B5865AAAFB570F68DCA4C6326587E939");
 
 			File_Protection_Engine* FP = new File_Protection_Engine(processId, std::bind(&ProtectionTests::FP_Callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
-				std::make_pair(vBlackListWindowNames, vBlackListMd5Values));
+				std::make_pair(vBlackListWindowNames, vBlackListMd5Values), 100);
 
 			FP->DetectInjection();
 		}

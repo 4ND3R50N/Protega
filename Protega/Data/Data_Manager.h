@@ -13,7 +13,7 @@ private:
 	//Constructor
 	Data_Manager(){}
 	//Static Data Storage Vars
-	static std::string SOFTWARE_VERSION;
+	static int SOFTWARE_VERSION;
 	static char* TARGET_ENVIORMENT_DATA_URL;
 	static char* TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME;
 	static char* TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME;
@@ -27,9 +27,9 @@ private:
 	static std::string LOCAL_DATA_PROTECTION_TARGET;
 
 	static const char* NETWORK_SERVER_IP;
-	static const char* NETWORK_SERVER_PORT;
+	static int NETWORK_SERVER_PORT;
 	static int NETWORK_MAX_SEND_RETRIES;
-	static const char* NETWORK_PROTOCOL_DELIMITER;
+	static std::string NETWORK_PROTOCOL_DELIMITER;
 	static const char* NETWORK_DATA_DELIMITER;
 
 	//INFO: Currently we have only 1 pair of AES values. We need 2 for Data and network later!
@@ -69,12 +69,12 @@ public:
 
 	//Getter
 
-	static std::string GetSoftwareVersion();
+	static int GetSoftwareVersion();
 	static std::string GetTargetEnviormentDataUrl();
 	static const char* GetNetworkServerIP();
-	static const char* GetNetworkServerPort();
+	static int GetNetworkServerPort();
 	static int GetNetworkMaxSendRetries();
-	static const char* GetProtocolDelimiter();
+	static std::string GetProtocolDelimiter();
 	static const char* GetDataDelimiter();
 	static const char* GetNetworkAesKey();
 	static const char* GetNetworkAesIV();
