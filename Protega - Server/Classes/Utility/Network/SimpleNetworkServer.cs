@@ -25,7 +25,6 @@ namespace Protega___Server
         private IPEndPoint serverEndPoint;
         private Socket serverSocket;
         private event protocolFunction protAnalyseFunction;
-        public event _AuthenticateClient AuthenticateClient;
 
         private string network_AKey;
 
@@ -45,7 +44,6 @@ namespace Protega___Server
             serverEndPoint = new IPEndPoint(IPAddress.Any, port);
             serverSocket = new Socket(familyType, socketType, protocolType);
             serverSocket.Blocking = false;
-            this.AuthenticateClient = AuthenticateClient;
         }
 
 
@@ -105,7 +103,6 @@ namespace Protega___Server
 
         private void ReceiveCallback(IAsyncResult result)
         {
-            //Classes.CCstLogging.Logger.writeInLog(true, "Callback received!");
             networkClientInterface connection = (networkClientInterface)result.AsyncState;
             try
             {
@@ -137,11 +134,12 @@ namespace Protega___Server
                 byte[] bytes = Encoding.Default.GetBytes(message);
                 client.networkSocket.Send(bytes, bytes.Length,
                                 SocketFlags.None);
-                
+                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, String.Format("Protocol sent. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 closeConnection(client);
+                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.ERROR, String.Format("Protocol sending failed. Protocol: {0}, Session: {1}, HardwareID: {2}. Error {3}", message, client.SessionID, client.User.ID, e.Message));
             }
         }
 
@@ -165,18 +163,21 @@ namespace Protega___Server
             public Classes.Entity.EPlayer User;
             public string SessionID;
             public DateTime ConnectedTime;
+            public IPAddress IP;
 
             System.Timers.Timer tmrPing;
             
             public networkClientInterface()
             {
-                tmrPing = new System.Timers.Timer();
-                tmrPing.Elapsed += TmrPing_Elapsed;
-                User = new Classes.Entity.EPlayer();
-                ConnectedTime = DateTime.Now;
             }
             public void SetPingTimer(int Interval)
             {
+                IP = (networkSocket.RemoteEndPoint as IPEndPoint).Address;
+                
+
+                tmrPing = new System.Timers.Timer();
+                tmrPing.Elapsed += TmrPing_Elapsed;
+                ConnectedTime = DateTime.Now;
                 tmrPing.Interval = Interval;
                 tmrPing.Start();
             }
@@ -184,6 +185,7 @@ namespace Protega___Server
             private void TmrPing_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
             {
                 //Kick - Timer elapsed
+
                 string Test = "";
             }
 
@@ -200,11 +202,7 @@ namespace Protega___Server
                 
                 networkSocket.Blocking = false;
                 buffer = new byte[1024];
-
             }
-           
         }
-
-
     }
 }

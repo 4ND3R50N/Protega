@@ -21,6 +21,7 @@ namespace Support
 
         public void writeInLog(int Importance, LogCategory Category, string Message)
         {
+            //1=Important, 2=Medium, 3=Debug Infos
             if (Importance > LogLevel)
                 return;
             
@@ -28,8 +29,6 @@ namespace Support
                      
             conOut(OutMessage);
             logFile(OutMessage);
-            //if (Importance >= 3)
-            //    LogDatabase(BasicInformation, DetailledInformation);
         }
 
         private void conOut(string Message)

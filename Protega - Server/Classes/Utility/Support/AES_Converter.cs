@@ -81,7 +81,7 @@ namespace Protega___Server.Classes
                         {
                             // Read the decrypted bytes from the decrypting stream
                             // and place them in a string.
-                            plaintext = srDecrypt.ReadToEnd().Replace("\0", "");
+                            plaintext = srDecrypt.ReadToEnd();
                         }
                     }
                 }
