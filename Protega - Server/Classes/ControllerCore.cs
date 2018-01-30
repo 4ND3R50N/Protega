@@ -75,7 +75,7 @@ namespace Protega___Server.Classes.Core
 
             //Block Linux Ports
 
-            SshClient unixSshConnectorAccept = new SshClient("62.138.6.50", 2223, "root", "xCodeZer0");
+            SshClient unixSshConnectorAccept = new SshClient("167.88.15.106", 2223, "root", "Wn51b453gpEdZTB5Bl");
             unixSshConnectorAccept.Connect();
             if(!unixSshConnectorAccept.IsConnected)
             {

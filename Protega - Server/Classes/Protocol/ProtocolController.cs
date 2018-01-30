@@ -188,7 +188,7 @@ namespace Protega___Server.Classes.Protocol
             }
 
             //Add the new connection to the list of connected connections
-            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, "62.138.6.50", "root", "xCodeZer0", 2223);
+            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, "167.88.15.106", "root", "Wn51b453gpEdZTB5Bl", 2223);
             ClientInterface.unixSshConnectorAccept.Connect();
             if(ClientInterface.unixSshConnectorAccept.IsConnected)
             {
