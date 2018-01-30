@@ -7,12 +7,12 @@ using Support;
 using System.Net;
 using System.Net.Sockets;
 using Protega___Server.Classes.Protocol;
+using Renci.SshNet;
 
 namespace Protega___Server.Classes.Core
 {
     public class ControllerCore
     {
-
         //Variablen
         public networkServer TcpServer;
         public List<networkServer.networkClientInterface> ActiveConnections;
@@ -72,9 +72,52 @@ namespace Protega___Server.Classes.Core
                 Logger.writeInLog(1, LogCategory.ERROR, "Instance could not be created!");
                 return;
             }
+
+            //Block Linux Ports
+
+            SshClient unixSshConnectorAccept = new SshClient("62.138.6.50", 2223, "root", "xCodeZer0");
+            unixSshConnectorAccept.Connect();
+            if(!unixSshConnectorAccept.IsConnected)
+            {
+                Logger.writeInLog(1, LogCategory.ERROR, "Cannot connect to Linux Server");
+                return;
+            }
+
+
+            unixSshConnectorAccept.RunCommand("sudo service iptables stop");
+            //Clear IPTables
+            unixSshConnectorAccept.RunCommand("sudo iptables -F");
+            unixSshConnectorAccept.RunCommand("sudo iptables -Z");
+            unixSshConnectorAccept.RunCommand("sudo iptables -X");
+            //unixSshConnectorAccept.RunCommand("iptables -F FORWARD");
+
+            //unixSshConnectorAccept.RunCommand("iptables -F OUTPUT");
+
+
+
+
+            //Block World-Ports
+            List<string> Ports = new List<string>();
+            Ports.Add("sudo 12001");
+            Ports.Add("sudo 12002");
+            Ports.Add("sudo 12003");
+            //Ports.Add("entextnetwk");
             
-            //Network Initialisations
-            ActiveConnections = new List<networkServer.networkClientInterface>();
+            foreach (string item in Ports)
+            {
+                //Bestimmte Ports blocken
+                //unixSshConnectorAccept.RunCommand("sudo iptables -I INPUT -p tcp --dport " + item + " -j DROP");
+                unixSshConnectorAccept.RunCommand("sudo iptables -A INPUT -p tcp --destination-port " + item + " -j DROP");
+            }
+
+            unixSshConnectorAccept.RunCommand("sudo service iptables save");
+            unixSshConnectorAccept.RunCommand("sudo service iptables start");
+
+            unixSshConnectorAccept.Disconnect();
+
+
+                //Network Initialisations
+                ActiveConnections = new List<networkServer.networkClientInterface>();
             sAesKey = _sAesKey;
             this.cProtocolDelimiter = _cProtocolDelimiter;
             this.cDataDelimiter = _cDataDelimiter;
