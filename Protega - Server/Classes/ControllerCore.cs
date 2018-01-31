@@ -75,47 +75,72 @@ namespace Protega___Server.Classes.Core
 
             //Block Linux Ports
 
-            SshClient unixSshConnectorAccept = new SshClient("167.88.15.106", 2223, "root", "Wn51b453gpEdZTB5Bl");
+            SshClient unixSshConnectorAccept = new SshClient("167.88.15.106", 22, "root", "Wn51b453gpEdZTB5Bl");
             unixSshConnectorAccept.Connect();
             if(!unixSshConnectorAccept.IsConnected)
             {
                 Logger.writeInLog(1, LogCategory.ERROR, "Cannot connect to Linux Server");
                 return;
             }
+            string PuttyStringBuilder = "";
+            PuttyStringBuilder += " service iptables stop";
+            PuttyStringBuilder += " && iptables -F";
+            PuttyStringBuilder += " && iptables -Z";
+            PuttyStringBuilder += " && iptables -X";
+            PuttyStringBuilder += " && iptables -A INPUT -p tcp --destination-port 80 -j DROP";
+            PuttyStringBuilder += " && iptables -I INPUT -p all -s 112.211.180.233 -j ACCEPT";
+            PuttyStringBuilder += " && iptables -I INPUT -p all -s 62.138.6.50 -j ACCEPT";
+            PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.104 -j ACCEPT";
+            PuttyStringBuilder += " && iptables -I INPUT -p all -s 142.44.136.74 -j ACCEPT";
+            PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.234 -j ACCEPT";
+            PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.206 -j ACCEPT";
+            PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.102 -j ACCEPT";
+            PuttyStringBuilder += " && service iptables save";
+            PuttyStringBuilder += " && service iptables start";
+
+            SshCommand testing = unixSshConnectorAccept.RunCommand(PuttyStringBuilder);
+            string Result1 = testing.Result;
+            string Err = testing.Error;
+            //SshCommand test = unixSshConnectorAccept.RunCommand("service iptables stop");
+            
+            //SshCommand Test4 = unixSshConnectorAccept.RunCommand("cd ../etc/ppp/");
+            //SshCommand Test3 = unixSshConnectorAccept.RunCommand("ls -l");
+            //string Res = Test3.Result;
+            //string Res2 = Test2.Result;
+
+            //SshCommand Test1=unixSshConnectorAccept.RunCommand("./PX2000.sh");
+            //string Error = Test1.Error;
+            //string Error2 = Test2.Error;
 
 
-            unixSshConnectorAccept.RunCommand("sudo service iptables stop");
+
             //Clear IPTables
-            unixSshConnectorAccept.RunCommand("sudo iptables -F");
-            unixSshConnectorAccept.RunCommand("sudo iptables -Z");
-            unixSshConnectorAccept.RunCommand("sudo iptables -X");
+            //unixSshConnectorAccept.RunCommand("iptables -F");
+            //unixSshConnectorAccept.RunCommand("iptables -Z");
+            //unixSshConnectorAccept.RunCommand("iptables -X");
             //unixSshConnectorAccept.RunCommand("iptables -F FORWARD");
 
             //unixSshConnectorAccept.RunCommand("iptables -F OUTPUT");
-
-
-
-
             //Block World-Ports
             List<string> Ports = new List<string>();
-            Ports.Add("sudo 12001");
-            Ports.Add("sudo 12002");
-            Ports.Add("sudo 12003");
+            Ports.Add("12001");
+            Ports.Add("12002");
+            Ports.Add("12003");
             //Ports.Add("entextnetwk");
             
             foreach (string item in Ports)
             {
                 //Bestimmte Ports blocken
-                //unixSshConnectorAccept.RunCommand("sudo iptables -I INPUT -p tcp --dport " + item + " -j DROP");
-                unixSshConnectorAccept.RunCommand("sudo iptables -A INPUT -p tcp --destination-port " + item + " -j DROP");
+                //unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp --dport " + item + " -j DROP");
+                unixSshConnectorAccept.RunCommand("iptables -A INPUT -p tcp --destination-port " + item + " -j DROP");
             }
 
-            unixSshConnectorAccept.RunCommand("sudo service iptables save");
-            unixSshConnectorAccept.RunCommand("sudo service iptables start");
+            unixSshConnectorAccept.RunCommand("service iptables save");
+            unixSshConnectorAccept.RunCommand("service iptables start");
 
             unixSshConnectorAccept.Disconnect();
 
-
+            
                 //Network Initialisations
                 ActiveConnections = new List<networkServer.networkClientInterface>();
             sAesKey = _sAesKey;
@@ -127,7 +152,7 @@ namespace Protega___Server.Classes.Core
             Logger.writeInLog(1, LogCategory.OK, "TCP Server ready for start!");
             Logger.Seperate();
             ProtocolController = new ProtocolController(ref ActiveConnections, Application.ID);
-
+            
             /*//TESTCASE
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
             //Registration
@@ -205,7 +230,6 @@ namespace Protega___Server.Classes.Core
                 CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, "Protocol Decryption failed! Message: " + e.ToString());
                 return;
             }
-
             CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, "Protocol received decrypted: " + message);
             ProtocolController.ReceivedProtocol(NetworkClient, message);
         }

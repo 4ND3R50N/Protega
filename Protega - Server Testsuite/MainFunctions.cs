@@ -160,7 +160,7 @@ namespace Protega___Server_Testsuite
         [TestMethod]
         public void testApplicationAdapter()
         {
-            ApplicationAdapter dummy = ApplicationAdapter.getInstance();
+            ApplicationAdapter dummy = new ApplicationAdapter(Path.Combine(Environment.CurrentDirectory,"DLL", "Cabal.dll"));
             Assert.IsTrue(dummy.BanUser());
             Assert.IsTrue(dummy.KickUser());            
         }

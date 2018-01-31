@@ -13,6 +13,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Renci.SshNet;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Protega___Server
 {
@@ -26,7 +28,6 @@ namespace Protega___Server
         private IPEndPoint serverEndPoint;
         private Socket serverSocket;
         private event protocolFunction protAnalyseFunction;
-
         private string network_AKey;
 
 
@@ -86,7 +87,7 @@ namespace Protega___Server
                 // Start new Accept
                 serverSocket.BeginAccept(new AsyncCallback(AcceptCallback),
                     result.AsyncState);
-                for (int i = 0; i < 1000; i++)
+                //for (int i = 0; i < 1000; i++)
                     serverSocket.BeginAccept(
                         new AsyncCallback(AcceptCallback), serverSocket);
 
@@ -135,7 +136,7 @@ namespace Protega___Server
                 byte[] bytes = Encoding.Default.GetBytes(message);
                 client.networkSocket.Send(bytes, bytes.Length,
                                 SocketFlags.None);
-                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, String.Format("Protocol sent. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
+                //Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, String.Format("Protocol sent. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
             }
             catch (Exception e)
             {
@@ -155,7 +156,7 @@ namespace Protega___Server
         }
 
         //Class model -> Client -> MUST be edited for each implementation 
-        public class networkClientInterface
+        public class networkClientInterface:IDisposable
         {
             //Technical API
             public Socket networkSocket;
@@ -166,18 +167,29 @@ namespace Protega___Server
             public DateTime ConnectedTime;
             public IPAddress IP;
             public SshClient unixSshConnectorAccept;
+            public int Counter = 0;
 
-
+            public delegate void KickUser(networkClientInterface Client);
+            event KickUser Kick;
             System.Timers.Timer tmrPing;
             
+            public void Dispose()
+            {
+                if (unixSshConnectorAccept != null)
+                    unixSshConnectorAccept.Dispose();
+                if (tmrPing != null)
+                    tmrPing.Dispose();
+            }
+
             public networkClientInterface()
             {
             }
-            public void SetPingTimer(int Interval, string LinuxIP, string User, string Pass, int Port, string _IP=null)
+            public void SetPingTimer(int Interval, string LinuxIP, string User, string Pass, int Port, KickUser _Kick, string _IP=null)
             {
                 //IPAddress.TryParse(_IP, out IP);
                 IP = (networkSocket.RemoteEndPoint as IPEndPoint).Address;
                 unixSshConnectorAccept = new SshClient(LinuxIP, Port, User, Pass);
+                this.Kick = _Kick;
 
                 tmrPing = new System.Timers.Timer();
                 tmrPing.Elapsed += TmrPing_Elapsed;
@@ -188,10 +200,32 @@ namespace Protega___Server
 
             private void TmrPing_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
             {
+                
                 //Kick - Timer elapsed
+                unixSshConnectorAccept.Connect();
+                if(!unixSshConnectorAccept.IsConnected)
+                {
+                    //Log error
 
-                string Test = "";
+                }
+                List<int> Ports = new List<int>();
+                Ports.Add(12001);
+                Ports.Add(12002);
+                Ports.Add(12003);
+                
+                foreach (int item in Ports)
+                    {
+                        unixSshConnectorAccept.RunCommand("iptables -D INPUT -p tcp -s " + IP + " --dport " + item + " -j ACCEPT");
+                    }
+                unixSshConnectorAccept.Disconnect();
+                unixSshConnectorAccept.Dispose();
+                Kick(this);
+
+                Classes.CCstData.GetInstance(this.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, String.Format("User timeout! Session: {0}, HardwareID: {1}", this.SessionID, this.User.ID));
+                this.Dispose();
+                //User kicked
             }
+            
 
             public void ResetPingTimer()
             {

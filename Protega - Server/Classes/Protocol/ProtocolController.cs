@@ -21,16 +21,7 @@ namespace Protega___Server.Classes.Protocol
             this.ActiveConnections = ActiveConnections;
             ApplicationID = _ApplicationID;
         }
-
-
-        //private ControllerCore core;
-        //public ProtocolController(ControllerCore core) {
-        //    this.core = core;
-        //}
-        // just for me that I don´t forget any of the calls
-        //int[] protocolKeysClientToServer = {500, 600, 701,702,703,704,705 };
-        //int[] protocolKeysServerToClient = { 200, 201, 300, 301, 400, 401, 402 };
-        //QUESTION: I thought the computerID is already included in the protocol -> don't need to pass it as parameter??
+        
         public delegate void SendProt(string Protocol, networkServer.networkClientInterface ClientInterface);
         public static event SendProt SendProtocol = null;
 
@@ -53,48 +44,25 @@ namespace Protega___Server.Classes.Protocol
             }
             
         }
-
-        // QUESTION: why do we give session ID here? It is saved in ClientInterface isn't it???????????????????????????????????????????????
+        
         public bool CheckIfUserExists(string SessionID, ref networkServer.networkClientInterface ClientInterface)
         {
             //Checks if that connection exists already. Gives back the amount of matching ClientInterfaces
-            List<networkServer.networkClientInterface> lList = ActiveConnections.Where(Client => Client.SessionID == SessionID).ToList();
-            if (lList.Count == 1)
+            for (int i = 0; i < ActiveConnections.Count; i++)
             {
-                lList[0].networkSocket = ClientInterface.networkSocket;
-                ClientInterface = lList[0];
+                if (ActiveConnections[i].SessionID == SessionID)
+                {
+                    ActiveConnections[i].networkSocket = ClientInterface.networkSocket;
+                    ClientInterface = ActiveConnections[i];
+                    return true;
+                }
             }
-            
-
-            //if(lList.Count == 1)
-            //{
-            //    Logger.writeInLog(true, LoggingStatus.LOW, "Client Interface " +ClientInterface.SessionID+" exists in active connections");
-
-            //}else if (lList.Count == 0)
-            //{
-            //    // QUESTION: Is this one already an error or just a warning????????????????????????????????????????????????????????????????
-            //    Logger.writeInLog(true, LoggingStatus.MIDDLE, "Client Interface " + ClientInterface.SessionID + " DOES NOT exists in active connections");
-
-            //}
-            //else
-            //{
-            //    // QUESTION: Is this one already an error or just a warning????????????????????????????????????????????????????????????????
-            //    Logger.writeInLog(true, LoggingStatus.CRITICAL, "Client Interface " + ClientInterface.SessionID + " is saved "+lList.Count+" times in active connections");
-            //}
-            //True if an interface exists, false if not or more
-            return lList.Count == 1;
+            return false;
         }
-
-        //private static void SendProtocol(String protocolString, int userID) {
-        // send the protocoll to the given user
-        // using the controller core to send messages??????????
-        //}
+        
 
         #region Authenticate User
-        //public delegate void _RegisterUser(string ComputerID, Boolean architecture, String language, double version, Boolean auth);
-        //public event _RegisterUser RegisterUser=null;
-
-        private bool AuthenticateUser( networkServer.networkClientInterface ClientInterface, Protocol prot)
+        private bool AuthenticateUser(networkServer.networkClientInterface ClientInterface, Protocol prot)
         {
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, String.Format("Authenticating new user ({0})", prot.GetUserID()));
             ArrayList Objects = prot.GetValues();
@@ -106,11 +74,11 @@ namespace Protega___Server.Classes.Protocol
             }
 
             //Computer ID, Computer Architecture, Language, Version
-            string ApplicationHash = Objects[0].ToString();
+            string ApplicationHash = Objects[1].ToString();
             string architecture = Objects[2].ToString();
             string language = Objects[3].ToString();            
             double version;
-            if (!Double.TryParse(Objects[1].ToString(), out version))
+            if (!Double.TryParse(Objects[0].ToString(), out version))
             {
                 //Log error - protocol index 3 is not as expected
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, "Double expected but received " + Objects[3].ToString());
@@ -131,7 +99,7 @@ namespace Protega___Server.Classes.Protocol
                 return false;
             }
 
-            //CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, "201 sent");
+            ///asCCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, "201 sent");
             //SendProtocol("201;1;Es war einmal ein Engellein, fdg hatte keine Flügel mehr", ClientInterface);
             ////SendProtocol("201;1;Contact Admin#!sG36&§$-ENDE", ClientInterface);
             //return false;
@@ -188,7 +156,7 @@ namespace Protega___Server.Classes.Protocol
             }
 
             //Add the new connection to the list of connected connections
-            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, "167.88.15.106", "root", "Wn51b453gpEdZTB5Bl", 2223);
+            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, "167.88.15.106", "root", "Wn51b453gpEdZTB5Bl", 22, KickUser);
             ClientInterface.unixSshConnectorAccept.Connect();
             if(ClientInterface.unixSshConnectorAccept.IsConnected)
             {
@@ -202,26 +170,14 @@ namespace Protega___Server.Classes.Protocol
                     ClientInterface.unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT");
                 }
 
-                //Kick
-                foreach (int item in Ports)
-                {
-                    ClientInterface.unixSshConnectorAccept.RunCommand("iptables -D INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT");
-                }
-
                 ClientInterface.unixSshConnectorAccept.Disconnect();
             }
             else
             {
                 //Fehlerinfo
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, "Client could not be connected to the Linux Server. Session ID: " + ClientInterface.SessionID);
                 return false;
             }
-
-
-
-            //Unblock IPTables for user
-
-
-
 
             ActiveConnections.Add(ClientInterface);
 
@@ -230,23 +186,23 @@ namespace Protega___Server.Classes.Protocol
             return true;
         }
 
+        void KickUser(networkServer.networkClientInterface Client)
+        {
+            ActiveConnections.Remove(Client);
+        }
+
         #endregion
 
         private bool CheckPing(networkServer.networkClientInterface Client, Protocol prot)
         {
-
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Ping: Protocol received. User: " + prot.GetUserID());
+
             networkServer.networkClientInterface ClientInterface = Client;
-            
+            Client.Counter++;
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Ping: User found in the list.");
-                //If additional infos are asked, what is needed is identified by an ID
-                /*
-                 * Different logic is needed here. Admin is able to add additional information for user to a queue
-                 * and when a successful ping is send down, all new one for this client are added.
-                 * Not ment for version 1.
-                 */
+
                 int AdditionalInfos = prot.HasValues() ? Convert.ToInt32(prot.GetValues()[0]) : -1;
                 string AdditionalInfo = "";
                 switch (AdditionalInfos)
@@ -262,7 +218,7 @@ namespace Protega___Server.Classes.Protocol
                 ClientInterface.ResetPingTimer();
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Ping resetted.");
 
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Additional Infos: "+AdditionalInfo);
+                //zhCCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Additional Infos: "+AdditionalInfo);
 
                 if (AdditionalInfo.Length == 0)
                     SendProtocol("300", ClientInterface);
@@ -270,9 +226,6 @@ namespace Protega___Server.Classes.Protocol
                     SendProtocol(String.Format("301;{0}",AdditionalInfo), ClientInterface);
 
                 return true;
-                //Send to the client that the Ping was successful
-                //If requested, additional infos will be sent
-                //SendProtocol(String.Format("{0}{1}", "300", AdditionalInfo), ClientInterface);
             }
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.ERROR, "Ping: User does not exist in the active connections");
             return false;

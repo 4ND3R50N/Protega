@@ -13,7 +13,7 @@ namespace Protega___Server.Classes
         public string EncryptionIV = "bbbbbbbbbbbbbbbb";
 
         public int SessionIDLength = 10;
-        public int PingTimer = 9999000;
+        public int PingTimer = 20000;
 
         //1 = User output, 2 = User output with more details, 3 = Debug infos
         public int LogLevel=3;
