@@ -5,8 +5,6 @@
 // - Implement a refresh logic for dynamic data (Download data again for each X mins
 
 
-
-
 ProtegaCore::ProtegaCore()
 {
 	//Init classes	
@@ -83,7 +81,7 @@ void ProtegaCore::StartAntihack()
 
 #pragma region Start Protections
 	//Dummy Lists
-	/*std::vector<std::string> vBlackListWindowName;
+	std::vector<std::string> vBlackListWindowName;
 	std::vector<std::string> vBlackListClassName;
 
 	ProtectionManager = new Protection_Manager(std::bind(&ProtegaCore::ProtectionManagerAnswer, this, std::placeholders::_1), (int)GetCurrentProcessId(),
@@ -92,7 +90,7 @@ void ProtegaCore::StartAntihack()
 		Data_Manager::GetFilesToCheckValues());
 
 	ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
-	ProtectionManager->StartProtectionThreads();*/
+	ProtectionManager->StartProtectionThreads();
 #pragma endregion
 	
 	Splash.CloseSplash();
@@ -156,7 +154,7 @@ void ProtegaCore::Update()
 	{
 		//Ping to server. Check answer.
 		NetworkManager->Ping_600(Data_Manager::GetLocalHardwareSID());
-		//ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
+		ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
 		Sleep(1000);
 	} while (true);
 }

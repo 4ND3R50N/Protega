@@ -41,7 +41,7 @@ private:
 	//	Map
 	int iCabalMapDefaultValue = 4294967295;
 	//	Zoom
-	int iCabalDefaultZoom = 3;
+	int iCabalDefaultZoom = 2;
 	//	NSD + NCT
 	int iCabalSkillAnimationDefaultValue = 4294967295;
 	int iCabalSkillValueLowerLimit = 3000000;
