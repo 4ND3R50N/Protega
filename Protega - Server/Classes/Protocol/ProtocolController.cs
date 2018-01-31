@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Protega___Server.Classes.Entity;
 using Support;
+using Renci.SshNet;
 
 namespace Protega___Server.Classes.Protocol
 {
@@ -105,11 +106,11 @@ namespace Protega___Server.Classes.Protocol
             }
 
             //Computer ID, Computer Architecture, Language, Version
-            string ApplicationHash = Objects[1].ToString();
+            string ApplicationHash = Objects[0].ToString();
             string architecture = Objects[2].ToString();
             string language = Objects[3].ToString();            
             double version;
-            if (!Double.TryParse(Objects[0].ToString(), out version))
+            if (!Double.TryParse(Objects[1].ToString(), out version))
             {
                 //Log error - protocol index 3 is not as expected
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, "Double expected but received " + Objects[3].ToString());
@@ -142,10 +143,6 @@ namespace Protega___Server.Classes.Protocol
                     && item.User.Application.Hash==ApplicationHash)
                 {
                     //User is already registered
-                    //Kick User?
-                    // QUESTION: Why are we using this logger??????????????????????????????????????????????????????????????????????????????????
-                    // QUESTION: Is this one already an error or just a warning????????????????????????????????????????????????????????????????
-                    //Answer: This can only happen if someone tries to log in with multiple accounts. It's not critical but could be logged (that's why it's only lv 2)
                     CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, "Authentification: User is already added to list!");
                     SendProtocol("201;2;Contact Admin", ClientInterface);
                     return false;
@@ -167,11 +164,9 @@ namespace Protega___Server.Classes.Protocol
             if (dataClient.isBanned == true)
             {
                 //Do something and dont let him enter
-                // QUESTION: Is this one already an error or just a warning????????????????????????????????????????????????????????????????
-                //Just an Info
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, String.Format("Authentification: Banned user tried to authentificate. User: {0}", dataClient.ID));
                 //Send protocol to client that user is banned
-                //SendProtocol("201;Too many hacks", ClientInterface);
+                SendProtocol("201;4;Too many hacks", ClientInterface);
                 return false;
             }
 
@@ -193,7 +188,41 @@ namespace Protega___Server.Classes.Protocol
             }
 
             //Add the new connection to the list of connected connections
-            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer);
+            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, "167.88.15.106", "root", "Wn51b453gpEdZTB5Bl", 2223);
+            ClientInterface.unixSshConnectorAccept.Connect();
+            if(ClientInterface.unixSshConnectorAccept.IsConnected)
+            {
+                List<int> Ports = new List<int>();
+                Ports.Add(12001);
+                Ports.Add(12002);
+                Ports.Add(12003);
+
+                foreach (int item in Ports)
+                {
+                    ClientInterface.unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT");
+                }
+
+                //Kick
+                foreach (int item in Ports)
+                {
+                    ClientInterface.unixSshConnectorAccept.RunCommand("iptables -D INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT");
+                }
+
+                ClientInterface.unixSshConnectorAccept.Disconnect();
+            }
+            else
+            {
+                //Fehlerinfo
+                return false;
+            }
+
+
+
+            //Unblock IPTables for user
+
+
+
+
             ActiveConnections.Add(ClientInterface);
 
             SendProtocol("200;" + ClientInterface.SessionID, ClientInterface);

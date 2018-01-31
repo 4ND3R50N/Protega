@@ -45,7 +45,7 @@ namespace Protega___Server_Testsuite
             CCstData.GetInstance(Core.Application).Logger.Seperate();
             CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test Authentification started!");
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
-            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;12312315;{0};Windoofs 7;Deutsch;1",Core.Application.Hash)), true);
+            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;12312315;{0};1;Windoofs 7;Deutsch",Core.Application.Hash)), true);
             CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test Authentification finished!");
             CCstData.GetInstance(Core.Application).Logger.Seperate();
         }
