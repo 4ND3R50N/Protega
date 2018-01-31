@@ -35,9 +35,8 @@
     <Reference Include="MySql.Data">
       <HintPath>libs\MySql.Data.dll</HintPath>
     </Reference>
-    <Reference Include="Renci.SshNet, Version=2014.4.6.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\Renci.SshNet.dll</HintPath>
+    <Reference Include="Renci.SshNet">
+      <HintPath>libs\Renci.SshNet.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -79,6 +78,7 @@
     <Compile Include="Classes\Utility\Support\AdditionalFunctions.cs" />
     <Compile Include="Classes\Utility\Support\AESEncoding.cs" />
     <Compile Include="Classes\Utility\Support\AES_Converter.cs" />
+    <Compile Include="Classes\Utility\Support\ApplicationAdapter.cs" />
     <Compile Include="Classes\Utility\Support\IniEngine.cs" />
     <Compile Include="Classes\Utility\Support\logWriter.cs" />
     <Compile Include="Program.cs" />

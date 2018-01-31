@@ -12,6 +12,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Renci.SshNet;
 
 namespace Protega___Server
 {
@@ -164,15 +165,19 @@ namespace Protega___Server
             public string SessionID;
             public DateTime ConnectedTime;
             public IPAddress IP;
+            public SshClient unixSshConnectorAccept;
+
 
             System.Timers.Timer tmrPing;
             
             public networkClientInterface()
             {
             }
-            public void SetPingTimer(int Interval)
+            public void SetPingTimer(int Interval, string LinuxIP, string User, string Pass, int Port, string _IP=null)
             {
+                //IPAddress.TryParse(_IP, out IP);
                 IP = (networkSocket.RemoteEndPoint as IPEndPoint).Address;
+                unixSshConnectorAccept = new SshClient(LinuxIP, Port, User, Pass);
 
                 tmrPing = new System.Timers.Timer();
                 tmrPing.Elapsed += TmrPing_Elapsed;
