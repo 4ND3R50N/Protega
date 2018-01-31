@@ -5,6 +5,10 @@
 #include <tchar.h>
 #include <TlHelp32.h>
 #include <memory>
+#include <iostream>
+#include <fstream>
+#include <codecvt>
+
 class Exception_Manager
 {
 private:
