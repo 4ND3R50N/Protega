@@ -1,0 +1,24 @@
+﻿<Window x:Name="MainWindow1" x:Class="Protega___Crash_Reporter.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Protega___Crash_Reporter"
+        mc:Ignorable="d"
+        ResizeMode="NoResize" Title="MainWindow" Height="213.726" Width="455.392"  WindowStyle="None" Background="{x:Null}" WindowStartupLocation="CenterScreen" Topmost="True">
+    <Grid>
+        <Grid.Background>
+            <SolidColorBrush Color="Black" Opacity="0.5"/>
+        </Grid.Background>
+        <RichTextBox x:Name="rtbError" HorizontalAlignment="Left" Height="104" Margin="129,48,0,0" VerticalAlignment="Top" Width="308" Foreground="White" IsReadOnly="True">
+            <RichTextBox.Background>
+                <ImageBrush/>
+            </RichTextBox.Background>
+            <FlowDocument/>
+        </RichTextBox>
+        <Label Content="Protega Crash Reporter" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Width="427" Height="43" FontSize="20" FontWeight="Bold" HorizontalContentAlignment="Center" IsEnabled="False"/>
+        <Image HorizontalAlignment="Left" Height="109" Margin="10,43,0,0" VerticalAlignment="Top" Width="114" Source="Images/error_warning_alert_attention-512.png"/>
+        <Button x:Name="btnOK" Content="OK" Margin="129,168,129,0" VerticalAlignment="Top" Height="28"  Click="btnOK_Click" />
+
+    </Grid>
+</Window>
