@@ -5,6 +5,7 @@ using Protega___Server;
 using Protega___Server.Classes;
 using Protega___Server.Classes.Protocol;
 using Protega___Server.Classes.Core;
+using Protega___Server.Classes.Utility.Support;
 using System.Net.Sockets;
 using System.Net;
 
@@ -18,14 +19,14 @@ namespace Protega___Server_Testsuite
         ControllerCore Core;
 
        public MainFunctions()
-        {
+        {/*
             Core = new ControllerCore("Test",10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()),3);
             Client.User = new Protega___Server.Classes.Entity.EPlayer();
             Client.SessionID = "123";
             Client.User.ID = "1234";
             Client.User.Application.ID = 1;
             Core.ActiveConnections.Add(Client);
-            CCstData.GetInstance(Core.Application).Logger.Seperate();
+            CCstData.GetInstance(Core.Application).Logger.Seperate();*/
         }
 
         [TestMethod]
@@ -155,6 +156,13 @@ namespace Protega___Server_Testsuite
 
             CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test Instance Management finished!");
             CCstData.GetInstance(Core.Application).Logger.Seperate();
+        }
+        [TestMethod]
+        public void testApplicationAdapter()
+        {
+            ApplicationAdapter dummy = ApplicationAdapter.getInstance();
+            Assert.IsTrue(dummy.BanUser());
+            Assert.IsTrue(dummy.KickUser());            
         }
     }
 }
