@@ -2,18 +2,27 @@
 #include "Core/ProtegaCore.h"
 
 bool bStopper = false;
-void initAntihack();
+
+void DebugThreadStart();
+static DWORD WINAPI HiddenThreadStart(void* Param);
 
 extern "C"
 {
 	int __declspec(dllexport) __cdecl ProcMainEntry()
 	{		
-		CreateThread(NULL, NULL, LPTHREAD_START_ROUTINE(initAntihack), NULL, 0, 0);
+		CreateThread(NULL, NULL, HiddenThreadStart, NULL, 0, 0);
 		return 1;
 	}
 }
-void initAntihack()
+void DebugThreadStart()
 {
 	ProtegaCore *Antihack = new ProtegaCore();
 	Antihack->StartAntihack();
+}
+
+static DWORD WINAPI HiddenThreadStart(void* Param)
+{
+	ProtegaCore *Antihack = new ProtegaCore();
+	Antihack->StartAntihack();
+	return 1;
 }
