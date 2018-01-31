@@ -1,17 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Protega - Client", "Protega\Protega.vcxproj", "{5A49086A-AA04-4342-9BF3-F7D555484D29}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Protega - Client Testsuite", "Protega - Client Testsuite\Protega - Client Testsuite.vcxproj", "{130B4891-C727-44C4-8861-AA312E773BEB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ShellX64", "ShellX64\ShellX64.vcxproj", "{94D00084-52E7-42D2-B5F3-1010C485D375}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Protega - Server", "Protega - Server\Protega - Server.csproj", "{1DB87D3C-CAA0-4B7B-9D32-B1180BC8B7C8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Protega - Server Testsuite", "Protega - Server Testsuite\Protega - Server Testsuite.csproj", "{52CE1EE9-A9A1-43F1-9FA8-FD475563CC96}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Protega - Crash Reporter", "Protega - Crash Reporter\Protega - Crash Reporter.csproj", "{3CA48D14-652F-470F-9131-AF04B766219E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,16 +43,6 @@ Global
 		{130B4891-C727-44C4-8861-AA312E773BEB}.Release|x64.Build.0 = Release|x64
 		{130B4891-C727-44C4-8861-AA312E773BEB}.Release|x86.ActiveCfg = Release|Win32
 		{130B4891-C727-44C4-8861-AA312E773BEB}.Release|x86.Build.0 = Release|Win32
-		{94D00084-52E7-42D2-B5F3-1010C485D375}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{94D00084-52E7-42D2-B5F3-1010C485D375}.Debug|x64.ActiveCfg = Debug|x64
-		{94D00084-52E7-42D2-B5F3-1010C485D375}.Debug|x64.Build.0 = Debug|x64
-		{94D00084-52E7-42D2-B5F3-1010C485D375}.Debug|x86.ActiveCfg = Debug|Win32
-		{94D00084-52E7-42D2-B5F3-1010C485D375}.Debug|x86.Build.0 = Debug|Win32
-		{94D00084-52E7-42D2-B5F3-1010C485D375}.Release|Any CPU.ActiveCfg = Release|Win32
-		{94D00084-52E7-42D2-B5F3-1010C485D375}.Release|x64.ActiveCfg = Release|x64
-		{94D00084-52E7-42D2-B5F3-1010C485D375}.Release|x64.Build.0 = Release|x64
-		{94D00084-52E7-42D2-B5F3-1010C485D375}.Release|x86.ActiveCfg = Release|Win32
-		{94D00084-52E7-42D2-B5F3-1010C485D375}.Release|x86.Build.0 = Release|Win32
 		{1DB87D3C-CAA0-4B7B-9D32-B1180BC8B7C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1DB87D3C-CAA0-4B7B-9D32-B1180BC8B7C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1DB87D3C-CAA0-4B7B-9D32-B1180BC8B7C8}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -77,6 +67,18 @@ Global
 		{52CE1EE9-A9A1-43F1-9FA8-FD475563CC96}.Release|x64.Build.0 = Release|Any CPU
 		{52CE1EE9-A9A1-43F1-9FA8-FD475563CC96}.Release|x86.ActiveCfg = Release|Any CPU
 		{52CE1EE9-A9A1-43F1-9FA8-FD475563CC96}.Release|x86.Build.0 = Release|Any CPU
+		{3CA48D14-652F-470F-9131-AF04B766219E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CA48D14-652F-470F-9131-AF04B766219E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CA48D14-652F-470F-9131-AF04B766219E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3CA48D14-652F-470F-9131-AF04B766219E}.Debug|x64.Build.0 = Debug|Any CPU
+		{3CA48D14-652F-470F-9131-AF04B766219E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3CA48D14-652F-470F-9131-AF04B766219E}.Debug|x86.Build.0 = Debug|Any CPU
+		{3CA48D14-652F-470F-9131-AF04B766219E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CA48D14-652F-470F-9131-AF04B766219E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CA48D14-652F-470F-9131-AF04B766219E}.Release|x64.ActiveCfg = Release|Any CPU
+		{3CA48D14-652F-470F-9131-AF04B766219E}.Release|x64.Build.0 = Release|Any CPU
+		{3CA48D14-652F-470F-9131-AF04B766219E}.Release|x86.ActiveCfg = Release|Any CPU
+		{3CA48D14-652F-470F-9131-AF04B766219E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
