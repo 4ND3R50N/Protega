@@ -8,7 +8,7 @@ class Protection_Manager
 {
 private:
 	//Var
-	bool iProtectionIsRunning = false;
+	bool bProtectionIsRunning = false;
 	int iTargetProcessId = 0;
 	int iVMErrorCode = 0;
 	int iFPErrorCode = 0;
@@ -24,7 +24,7 @@ private:
 	std::clock_t ctVmpResponse = 0;
 	std::clock_t ctFpResponse = 0;
 
-	std::function<void(std::list<std::wstring> lDetectionInformation)> funcCallbackHandler;
+	std::function<void(std::list<std::string> lDetectionInformation)> funcCallbackHandler;
 
 	//Classes
 	Heuristic_Scan_Engine* HE;
@@ -37,7 +37,7 @@ private:
 	void HE_Thread();
 	void FP_Thread();
 	//	Callbacks
-	void HE_Callback(std::wstring sDetectionValue);
+	void HE_Callback(std::string sDetectionValue);
 	void VMP_Callback(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sDefaultValue);
 	void FP_Callback(std::string sFile, std::string sMd5, bool bInjection);
 	// Test
@@ -46,7 +46,7 @@ private:
 	int GetProcessIdByName(char* ProcName);
 	void StringToWString(std::string sStringToConvert, std::wstring* wsOutput);
 public:
-	Protection_Manager(std::function<void(std::list<std::wstring> lDetectionInformation)> funcCallbackHandler,
+	Protection_Manager(std::function<void(std::list<std::string> lDetectionInformation)> funcCallbackHandler,
 		int iTargetApplicationId,
 		double dThreadResponseDelta,
 		int iVMErrorCode,
@@ -62,6 +62,7 @@ public:
 	//	User
 	bool StartProtectionThreads();
 	//	System
+	bool ProtectionIsRunning();
 	std::clock_t* GetMainThreadClock();
 	bool CheckClocks(std::clock_t* ctOwnClock);
 
