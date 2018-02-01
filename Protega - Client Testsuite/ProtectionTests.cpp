@@ -43,7 +43,7 @@ namespace ProtegaClientTestsuite
 			} while (!bDetect);
 		}
 
-		void PM_Callback(std::list<std::wstring> lDetectionInformation)
+		void PM_Callback(std::list<std::string> lDetectionInformation)
 		{
 			MessageBoxA(0, "PM_Callback", "PM_Callback", MB_OK);
 		}
@@ -175,14 +175,14 @@ namespace ProtegaClientTestsuite
 				vBlackListMd5Values,
 				std::bind(&ProtectionTests::Heuristic_Callback, this, std::placeholders::_1));
 			
-			HEP->DetectBlacklistedProcessNames();
+			HEP->DetectBlacklistedClassNames();
 		}
 		
 		TEST_METHOD(Protection_HEM_Test)
 		{
 			vBlackListProcessNames.push_back(L"Notepad.exe");
 			vBlackListWindowNames.push_back("ddjbneidb");
-			vBlackListMd5Values.push_back("1c32647a706fbef6faeac45a75201489");
+			vBlackListMd5Values.push_back("AF79F5A331C50CC87F0A5F921AD93B0F");
 			vBlackListClassNames.push_back("miaudfhh");
 
 			Heuristic_Scan_Engine* HEM = new Heuristic_Scan_Engine(vBlackListProcessNames,
@@ -190,12 +190,15 @@ namespace ProtegaClientTestsuite
 				vBlackListClassNames,
 				vBlackListMd5Values,
 				std::bind(&ProtectionTests::Heuristic_Callback, this, std::placeholders::_1));
-
-			HEM->DetectBlacklistedProcessMd5Hash();
+			do
+			{
+				HEM->DetectBlacklistedProcessMd5Hash();
+			} while (true);
+			
 		}
 
 
-		void Heuristic_Callback(std::wstring sDetection)
+		void Heuristic_Callback(std::string sDetection)
 		{
 
 		}
