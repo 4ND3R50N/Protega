@@ -7,7 +7,7 @@ This is a c++ dll which prevents other programms to manipulate the target proces
     C++ DLL which is running as a thread in the target application (Has to be included via code or hooked)
     
 ###  Self Protection:
-    - The achitecture (C++, DLL)
+    - The architecture (C++, DLL)
     - The hack-detection algorithms are running as threads. Each thread watches the others. If an attacker tries to suspend them, the application closes
     - A watchdog dll also check the thread of the antihack dll. 
     - Heartbeat System (Client to server). The server kicks the user, if the client stops pinging.
