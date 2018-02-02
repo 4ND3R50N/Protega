@@ -4,6 +4,7 @@
 #include <vector>
 #include <locale>
 #include <codecvt>
+#include <sstream>
 #include "../Tools/CryptoPP_Converter.h"
 #include "Data_Gathering.h"
 
