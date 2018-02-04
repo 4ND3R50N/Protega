@@ -5,7 +5,7 @@ Heuristic_Scan_Engine::Heuristic_Scan_Engine(std::vector<std::wstring> lBlackLis
 	std::vector<std::string> lBlackListWindowNames,
 	std::vector<std::string> lBlackListClassNames,
 	std::vector<std::string> lBlackListMd5Values,
-	std::function<void(std::wstring sDetectedValue) > funcErrorCallbackHandler)
+	std::function<void(std::string sDetectedValue) > funcErrorCallbackHandler)
 {
 	//Set data
 	this->vBlackListProcessNames = lBlackListProcessNames;
@@ -52,7 +52,6 @@ Heuristic_Scan_Engine::~Heuristic_Scan_Engine()
 }
 
 
-
 bool Heuristic_Scan_Engine::DetectBlacklistedProcessNames()
 {
 	//get current process names
@@ -87,7 +86,14 @@ bool Heuristic_Scan_Engine::DetectBlacklistedProcessNames()
 			//sIt = std::next(lBlackListMd5Values.begin(), iForCounter);
 			//lOtherInformation.push_back(sIt->c_str());
 			//Send them to the protection manager
-			funcErrorCallbackHandler(wsItBlackListEntry);
+
+			std::string sItBlackListEntry = "";
+			using convert_type = std::codecvt_utf8<wchar_t>;
+			std::wstring_convert<convert_type, wchar_t> converter;
+
+			//use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
+			sItBlackListEntry = converter.to_bytes(wsItBlackListEntry);
+			funcErrorCallbackHandler(sItBlackListEntry);
 			return true;
 		}
 		iForCounter++;
@@ -110,48 +116,58 @@ bool Heuristic_Scan_Engine::DetectBlacklistedProcessMd5Hash()
 	//get current process names
 	std::stringstream ss;
 	std::list<std::wstring> lCurrentProcessNames;
-	std::list<DWORD> lCurrentProcessIDsTmp;
-	GetCurrentProcessNamesAndPIDs(lCurrentProcessNames, lCurrentProcessIDsTmp);
-	
+		
 	//
 	HANDLE hProcessHandle;
 	wchar_t wtFilePath[MAX_PATH];
 
-	std::list<DWORD>::iterator itDwProcessID;
+	if (bIsAtStart)
+	{
+		lCurrentProcessIDsTmp.clear();
+		lCurrentProcessNames.clear();
+		GetCurrentProcessNamesAndPIDs(lCurrentProcessNames, lCurrentProcessIDsTmp);
+		itDwProcessID = lCurrentProcessIDsTmp.begin();
+		bIsAtStart = false;
+	}
 
-	for (itDwProcessID = lCurrentProcessIDsTmp.begin(); itDwProcessID != lCurrentProcessIDsTmp.end(); ++itDwProcessID) {
+	hProcessHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, *itDwProcessID);
 
-		hProcessHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, *itDwProcessID);
+	if (hProcessHandle)
+	{
+		bool bMd5Success = false;
+		GetModuleFileNameEx(hProcessHandle, 0, wtFilePath, MAX_PATH);
+		std::string sMD5Hash = "";
+		_bstr_t bstrFilePath(wtFilePath);
 
-		if (hProcessHandle)
+		try
 		{
-			GetModuleFileNameEx(hProcessHandle, 0, wtFilePath, MAX_PATH);
-			std::string sMD5Hash = "";
-			_bstr_t bstrFilePath(wtFilePath);
+			sMD5Hash = GetMD5Hash(bstrFilePath);
+			boost::to_upper(sMD5Hash);
+			bMd5Success = true;
+		}
+		catch (const std::exception&)
+		{
+			bMd5Success = false;
+		}
 
-			try
-			{
-				sMD5Hash = GetMD5Hash(bstrFilePath);
-				boost::to_upper(sMD5Hash);
-			}
-			catch (const std::exception&)
-			{
-				continue;
-			}
-			
+		if (bMd5Success)
+		{
 			bool bEntryFound = (std::find(vBlackListMd5Values.begin(), vBlackListMd5Values.end(), sMD5Hash) != vBlackListMd5Values.end());
-			
+
 			if (bEntryFound)
 			{
-				// Overestimate number of code points.
-				std::wstring wsMD5Hash(sMD5Hash.size(), L' '); 
-				// Shrink to fit.
-				wsMD5Hash.resize(std::mbstowcs(&wsMD5Hash[0], sMD5Hash.c_str(), sMD5Hash.size()));
-				funcErrorCallbackHandler(wsMD5Hash);
+				funcErrorCallbackHandler(sMD5Hash);
 			}
-
-			CloseHandle(hProcessHandle);
 		}
+		
+		CloseHandle(hProcessHandle);			
+	}
+
+	++itDwProcessID;
+
+	if (itDwProcessID == lCurrentProcessIDsTmp.end())
+	{
+		bIsAtStart = true;
 	}
 	return false;
 }

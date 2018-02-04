@@ -12,6 +12,7 @@
 
 # Build results
 Client-Debug-Win32/
+Client-Release-Win32/
 Client-Debug-x64/
 [Dd]ebug/
 [Dd]ebugPublic/

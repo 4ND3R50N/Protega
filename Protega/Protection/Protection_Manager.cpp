@@ -1,7 +1,7 @@
 #include "../stdafx.h"
 #include "Protection_Manager.h"
 
-Protection_Manager::Protection_Manager(std::function<void(std::list<std::wstring> lDetectionInformation)> funcCallbackHandler,
+Protection_Manager::Protection_Manager(std::function<void(std::list<std::string> lDetectionInformation)> funcCallbackHandler,
 	int iTargetApplicationId,
 	double dThreadResponseDelta,
 	int iVMErrorCode,
@@ -52,7 +52,7 @@ Protection_Manager::~Protection_Manager()
 
 bool Protection_Manager::StartProtectionThreads()
 {
-	iProtectionIsRunning = true;
+	bProtectionIsRunning = true;
 	//Create threads
 	tHeThread = new std::thread(&Protection_Manager::HE_Thread, this);
 	tVmpThread = new std::thread(&Protection_Manager::VMP_Thread, this);
@@ -68,6 +68,11 @@ bool Protection_Manager::StartProtectionThreads()
 	//tVmpThread->join();
 	//tFpThread->join();
 	return true;
+}
+
+bool Protection_Manager::ProtectionIsRunning()
+{
+	return bProtectionIsRunning;
 }
 
 std::clock_t * Protection_Manager::GetMainThreadClock()
@@ -87,7 +92,7 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 
 	if (dCurrentDuration > dThreadResponseDelta)
 	{
-		iProtectionIsRunning = false;
+		bProtectionIsRunning = false;
 		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
 			"Thread Error [M]. Please restart the application!");
 		return false;
@@ -97,7 +102,7 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 
 	if (dCurrentDuration > dThreadResponseDelta)
 	{
-		iProtectionIsRunning = false;
+		bProtectionIsRunning = false;
 		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
 			"Thread Error [HE]. Please restart the application!");
 		return false;
@@ -107,7 +112,7 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 
 	if (dCurrentDuration > dThreadResponseDelta)
 	{
-		iProtectionIsRunning = false;
+		bProtectionIsRunning = false;
 		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
 			"Thread Error [VM]. Please restart the application!");
 		return false;
@@ -117,7 +122,7 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 
 	if (dCurrentDuration > dThreadResponseDelta)
 	{
-		iProtectionIsRunning = false;
+		bProtectionIsRunning = false;
 		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
 			"Thread Error [FP]. Please restart the application!");
 		return false;
@@ -143,12 +148,12 @@ void Protection_Manager::VMP_Thread()
 		if (VMP->DetectManipulatedMemory() == true)
 		{
 			VMP->CloseProcessInstance();
-			iProtectionIsRunning = false;
+			bProtectionIsRunning = false;
 			return;
 		}
 		CheckClocks(&ctVmpResponse);
 		Sleep(500);
-	} while (iProtectionIsRunning);
+	} while (bProtectionIsRunning);
 }
 
 void Protection_Manager::HE_Thread()
@@ -157,20 +162,20 @@ void Protection_Manager::HE_Thread()
 	{
 		if (HE->DetectBlacklistedProcessNames())
 		{
-			iProtectionIsRunning = false;
+			bProtectionIsRunning = false;
 			return;
 		}
 		CheckClocks(&ctHeResponse);
 
 		if (HE->DetectBlacklistedProcessMd5Hash())
 		{
-			iProtectionIsRunning = false;
+			bProtectionIsRunning = false;
 			return;
 		}
 		CheckClocks(&ctHeResponse);
 
 		Sleep(500);
-	} while (iProtectionIsRunning);
+	} while (bProtectionIsRunning);
 }
 
 void Protection_Manager::FP_Thread()
@@ -181,7 +186,7 @@ void Protection_Manager::FP_Thread()
 
 		if (iStatus == 1)
 		{
-			iProtectionIsRunning = false;
+			bProtectionIsRunning = false;
 			Exception_Manager::HandleProtegaStandardError(iFPErrorCode,
 				"Not able to read game files. Please restart the application. If this problem continues, please contact the administrator! [1]");
 
@@ -189,7 +194,7 @@ void Protection_Manager::FP_Thread()
 		}
 		if (iStatus == 1)
 		{
-			iProtectionIsRunning = false;
+			bProtectionIsRunning = false;
 			return;
 		}
 		CheckClocks(&ctFpResponse);
@@ -198,7 +203,7 @@ void Protection_Manager::FP_Thread()
 
 		if (iStatus == 1)
 		{
-			iProtectionIsRunning = false;
+			bProtectionIsRunning = false;
 			Exception_Manager::HandleProtegaStandardError(iFPErrorCode,
 				"Not able to read game files. Please restart the application. If this problem continues, please contact the administrator! [2]");
 
@@ -207,69 +212,58 @@ void Protection_Manager::FP_Thread()
 
 		if (iStatus == 2)
 		{
-			iProtectionIsRunning = false;
+			bProtectionIsRunning = false;
 			return;
 		}
 		CheckClocks(&ctFpResponse);
 		Sleep(500);
-	} while (iProtectionIsRunning);
+	} while (bProtectionIsRunning);
 }
 
 //	Callbacks
-void Protection_Manager::HE_Callback(std::wstring sDetectionValue)
+void Protection_Manager::HE_Callback(std::string sDetectionValue)
 {
-	std::list<std::wstring> lDetectionInformation;
-	lDetectionInformation.push_back(L"HE");
+	bProtectionIsRunning = false;
+	std::list<std::string> lDetectionInformation;
+	lDetectionInformation.push_back("HE");
 	lDetectionInformation.push_back(sDetectionValue);
 	funcCallbackHandler(lDetectionInformation);
 }
 
 void Protection_Manager::VMP_Callback(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sDefaultValue)
 {
-	iProtectionIsRunning = false;
+	bProtectionIsRunning = false;
 
-	std::wstring wsDetectedBaseAddress;
-	std::wstring wsDetectedOffset;
-	std::wstring wsDetectedValue;
-	std::wstring wsDefaultValue;
-
-	StringToWString(sDetectedBaseAddress, &wsDetectedBaseAddress);
-	StringToWString(sDetectedOffset, &wsDetectedOffset);
-	StringToWString(sDetectedValue, &wsDetectedValue);
-	StringToWString(sDefaultValue, &wsDefaultValue);
-
-	std::list<std::wstring> lDetectionInformation;
-	lDetectionInformation.push_back(L"VMP");	
-	lDetectionInformation.push_back(wsDetectedBaseAddress);
-	lDetectionInformation.push_back(wsDetectedOffset);
-	lDetectionInformation.push_back(wsDetectedValue);
-	lDetectionInformation.push_back(wsDefaultValue);
+	std::list<std::string> lDetectionInformation;
+	lDetectionInformation.push_back("VMP");	
+	lDetectionInformation.push_back(sDetectedBaseAddress);
+	lDetectionInformation.push_back(sDetectedOffset);
+	lDetectionInformation.push_back(sDetectedValue);
+	lDetectionInformation.push_back(sDefaultValue);
 
 	funcCallbackHandler(lDetectionInformation);
 }
 
 void Protection_Manager::FP_Callback(std::string sFile, std::string sMd5, bool bInjection)
 {
-	std::wstring wsFile;
-	std::wstring wsMd5;
-	std::wstring wsInjection;
+	bProtectionIsRunning = false;
 
-	StringToWString(sFile, &wsFile);
-	StringToWString(sMd5, &wsMd5);
+	std::string sInjection = "";
+
 
 	if (bInjection)
 	{
-		wsInjection = L"1";
+		sInjection = "1";
 	}
 	else
 	{
-		wsInjection = L"0";
+		sInjection = "0";
 	}
-	std::list<std::wstring> lDetectionInformation;
-	lDetectionInformation.push_back(L"FP");
-	lDetectionInformation.push_back(wsFile);
-	lDetectionInformation.push_back(wsMd5);
-	lDetectionInformation.push_back(wsInjection);
+	std::list<std::string> lDetectionInformation;
+	lDetectionInformation.push_back("FP");
+	lDetectionInformation.push_back(sFile);
+	lDetectionInformation.push_back(sMd5);
+	lDetectionInformation.push_back(sInjection);
 
 	funcCallbackHandler(lDetectionInformation);
 }

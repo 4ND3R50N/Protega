@@ -129,16 +129,16 @@ void ProtegaCore::ServerAnswer(NetworkTelegram NetworkTelegramMessage)
 	}
 }
 
-void ProtegaCore::ProtectionManagerAnswer(std::list<std::wstring> wsDetectionInformation)
+void ProtegaCore::ProtectionManagerAnswer(std::list<std::string> sDetectionInformation)
 {
-	std::wstringstream ss;
-	std::list<std::wstring>::iterator wsIt;
+	std::stringstream ss;
+	std::list<std::string>::iterator sIt;
 
 	ss << "Hack Detect! Debug: ";
-	for (wsIt = wsDetectionInformation.begin(); wsIt != wsDetectionInformation.end(); wsIt++)
+	for (sIt = sDetectionInformation.begin(); sIt != sDetectionInformation.end(); sIt++)
 	{
-		std::wstring& wsItData(*wsIt);
-		ss << wsItData << L" || ";
+		std::string& sItData(*sIt);
+		ss << sItData << " || ";
 	}
 
 	Exception_Manager::HandleProtegaStandardError(Data_Manager::GetExceptionLocalFileErrorNumber(),
@@ -153,10 +153,14 @@ void ProtegaCore::Update()
 	do
 	{
 		//Ping to server. Check answer.
-		NetworkManager->Ping_600(Data_Manager::GetLocalHardwareSID());
+
+		if (ProtectionManager->ProtectionIsRunning())
+		{
+			NetworkManager->Ping_600(Data_Manager::GetLocalHardwareSID());
+		}		
 		ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
 		Sleep(1000);
-	} while (true);
+	} while (ProtectionManager->ProtectionIsRunning());
 }
 
 //Support functions
