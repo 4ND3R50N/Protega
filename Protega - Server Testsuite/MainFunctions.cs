@@ -19,14 +19,14 @@ namespace Protega___Server_Testsuite
         ControllerCore Core;
 
        public MainFunctions()
-        {/*
-            Core = new ControllerCore("Test",10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()),3);
+        {
+            Core = new ControllerCore("Test", 10000, ';', 'a', "asdf", "mssql", "62.138.6.50", 1433, "sa", "h4TqSDs762eqbEyw", "Protega", String.Format(@"{0}/Test.txt", Directory.GetCurrentDirectory()), 3);
             Client.User = new Protega___Server.Classes.Entity.EPlayer();
             Client.SessionID = "123";
             Client.User.ID = "1234";
             Client.User.Application.ID = 1;
             Core.ActiveConnections.Add(Client);
-            CCstData.GetInstance(Core.Application).Logger.Seperate();*/
+            CCstData.GetInstance(Core.Application).Logger.Seperate();
         }
 
         [TestMethod]
@@ -160,9 +160,12 @@ namespace Protega___Server_Testsuite
         [TestMethod]
         public void testApplicationAdapter()
         {
-            ApplicationAdapter dummy = new ApplicationAdapter(Path.Combine(Environment.CurrentDirectory,"DLL", "Cabal.dll"));
-            Assert.IsTrue(dummy.BanUser());
-            Assert.IsTrue(dummy.KickUser());            
+            CCstData config = CCstData.GetInstance(Core.Application);
+            ApplicationAdapter dummy = new ApplicationAdapter(Path.Combine(Environment.CurrentDirectory, "Cabal.dll"));
+
+            Assert.IsTrue(dummy.PrepareServer("1.1.1.1", "hugo", "wurschd", 4711, null, "whoami", config));
+            Assert.IsTrue(dummy.AllowUser("IP", "UserName"));
+            Assert.IsTrue(dummy.BanUser("IP", "UserName", DateTime.Now));
         }
     }
 }

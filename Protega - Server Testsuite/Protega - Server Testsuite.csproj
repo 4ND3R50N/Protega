@@ -55,6 +55,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Protega - DemoApplicationAdapter\Cabal.csproj">
+      <Project>{580b6cfd-2360-4238-814c-a2d36f9941e6}</Project>
+      <Name>Cabal</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Protega - Server\Protega - Server.csproj">
       <Project>{1db87d3c-caa0-4b7b-9d32-b1180bc8b7c8}</Project>
       <Name>Protega - Server</Name>
