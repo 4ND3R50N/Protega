@@ -10,6 +10,8 @@ namespace Protega.ApplicationAdapter
     public class ApplicationAdapter
     {
         public delegate void LogError(int Importance, LogCategory Category, string Message);
+        public delegate void Testing(string Test);
+        public event Testing TestingEvent;
         event LogError Log;
         string IP, LoginName, LoginPass;
         int Port;
@@ -21,6 +23,11 @@ namespace Protega.ApplicationAdapter
 
         bool ServerPrepared = false;
 
+        public LogError LogIt(string MEssage)
+        {
+            return Log;
+        }
+
         #region Constructor
         /// <summary>
         /// Create the object for the application adapter
@@ -30,7 +37,15 @@ namespace Protega.ApplicationAdapter
         public ApplicationAdapter(string LogPath, int LogLevel)
         {
             this.LogPath = LogPath;
-            this.LogLevel = LogLevel;
+            this.LogLevel = LogLevel;            
+        }
+
+        public void SetEvent(Testing _Test)
+        { TestingEvent = _Test; }
+
+        public void TestEvent(string nothing)
+        {
+            TestingEvent("Succeeded!");
         }
         #endregion
 
@@ -45,9 +60,9 @@ namespace Protega.ApplicationAdapter
         /// <param name="DefaultCommand">A Linux command that should be executed in the beginning</param>
         /// <param name="LogFunction">Function to Log errors. (int Importance, LogCategory Category, string Message)</param>
         /// <returns></returns>
-        public bool PrepareServer(string ServerIP, string LoginName, string LoginPass, int LoginPort, List<int> BlockedPorts, string DefaultCommand, LogError LogFunction)
+        public bool PrepareServer(string ServerIP, string LoginName, string LoginPass, int LoginPort, List<int> BlockedPorts, string DefaultCommand)
         {
-            Log = LogFunction;
+            //Log = LogFunction;
             IP = ServerIP;
             this.LoginName = LoginName;
             this.LoginPass = LoginPass;

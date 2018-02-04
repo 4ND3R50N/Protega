@@ -59,7 +59,7 @@ namespace Protega___Server.Classes.Protocol
             }
             return false;
         }
-        
+  
 
         #region Authenticate User
         private bool AuthenticateUser(networkServer.networkClientInterface ClientInterface, Protocol prot)
@@ -157,26 +157,38 @@ namespace Protega___Server.Classes.Protocol
 
             //Add the new connection to the list of connected connections
             ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, "167.88.15.106", "root", "Wn51b453gpEdZTB5Bl", 22, KickUser);
-            ClientInterface.unixSshConnectorAccept.Connect();
-            if(ClientInterface.unixSshConnectorAccept.IsConnected)
+
+
+            bool IpExistsAlready= ActiveConnections.Select(Client => Client.IP == ClientInterface.IP).ToList().Count > 0;
+            
+            if (!IpExistsAlready)
             {
-                List<int> Ports = new List<int>();
-                Ports.Add(12001);
-                Ports.Add(12002);
-                Ports.Add(12003);
-
-                foreach (int item in Ports)
+                //If there is already an IP exception, we dont need another
+                ClientInterface.unixSshConnectorAccept.Connect();
+                if (ClientInterface.unixSshConnectorAccept.IsConnected)
                 {
-                    ClientInterface.unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT");
-                }
+                    List<int> Ports = new List<int>();
+                    Ports.Add(12001);
+                    Ports.Add(12002);
+                    Ports.Add(12003);
 
-                ClientInterface.unixSshConnectorAccept.Disconnect();
+                    foreach (int item in Ports)
+                    {
+                        ClientInterface.unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT");
+                    }
+
+                    ClientInterface.unixSshConnectorAccept.Disconnect();
+                }
+                else
+                {
+                    //Fehlerinfo
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, "Client could not be connected to the Linux Server. Session ID: " + ClientInterface.SessionID);
+                    return false;
+                }
             }
             else
             {
-                //Fehlerinfo
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, "Client could not be connected to the Linux Server. Session ID: " + ClientInterface.SessionID);
-                return false;
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, "Authentication: IP already exists");
             }
 
             ActiveConnections.Add(ClientInterface);
@@ -186,9 +198,31 @@ namespace Protega___Server.Classes.Protocol
             return true;
         }
 
-        void KickUser(networkServer.networkClientInterface Client)
+        void KickUser(networkServer.networkClientInterface ClientInterface)
         {
-            ActiveConnections.Remove(Client);
+            bool IpExistsAlready = ActiveConnections.Select(Client => Client.IP == ClientInterface.IP && Client.SessionID != ClientInterface.SessionID).ToList().Count > 0;
+            if (!IpExistsAlready)
+            {
+                //If there is another user with the same IP, we have to keep it in the IPTables
+                ClientInterface.unixSshConnectorAccept.Connect();
+                if (!ClientInterface.unixSshConnectorAccept.IsConnected)
+                {
+                    //Log error
+
+                }
+                List<int> Ports = new List<int>();
+                Ports.Add(12001);
+                Ports.Add(12002);
+                Ports.Add(12003);
+
+                foreach (int item in Ports)
+                {
+                    ClientInterface.unixSshConnectorAccept.RunCommand("iptables -D INPUT -p tcp -s " + IP + " --dport " + item + " -j ACCEPT");
+                }
+                ClientInterface.unixSshConnectorAccept.Disconnect();
+                ClientInterface.unixSshConnectorAccept.Dispose();
+            }
+            ActiveConnections.Remove(ClientInterface);
         }
 
         #endregion
