@@ -7,8 +7,8 @@
     <ProjectGuid>{580B6CFD-2360-4238-814C-A2D36F9941E6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Protega___DemoApplicationAdapter</RootNamespace>
-    <AssemblyName>Protega - DemoApplicationAdapter</AssemblyName>
+    <RootNamespace>Protega.ApplicationAdapter</RootNamespace>
+    <AssemblyName>Cabal</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -32,6 +32,7 @@
   <ItemGroup>
     <Reference Include="Renci.SshNet">
       <HintPath>..\Protega - Server\libs\Renci.SshNet.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -43,8 +44,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApplicationAdapter.cs" />
+    <Compile Include="LApplicationAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Protega - Server\Protega - Server.csproj">
+      <Project>{1db87d3c-caa0-4b7b-9d32-b1180bc8b7c8}</Project>
+      <Name>Protega - Server</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

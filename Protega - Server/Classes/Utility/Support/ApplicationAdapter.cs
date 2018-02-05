@@ -22,6 +22,7 @@ namespace Protega___Server.Classes.Utility.Support
         public ApplicationAdapter(string DllPath)
         {
             Assembly lib = Assembly.LoadFile(DllPath);
+            // maybe change this so that the class name can be loaded dyamically, e.g. from config file?
             Type type = lib.GetType("Protega.ApplicationAdapter.ApplicationAdapter");
             _adapter = Activator.CreateInstance(type);
             _KickUser = type.GetMethod("KickUser");
@@ -30,9 +31,9 @@ namespace Protega___Server.Classes.Utility.Support
             _PrepareServer = type.GetMethod("PrepareServer");
         }
 
-        public bool PrepareServer(string ServerIP, string LoginName, string LoginPass, int LoginPort, List<int> BlockedPorts, string DefaultCommand)
+        public bool PrepareServer(string ServerIP, string LoginName, string LoginPass, int LoginPort, List<int> BlockedPorts, string DefaultCommand, CCstData config)
         {
-            return (bool)_PrepareServer.Invoke(_adapter, new object[6] { ServerIP, LoginName, LoginPass, LoginPort, BlockedPorts, DefaultCommand });
+            return (bool)_PrepareServer.Invoke(_adapter, new object[7] { ServerIP, LoginName, LoginPass, LoginPort, BlockedPorts, DefaultCommand, config });
         }
 
         public bool AllowUser(string IP, string UserName)
