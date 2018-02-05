@@ -1,8 +1,8 @@
 #include "../stdafx.h"
 #include "Network_Manager.h"
 
-Network_Manager::Network_Manager(std::string sIP, int iPort, std::string sProtocolDelimiter, const char* sDataDelimiter, int iMaxRetries, int iNetworkErrorCode, 
-	std::function<void(NetworkTelegram Telegram)> funcCallbackHandler)
+Network_Manager::Network_Manager(std::string sIP, int iPort, std::string sProtocolDelimiter, const char* sDataDelimiter, int iMaxRetries, int iNetworkErrorCode,
+	std::function<void(unsigned int iTelegramNumber, std::vector<std::string> lParameters)> funcCallbackHandler)
 {
 	this->sIP = sIP;
 	this->iPort = iPort;
@@ -117,12 +117,12 @@ void Network_Manager::OnReceiveConverter(string sMessage)
 {
 	std::vector<std::string> lParameters;
 	boost::split(lParameters, sMessage, boost::is_any_of(sDataDelimiter));
-	NetworkTelegramMessage.iTelegramNumber = atoi(lParameters[0].c_str());
+
+	int iTelegramNumber = atoi(lParameters[0].c_str());
+
 	lParameters.erase(lParameters.begin());
-	NetworkTelegramMessage.lParameters = lParameters;
 
-	funcCallbackHandler(NetworkTelegramMessage);
-
+	funcCallbackHandler(iTelegramNumber, lParameters);
 }
 
 
