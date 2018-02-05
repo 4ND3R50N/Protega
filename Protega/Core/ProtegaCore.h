@@ -16,7 +16,7 @@ private:
 
 	//Main functions
 	//	Callbacks
-	void ServerAnswer(NetworkTelegram NetworkTelegramMessage);
+	void ServerAnswer(unsigned int iTelegramNumber, std::vector<std::string> lParameters);
 	void ProtectionManagerAnswer(std::list<std::string> sDetectionInformation);
 	//	Thread routine after start
 	void Update();

@@ -10,10 +10,10 @@ ProtegaCore::ProtegaCore()
 	//Init classes	
 	NetworkManager = new Network_Manager(Data_Manager::GetNetworkServerIP(), Data_Manager::GetNetworkServerPort(),
 		Data_Manager::GetProtocolDelimiter(), Data_Manager::GetDataDelimiter(), Data_Manager::GetNetworkMaxSendRetries(), Data_Manager::GetExceptionNetworkErrorNumber(),
-		std::bind(&ProtegaCore::ServerAnswer, this, std::placeholders::_1));
+		std::bind(&ProtegaCore::ServerAnswer, this, std::placeholders::_1, std::placeholders::_2));
 	//Set exception vars
-	Exception_Manager::SetExeptionCaption(Data_Manager::GetExceptionCaption());
-	Exception_Manager::SetTargetName(Data_Manager::GetLocalDataProtectionTarget().c_str());
+	Exception_Manager::SetErrorFileName(Data_Manager::GetExceptionErrorFileName());
+	Exception_Manager::SetCrashReporterName(Data_Manager::GetExceptionCrashReporterName());
 }
 
 
@@ -23,7 +23,6 @@ ProtegaCore::~ProtegaCore()
 
 void ProtegaCore::StartAntihack()
 {
-
 #pragma region Check local protega files
 	//Get logo file path
 	std::stringstream ss;
@@ -54,7 +53,9 @@ void ProtegaCore::StartAntihack()
 	do
 	{
 		Sleep(1000);
-	} while (!NetworkManager->GetAuthentificationSuccessStatus());
+	} while(!NetworkManager->GetAuthentificationSuccessStatus());
+
+
 #pragma endregion
 
 
@@ -102,20 +103,20 @@ void ProtegaCore::StartAntihack()
 }
 
 //Private
-void ProtegaCore::ServerAnswer(NetworkTelegram NetworkTelegramMessage)
+void ProtegaCore::ServerAnswer(unsigned int iTelegramNumber, std::vector<std::string> lParameters)
 {
 	//Handles incoming telegrams
 
-	switch (NetworkTelegramMessage.iTelegramNumber)
+	switch (iTelegramNumber)
 	{		
 	case 200: //Authentication Successfull
 		//Overwrites the Computer ID with the session id from the server
-		Data_Manager::SetLocalHardwareSID(NetworkTelegramMessage.lParameters[0]);
+		
+		Data_Manager::SetLocalHardwareSID(lParameters[0]);
 		break;		
 	case 201: //Authentication Unsuccessfull
 		//Writes the problem as a exception
-		Exception_Manager::HandleProtegaStandardError(atoi(NetworkTelegramMessage.lParameters[0].c_str()),
-			NetworkTelegramMessage.lParameters[1].c_str());
+		Exception_Manager::HandleProtegaStandardError(atoi(lParameters[0].c_str()), lParameters[1].c_str());
 		break;
 	case 300: //Ping without message
 		//Nothing happens here. The ping must not fail, that is the only condition. If the ping failes, there
@@ -158,6 +159,7 @@ void ProtegaCore::Update()
 		{
 			NetworkManager->Ping_600(Data_Manager::GetLocalHardwareSID());
 		}		
+		
 		ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
 		Sleep(1000);
 	} while (ProtectionManager->ProtectionIsRunning());
