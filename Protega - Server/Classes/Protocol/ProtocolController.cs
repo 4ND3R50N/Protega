@@ -35,9 +35,11 @@ namespace Protega___Server.Classes.Protocol
                 case 500:
                     return AuthenticateUser(NetworkClient, protocol); 
                 case 701:
-                    return HackDetection_Heuristic(protocol); 
+                    return HackDetection_Heuristic(NetworkClient, protocol); 
                 case 702:
-                    return HackDetection_VirtualMemory(protocol); 
+                    return HackDetection_VirtualMemory(NetworkClient, protocol);
+                case 703:
+                    return HackDetection_File(NetworkClient, protocol);
                 default:
                     CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, "Received invalid protocol: " + protocolString);
                     return false; 
@@ -59,7 +61,7 @@ namespace Protega___Server.Classes.Protocol
             }
             return false;
         }
-        
+  
 
         #region Authenticate User
         private bool AuthenticateUser(networkServer.networkClientInterface ClientInterface, Protocol prot)
@@ -157,26 +159,38 @@ namespace Protega___Server.Classes.Protocol
 
             //Add the new connection to the list of connected connections
             ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, "167.88.15.106", "root", "Wn51b453gpEdZTB5Bl", 22, KickUser);
-            ClientInterface.unixSshConnectorAccept.Connect();
-            if(ClientInterface.unixSshConnectorAccept.IsConnected)
+
+
+            bool IpExistsAlready= ActiveConnections.Select(Client => Client.IP == ClientInterface.IP).ToList().Count > 0;
+            
+            if (!IpExistsAlready)
             {
-                List<int> Ports = new List<int>();
-                Ports.Add(12001);
-                Ports.Add(12002);
-                Ports.Add(12003);
-
-                foreach (int item in Ports)
+                //If there is already an IP exception, we dont need another
+                ClientInterface.unixSshConnectorAccept.Connect();
+                if (ClientInterface.unixSshConnectorAccept.IsConnected)
                 {
-                    ClientInterface.unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT");
-                }
+                    List<int> Ports = new List<int>();
+                    Ports.Add(12001);
+                    Ports.Add(12002);
+                    Ports.Add(12003);
 
-                ClientInterface.unixSshConnectorAccept.Disconnect();
+                    foreach (int item in Ports)
+                    {
+                        ClientInterface.unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT");
+                    }
+
+                    ClientInterface.unixSshConnectorAccept.Disconnect();
+                }
+                else
+                {
+                    //Fehlerinfo
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, "Client could not be connected to the Linux Server. Session ID: " + ClientInterface.SessionID);
+                    return false;
+                }
             }
             else
             {
-                //Fehlerinfo
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, "Client could not be connected to the Linux Server. Session ID: " + ClientInterface.SessionID);
-                return false;
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, "Authentication: IP already exists");
             }
 
             ActiveConnections.Add(ClientInterface);
@@ -186,9 +200,33 @@ namespace Protega___Server.Classes.Protocol
             return true;
         }
 
-        void KickUser(networkServer.networkClientInterface Client)
+        void KickUser(networkServer.networkClientInterface ClientInterface)
         {
-            ActiveConnections.Remove(Client);
+            bool IpExistsAlready = ActiveConnections.Select(Client => Client.IP == ClientInterface.IP && Client.SessionID != ClientInterface.SessionID).ToList().Count > 0;
+            if (!IpExistsAlready)
+            {
+                //If there is another user with the same IP, we have to keep it in the IPTables
+                ClientInterface.unixSshConnectorAccept.Connect();
+                if (!ClientInterface.unixSshConnectorAccept.IsConnected)
+                {
+                    //Log error
+
+                }
+                List<int> Ports = new List<int>();
+                Ports.Add(12001);
+                Ports.Add(12002);
+                Ports.Add(12003);
+
+                foreach (int item in Ports)
+                {
+                    ClientInterface.unixSshConnectorAccept.RunCommand("iptables -D INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT");
+                }
+                ClientInterface.unixSshConnectorAccept.Disconnect();
+                ClientInterface.unixSshConnectorAccept.Dispose();
+            }
+            CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(3, LogCategory.OK, "User kicked. Session ID: " + ClientInterface.SessionID);
+            ActiveConnections.Remove(ClientInterface);
+            ClientInterface.Dispose();
         }
 
         #endregion
@@ -233,46 +271,136 @@ namespace Protega___Server.Classes.Protocol
 
 
         #region Hack Detections
-        private bool HackDetection_Heuristic(Protocol prot)
+        private bool HackDetection_Heuristic(networkServer.networkClientInterface Client, Protocol prot)
         {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "H-Detection received. User: "+ prot.GetUserID());
-            networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "H-Detection received. User: " + prot.GetUserID());
+            networkServer.networkClientInterface ClientInterface = Client;
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "H-Detection: User found in the active connections");
                 ArrayList Objects = prot.GetValues();
-                if(Objects.Count!=4)
+                if (Objects.Count != 2)
                 {
                     //Log error - protocol size not as expected
                     CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("H-Detection: Unexpected size of protocol. Expected are 4 but it was {0}. Protocol: {1}", Objects.Count, prot.GetOriginalString()));
-
+                    SendProtocol("401;5", ClientInterface);
+                    KickUser(ClientInterface);
                     return false;
                 }
 
-                string ProcessName = Convert.ToString(Objects[0]);
-                string WindowName = Convert.ToString(Objects[1]);
-                string ClassName = Convert.ToString(Objects[2]);
-                string MD5Value = Convert.ToString(Objects[3]);
+                //The section ID defines which hack detection method triggered
+                int SectionID;
+                if (!Int32.TryParse(Objects[0].ToString(), out SectionID))
+                {
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("H-Detection: Unexpected size of protocol. Expected are 4 but it was {0}. Protocol: {1}", Objects.Count, prot.GetOriginalString()));
+                    SendProtocol("401;13", ClientInterface);
+                    KickUser(ClientInterface);
+                }
+
+                string ProcessName = null;
+                string WindowName = null;
+                string ClassName = null;
+                string MD5Value = null;
+
+                switch (SectionID)
+                {
+                    case 1:
+                        ProcessName = Convert.ToString(Objects[1]);
+                        break;
+                    case 2:
+                        MD5Value = Convert.ToString(Objects[1]);
+                        break;
+                    default:
+                        break;
+                }
 
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "H-Detection: Saved protocol values: ProcessName: " + ProcessName + ", WindowName: " + WindowName + ", ClassName: " + ClassName + ", MD5Value: " + MD5Value);
 
-                if (!SHackHeuristic.Insert(ClientInterface.User.ID, ClientInterface.User.Application.ID, ProcessName, WindowName, ClassName, MD5Value))
+                int Counter = 0;
+                while (!SHackHeuristic.Insert(ClientInterface.User.ID, ClientInterface.User.Application.ID, ProcessName, WindowName, ClassName, MD5Value))
                 {
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("H-Detection: Insertion in database failed! Protocol: {0}", prot.GetOriginalString()));
-                    return false;
-                    //Log error - Hack insertion did not work
+                    Counter++;
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("H-Detection: Insertion in database failed! Attempt: {0}, Protocol: {1}", Counter, prot.GetOriginalString()));
+                    if (Counter > 3)
+                    {
+                        SendProtocol("401;6", ClientInterface);
+                        KickUser(ClientInterface);
+                        return false;
+                    }
                 }
+
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "H-Detection: Database interaction successful");
+                SendProtocol("400;8", ClientInterface);
+
+                KickUser(ClientInterface);
                 return true;
             }
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, "H-Detection: User not found in active connections!");
+            SendProtocol("401;7", ClientInterface);
+            KickUser(ClientInterface);
             return false;
         }
 
-        private bool HackDetection_VirtualMemory(Protocol prot)
+
+        private bool HackDetection_File(networkServer.networkClientInterface Client, Protocol prot)
+        {
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "F-Detection received. User: " + prot.GetUserID());
+            networkServer.networkClientInterface ClientInterface = Client;
+            if (CheckIfUserExists(prot.UserID, ref ClientInterface))
+            {
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "F-Detection: User found in the active connections");
+                ArrayList Objects = prot.GetValues();
+                if (Objects.Count != 2)
+                {
+                    //Log error - protocol size not as expected
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("F-Detection: Unexpected size of protocol. Expected are 4 but it was {0}. Protocol: {1}", Objects.Count, prot.GetOriginalString()));
+                    SendProtocol("401;5", ClientInterface);
+                    KickUser(ClientInterface);
+                    return false;
+                }
+
+                //The section ID defines which hack detection method triggered
+                int SectionID;
+                if (!Int32.TryParse(Objects[0].ToString(), out SectionID))
+                {
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("F-Detection: Unexpected size of protocol. Expected are 4 but it was {0}. Protocol: {1}", Objects.Count, prot.GetOriginalString()));
+                    SendProtocol("401;16", ClientInterface);
+                    KickUser(ClientInterface);
+                }
+
+                string Content =  Convert.ToString(Objects[1]);
+
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "F-Detection: Saved protocol values: CaseID: " + SectionID + ", Content: " + Content);
+
+                int Counter = 0;
+                while (!SHackFile.Insert(ClientInterface.User.ID, ClientInterface.User.Application.ID, SectionID, Content))
+                {
+                    Counter++;
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("F-Detection: Insertion in database failed! Attempt: {0}, Protocol: {1}", Counter, prot.GetOriginalString()));
+                    if (Counter > 3)
+                    {
+                        SendProtocol("401;15", ClientInterface);
+                        KickUser(ClientInterface);
+                        return false;
+                    }
+                }
+
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "F-Detection: Database interaction successful");
+                SendProtocol("400;14", ClientInterface);
+
+                KickUser(ClientInterface);
+                return true;
+            }
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, "F-Detection: User not found in active connections!");
+            SendProtocol("401;17", ClientInterface);
+            KickUser(ClientInterface);
+            return false;
+        }
+
+        private bool HackDetection_VirtualMemory(networkServer.networkClientInterface Client, Protocol prot)
         {
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "V-Detection received. User: "+prot.GetUserID());
-            networkServer.networkClientInterface ClientInterface = new networkServer.networkClientInterface();
+            networkServer.networkClientInterface ClientInterface = Client;
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
                 ArrayList Objects = prot.GetValues();
@@ -280,7 +408,8 @@ namespace Protega___Server.Classes.Protocol
                 {
                     //Log error - protocol size not as expected
                     CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("V-Detection: Unexpected size of protocol. Expected are 4 but it was {0}. Protocol: {1}", Objects.Count, prot.GetOriginalString()));
-
+                    SendProtocol("401;9", ClientInterface);
+                    KickUser(ClientInterface);
                     return false;
                 }
 
@@ -290,17 +419,28 @@ namespace Protega___Server.Classes.Protocol
                 string DefaultValue = Convert.ToString(Objects[3]);
 
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "V-Detection: Saved protocol successfully. Values: BaseAddress: " + BaseAddress + ", Offset: " + Offset + ", DetectedValue: " + DetectedValue + ", DefaultValue: " + DefaultValue);
-
-                if (!SHackVirtual.Insert(ClientInterface.User.ID, ClientInterface.User.Application.ID, BaseAddress, Offset, DetectedValue, DefaultValue))
+                
+                int Counter = 0;
+                while (!SHackVirtual.Insert(ClientInterface.User.ID, ClientInterface.User.Application.ID, BaseAddress, Offset, DetectedValue, DefaultValue))
                 {
+                    Counter++;
                     CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, String.Format("V-Detection: Insertion in database failed! Protocol: {0}", prot.GetOriginalString()));
-                    return false;
-                    //Log error - Hack insertion did not work
+                    if (Counter > 3)
+                    {
+                        SendProtocol("401;10", ClientInterface);
+                        KickUser(ClientInterface);
+                        return false;
+                    }
                 }
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "V-Detection: Database interaction successful");
+
+                SendProtocol("400;11", ClientInterface);
+                KickUser(ClientInterface);
                 return true;
             }
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, "V-Detection: User not found in active connections!");
+            SendProtocol("401;12", ClientInterface);
+            KickUser(ClientInterface);
             return false;
         }
         #endregion

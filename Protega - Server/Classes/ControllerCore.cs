@@ -237,7 +237,13 @@ namespace Protega___Server.Classes.Core
         public void SendProtocol(string Protocol, networkServer.networkClientInterface ClientInterface)
         {
             //encrypt protocol
-            string EncryptedProt = AES_Converter.EncryptWithCBC(CCstData.GetInstance(Application).EncryptionKey, CCstData.GetInstance(Application).EncryptionIV, Protocol) + "~";
+            string EncryptedProt = AES_Converter.EncryptWithCBC(CCstData.GetInstance(Application).EncryptionKey, CCstData.GetInstance(Application).EncryptionIV, Protocol);
+            string LengthAddition = EncryptedProt.Length.ToString();
+            while (LengthAddition.Length < 3)
+            {
+                LengthAddition = "0" + LengthAddition;
+            }
+            EncryptedProt = LengthAddition + EncryptedProt;
             CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, String.Format("Protocol encrypted: {0} ({1})", EncryptedProt, Protocol));
 
             TcpServer.sendMessage(EncryptedProt, ClientInterface);

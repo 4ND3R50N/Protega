@@ -13,7 +13,12 @@ namespace Protega.ApplicationAdapter
     // Oder der Server muss so umgebaut werden, dass der Klassenname per config file angegeben werden kann
     public class ApplicationAdapter
     {
-        CCstData config;
+        public delegate void LogError(int Importance, LogCategory Category, string Message);
+        public delegate void Testing(string Test);
+        public event Testing TestingEvent;
+        event LogError Log;
+        Support.logWriter.WriteLog LogFunction;
+
         string IP, LoginName, LoginPass;
         int Port;
 
@@ -24,6 +29,11 @@ namespace Protega.ApplicationAdapter
 
         bool ServerPrepared = false;
 
+        public LogError LogIt(string MEssage)
+        {
+            return Log;
+        }
+
         #region Constructor
         /// <summary>
         /// Create the object for the application adapter
@@ -33,7 +43,15 @@ namespace Protega.ApplicationAdapter
         public ApplicationAdapter(string LogPath, int LogLevel)
         {
             this.LogPath = LogPath;
-            this.LogLevel = LogLevel;
+            this.LogLevel = LogLevel;            
+        }
+
+        public void SetEvent(Testing _Test)
+        { TestingEvent = _Test; }
+
+        public void TestEvent(string nothing)
+        {
+            TestingEvent("Succeeded!");
         }
         #endregion
 
@@ -47,15 +65,16 @@ namespace Protega.ApplicationAdapter
         /// <param name="BlockedPorts">Ports to be blocked. Null if not needed</param>
         /// <param name="DefaultCommand">A Linux command that should be executed in the beginning</param>
         /// <param name="LogFunction">Function to Log errors. (int Importance, LogCategory Category, string Message)</param>
-        /// <returns></returns>
-        public bool PrepareServer(string ServerIP, string LoginName, string LoginPass, int LoginPort, List<int> BlockedPorts, string DefaultCommand, CCstData config)
+        /// <returns>Bool Successful</returns>
+//
+        public bool PrepareServer(string ServerIP, string LoginName, string LoginPass, int LoginPort, List<int> BlockedPorts, string DefaultCommand, Support.logWriter.WriteLog LogFunction)
         {
-            this.config = config;
             IP = ServerIP;
             this.LoginName = LoginName;
             this.LoginPass = LoginPass;
             Port = LoginPort;
             this.BlockedPorts = BlockedPorts;
+            this.LogFunction = LogFunction;
 
             // SSH Login SHOULD be based on certificates, not username/password!
             SshClient unixSshConnectorAccept = new SshClient(IP, LoginPort, LoginName, LoginPass);
@@ -63,22 +82,22 @@ namespace Protega.ApplicationAdapter
 
             if (!unixSshConnectorAccept.IsConnected)
             {
-                this.config.Logger.writeInLog(1, LogCategory.ERROR, "Cannot connect to Linux Server!");
+                LogFunction(1, LogCategory.ERROR, "Cannot connect to Linux Server!");
                 return false;
             }
-            this.config.Logger.writeInLog(1, LogCategory.OK, "Linux Server connected successfully!");
+            LogFunction(1, LogCategory.OK, "Linux Server connected successfully!");
 
             if (DefaultCommand != null && DefaultCommand.Length > 0)
             {
                 bool Success = unixSshConnectorAccept.RunCommand(DefaultCommand).Error.Length == 0;
                 if (!Success)
                 {
-                    this.config.Logger.writeInLog(1, LogCategory.ERROR, "Cannot execute starting Query!");
+                    LogFunction(1, LogCategory.ERROR, "Cannot execute starting Query!");
                     return false;
                 }
                 else
                 {
-                    this.config.Logger.writeInLog(2, LogCategory.OK, "Starting Query executed successfully!");
+                    LogFunction(2, LogCategory.OK, "Starting Query executed successfully!");
                 }
             }
             else
@@ -96,12 +115,12 @@ namespace Protega.ApplicationAdapter
                         PortBlockingSucceeded = unixSshConnectorAccept.RunCommand("iptables -A INPUT -p tcp --destination-port " + item + " -j DROP").Error.Length == 0;
                     else
                     {
-                        this.config.Logger.writeInLog(1, LogCategory.ERROR, string.Format("Could not block Port {0}", item));
+                        LogFunction(1, LogCategory.ERROR, string.Format("Could not block Port {0}", item));
                         return false;
                     }
                 }
 
-                this.config.Logger.writeInLog(3, LogCategory.OK, "Ports successfully blocked!");
+                LogFunction(3, LogCategory.OK, "Ports successfully blocked!");
             }
 
             bool IPTablesSave;
@@ -109,7 +128,7 @@ namespace Protega.ApplicationAdapter
 
             if(!IPTablesSave)
             {
-                this.config.Logger.writeInLog(1, LogCategory.ERROR, "Could not save IPTables!");
+                LogFunction(1, LogCategory.ERROR, "Could not save IPTables!");
                 return false;
             }
 
@@ -117,12 +136,12 @@ namespace Protega.ApplicationAdapter
             IPTablesStart = unixSshConnectorAccept.RunCommand("service iptables start").Error.Length != 0;
             if(!IPTablesStart)
             {
-                this.config.Logger.writeInLog(1, LogCategory.ERROR, "Could not start IPTables!");
+                LogFunction(1, LogCategory.ERROR, "Could not start IPTables!");
                 return false;
             }
             
             unixSshConnectorAccept.Disconnect();
-            this.config.Logger.writeInLog(1, LogCategory.OK, "Linux interaction successful!");
+            LogFunction(1, LogCategory.OK, "Linux interaction successful!");
 
             ServerPrepared = true;
             return true;
@@ -133,17 +152,17 @@ namespace Protega.ApplicationAdapter
         {
             if(!ServerPrepared)
             {
-                config.Logger.writeInLog(1, LogCategory.ERROR, "Server must be prepared at first!");
+                LogFunction(1, LogCategory.ERROR, "Server must be prepared at first!");
                 return false;
             }
 
-            config.Logger.writeInLog(3, LogCategory.OK, "Adding User to IPTables initiated!");
+            LogFunction(3, LogCategory.OK, "Adding User to IPTables initiated!");
             SshClient unixSshConnectorAccept = new SshClient(IP, Port, LoginName, LoginPass);
             unixSshConnectorAccept.Connect();
 
             if (!unixSshConnectorAccept.IsConnected)
             {
-                config.Logger.writeInLog(2, LogCategory.ERROR, String.Format("Could not connect to IPTables. Add IP: {0}", IP));
+                LogFunction(2, LogCategory.ERROR, String.Format("Could not connect to IPTables. Add IP: {0}", IP));
                 return false;
             }
 
@@ -155,25 +174,25 @@ namespace Protega.ApplicationAdapter
                     AddToPortsSuceeded = unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp -s " + IP + " --dport " + item + " -j ACCEPT").Error.Length == 0;
                 else
                 {
-                    config.Logger.writeInLog(2, LogCategory.ERROR, String.Format("Could not add IP to Port. Port: {0}, IP: {1}", item, IP));
+                    LogFunction(2, LogCategory.ERROR, String.Format("Could not add IP to Port. Port: {0}, IP: {1}", item, IP));
                     return false;
                 }
             }
-            if (AddToPortsSuceeded)
-                config.Logger.writeInLog(3, LogCategory.OK, String.Format("Successfully added IP {0} to Ports.", IP));
+            //if (AddToPortsSuceeded)
+                LogFunction(3, LogCategory.OK, String.Format("Successfully added IP {0} to Ports.", IP));
 
             return true;
         }
 
         public bool KickUser(string IP, string UserName)
         {
-            config.Logger.writeInLog(3, LogCategory.OK, "Kicking from IPTables initiated!");
+            LogFunction(3, LogCategory.OK, "Kicking from IPTables initiated!");
             SshClient unixSshConnectorAccept = new SshClient(IP, Port, LoginName, LoginPass);
             unixSshConnectorAccept.Connect();
 
             if(!unixSshConnectorAccept.IsConnected)
             {
-                config.Logger.writeInLog(2, LogCategory.ERROR, String.Format("Could not connect to IPTables. KickIP: {0}", IP));
+                LogFunction(2, LogCategory.ERROR, String.Format("Could not connect to IPTables. KickIP: {0}", IP));
                 return false;
             }
 
@@ -185,17 +204,17 @@ namespace Protega.ApplicationAdapter
                     KickFromPortsSuceeded = unixSshConnectorAccept.RunCommand("iptables -D INPUT -p tcp -s " + IP + " --dport " + item + " -j ACCEPT").Error.Length == 0;
                 else
                 {
-                    config.Logger.writeInLog(2, LogCategory.ERROR, String.Format("Could not kick from Port. Port: {0}, IP: {1}", item, IP));
+                    LogFunction(2, LogCategory.ERROR, String.Format("Could not kick from Port. Port: {0}, IP: {1}", item, IP));
                     return false;
                 }
             }
-            if (KickFromPortsSuceeded)
-                config.Logger.writeInLog(3, LogCategory.OK, String.Format("Successfully kicked IP {0} from Ports.", IP));
+            //if (KickFromPortsSuceeded)
+                LogFunction(3, LogCategory.OK, String.Format("Successfully kicked IP {0} from Ports.", IP));
 
             return true;
         }
 
-        public bool BanUser() { Console.WriteLine("Ban User"); return true; }
+        public bool BanUser() { Console.WriteLine("Ban User"); return false; }
         #endregion
 
     }

@@ -136,12 +136,13 @@ namespace Protega___Server
                 byte[] bytes = Encoding.Default.GetBytes(message);
                 client.networkSocket.Send(bytes, bytes.Length,
                                 SocketFlags.None);
+                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, String.Format("Protocol sending succeeded. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
                 //Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, String.Format("Protocol sent. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
             }
             catch (Exception e)
             {
-                closeConnection(client);
                 Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.ERROR, String.Format("Protocol sending failed. Protocol: {0}, Session: {1}, HardwareID: {2}. Error {3}", message, client.SessionID, client.User.ID, e.Message));
+                closeConnection(client);
             }
         }
 
@@ -200,25 +201,7 @@ namespace Protega___Server
 
             private void TmrPing_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
             {
-                
                 //Kick - Timer elapsed
-                unixSshConnectorAccept.Connect();
-                if(!unixSshConnectorAccept.IsConnected)
-                {
-                    //Log error
-
-                }
-                List<int> Ports = new List<int>();
-                Ports.Add(12001);
-                Ports.Add(12002);
-                Ports.Add(12003);
-                
-                foreach (int item in Ports)
-                    {
-                        unixSshConnectorAccept.RunCommand("iptables -D INPUT -p tcp -s " + IP + " --dport " + item + " -j ACCEPT");
-                    }
-                unixSshConnectorAccept.Disconnect();
-                unixSshConnectorAccept.Dispose();
                 Kick(this);
 
                 Classes.CCstData.GetInstance(this.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, String.Format("User timeout! Session: {0}, HardwareID: {1}", this.SessionID, this.User.ID));

@@ -10,6 +10,8 @@ namespace Support
 {
     public class logWriter
     {
+        public delegate void WriteLog(int Importance, LogCategory Category, string Message);
+        public WriteLog writeLog;
         string path;
         int LogLevel;
 
@@ -17,6 +19,7 @@ namespace Support
         {
             this.path = path;
             this.LogLevel = LogLevel;
+            writeLog += writeInLog;
         }
 
         public void writeInLog(int Importance, LogCategory Category, string Message)
