@@ -30,6 +30,7 @@ namespace Protega___Server.Classes
         #region Hack Detection
         public const string SP_HackDetection_Insert_Heuristic = "HackDetection_Insert_Heuristic";
         public const string SP_HackDetection_Insert_VirtualMemory = "HackDetection_Insert_VirtualMemory";
+        public const string SP_HackDetection_Insert_File = "HackDetection_Insert_File";
         #endregion
 
         #endregion
