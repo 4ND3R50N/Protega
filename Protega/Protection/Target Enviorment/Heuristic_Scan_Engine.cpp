@@ -5,7 +5,7 @@ Heuristic_Scan_Engine::Heuristic_Scan_Engine(std::vector<std::wstring> lBlackLis
 	std::vector<std::string> lBlackListWindowNames,
 	std::vector<std::string> lBlackListClassNames,
 	std::vector<std::string> lBlackListMd5Values,
-	std::function<void(std::string sDetectedValue) > funcErrorCallbackHandler)
+	std::function<void(std::string sSection, std::string sDetectedValue) > funcErrorCallbackHandler)
 {
 	//Set data
 	this->vBlackListProcessNames = lBlackListProcessNames;
@@ -93,7 +93,7 @@ bool Heuristic_Scan_Engine::DetectBlacklistedProcessNames()
 
 			//use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
 			sItBlackListEntry = converter.to_bytes(wsItBlackListEntry);
-			funcErrorCallbackHandler(sItBlackListEntry);
+			funcErrorCallbackHandler("1", sItBlackListEntry);
 			return true;
 		}
 		iForCounter++;
@@ -156,7 +156,7 @@ bool Heuristic_Scan_Engine::DetectBlacklistedProcessMd5Hash()
 
 			if (bEntryFound)
 			{
-				funcErrorCallbackHandler(sMD5Hash);
+				funcErrorCallbackHandler("2", sMD5Hash);
 			}
 		}
 		

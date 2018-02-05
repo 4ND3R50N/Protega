@@ -85,7 +85,7 @@ void ProtegaCore::StartAntihack()
 	std::vector<std::string> vBlackListWindowName;
 	std::vector<std::string> vBlackListClassName;
 
-	ProtectionManager = new Protection_Manager(std::bind(&ProtegaCore::ProtectionManagerAnswer, this, std::placeholders::_1), (int)GetCurrentProcessId(),
+	ProtectionManager = new Protection_Manager(std::bind(&ProtegaCore::ProtectionManagerAnswer, this, std::placeholders::_1, std::placeholders::_2), (int)GetCurrentProcessId(),
 		Data_Manager::GetProtectionThreadResponseDelta(), Data_Manager::GetExceptionVmErrorNumber(), Data_Manager::GetExceptionFpErrorNumber(), Data_Manager::GetExceptionThreadErrorNumber(),
 		Data_Manager::GetProtectionMaxFpDll(), Data_Manager::GetHeuristicProcessNames(), vBlackListWindowName, vBlackListClassName, Data_Manager::GetHeuristicMD5Values(),
 		Data_Manager::GetFilesToCheckValues());
@@ -123,30 +123,55 @@ void ProtegaCore::ServerAnswer(unsigned int iTelegramNumber, std::vector<std::st
 		//is a error message in Network_Manager::SendAndGet anyway.
 		break;
 	case 301: //Ping with message
-
+		
+	case 400: //Hack detect successfull
+		Exception_Manager::HandleProtegaStandardError(atoi(lParameters[0].c_str()),
+			"Hack detected!");
+		break;
+	case 401: //Hack detect not successfull
+		Exception_Manager::HandleProtegaStandardError(atoi(lParameters[0].c_str()),
+			"Hack detected!");
 		break;
 	default:
 		break;
 	}
 }
 
-void ProtegaCore::ProtectionManagerAnswer(std::list<std::string> sDetectionInformation)
+void ProtegaCore::ProtectionManagerAnswer(unsigned int iType, std::vector<std::string> vDetectionInformation)
 {
-	std::stringstream ss;
-	std::list<std::string>::iterator sIt;
 
-	ss << "Hack Detect! Debug: ";
-	for (sIt = sDetectionInformation.begin(); sIt != sDetectionInformation.end(); sIt++)
+	switch (iType)
 	{
-		std::string& sItData(*sIt);
-		ss << sItData << " || ";
+		//HE
+	case 1:
+		NetworkManager->HackDetection_HE_701(Data_Manager::GetLocalHardwareSID(), atoi(vDetectionInformation[0].c_str()),
+			vDetectionInformation[1]);
+		break;
+		//VMP
+	case 2:
+		NetworkManager->HackDetection_VMP_702(Data_Manager::GetLocalHardwareSID(), vDetectionInformation[0], vDetectionInformation[1],
+			vDetectionInformation[2], vDetectionInformation[3]);
+		break;
+		//FP
+	case 3:
+		NetworkManager->HackDetection_FP_703(Data_Manager::GetLocalHardwareSID(), atoi(vDetectionInformation[0].c_str()), vDetectionInformation[1]);
+		break;
+	default:
+		break;
 	}
 
-	Exception_Manager::HandleProtegaStandardError(Data_Manager::GetExceptionLocalFileErrorNumber(),
-		ss.str().c_str());
+	//std::stringstream ss;
+	//std::list<std::string>::iterator sIt;
 
-	//Send hack detect to server
+	//ss << "Hack Detect! Debug: ";
+	//for (sIt = sDetectionInformation.begin(); sIt != sDetectionInformation.end(); sIt++)
+	//{
+	//	std::string& sItData(*sIt);
+	//	ss << sItData << " || ";
+	//}
 
+	//Exception_Manager::HandleProtegaStandardError(Data_Manager::GetExceptionLocalFileErrorNumber(),
+	//	ss.str().c_str());
 }
 
 void ProtegaCore::Update()
@@ -163,6 +188,9 @@ void ProtegaCore::Update()
 		ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
 		Sleep(1000);
 	} while (ProtectionManager->ProtectionIsRunning());
+
+	//Temporary
+	Sleep(10000);
 }
 
 //Support functions

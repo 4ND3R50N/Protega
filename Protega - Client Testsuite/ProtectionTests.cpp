@@ -31,7 +31,7 @@ namespace ProtegaClientTestsuite
 			vBlackListMd5Values.push_back("1c32647a706fbef6faeac45a75201489");
 			vBlackListClassNames.push_back("miaudfhh");
 
-			Protection_Manager* PM = new Protection_Manager(std::bind(&ProtectionTests::PM_Callback, this, std::placeholders::_1),
+			Protection_Manager* PM = new Protection_Manager(std::bind(&ProtectionTests::PM_Callback, this, std::placeholders::_1, std::placeholders::_2),
 				9999, 20, 1, 2, 2, 99,
 				vBlackListProcessNames, vBlackListWindowNames, vBlackListClassNames, vBlackListMd5Values,
 				std::pair<std::vector<std::string>,std::vector<std::string>>());
@@ -43,7 +43,7 @@ namespace ProtegaClientTestsuite
 			} while (!bDetect);
 		}
 
-		void PM_Callback(std::list<std::string> lDetectionInformation)
+		void PM_Callback(unsigned int test, std::vector<std::string> lDetectionInformation)
 		{
 			MessageBoxA(0, "PM_Callback", "PM_Callback", MB_OK);
 		}

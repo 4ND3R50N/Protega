@@ -24,7 +24,7 @@ private:
 	std::clock_t ctVmpResponse = 0;
 	std::clock_t ctFpResponse = 0;
 
-	std::function<void(std::list<std::string> lDetectionInformation)> funcCallbackHandler;
+	std::function<void(unsigned int iType, std::vector<std::string> lDetectionInformation)> funcCallbackHandler;
 
 	//Classes
 	Heuristic_Scan_Engine* HE;
@@ -37,16 +37,16 @@ private:
 	void HE_Thread();
 	void FP_Thread();
 	//	Callbacks
-	void HE_Callback(std::string sDetectionValue);
+	void HE_Callback(std::string sSection, std::string sDetectionValue);
 	void VMP_Callback(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sDefaultValue);
-	void FP_Callback(std::string sFile, std::string sMd5, bool bInjection);
+	void FP_Callback(std::string sSection, std::string sDetectionValue);
 	// Test
 
 	// Normal functions
 	int GetProcessIdByName(char* ProcName);
 	void StringToWString(std::string sStringToConvert, std::wstring* wsOutput);
 public:
-	Protection_Manager(std::function<void(std::list<std::string> lDetectionInformation)> funcCallbackHandler,
+	Protection_Manager(std::function<void(unsigned int iType, std::vector<std::string> lDetectionInformation)> funcCallbackHandler,
 		int iTargetApplicationId,
 		double dThreadResponseDelta,
 		int iVMErrorCode,

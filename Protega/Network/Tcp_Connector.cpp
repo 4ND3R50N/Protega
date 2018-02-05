@@ -48,8 +48,6 @@ bool Tcp_Connector::SendAndReceive(string sMessage)
 	}
 	
 	m_Socket.send(boost::asio::buffer(m_SendBuffer.c_str(), m_SendBuffer.length() + 1));
-	char *cTmpJunk;
-	char *cJunk;
 
 	std::string sDecryptedMessage;
 	//INFO: This "for" runs the entire time

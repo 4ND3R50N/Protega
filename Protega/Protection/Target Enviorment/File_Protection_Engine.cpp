@@ -2,7 +2,7 @@
 #include "File_Protection_Engine.h"
 
 File_Protection_Engine::File_Protection_Engine(int iTargetApplicationId, 
-	std::function<void(std::string sFile, std::string sMd5, bool bInjection) > funcDetectCallbackHandler,
+	std::function<void(std::string s, std::string sMd5) > funcDetectCallbackHandler,
 	std::pair<std::vector<std::string>, std::vector<std::string>> pFileAndMd5, int iMaxPossibleDlls)
 {
 	this->pFileAndMd5 = pFileAndMd5;
@@ -24,7 +24,8 @@ int File_Protection_Engine::DetectLocalFileChange()
 
 		if (sActualMd5 != pFileAndMd5.second[i])
 		{
-			funcDetectCallbackHandler(pFileAndMd5.first[i], pFileAndMd5.second[i], false);
+			//funcDetectCallbackHandler(pFileAndMd5.first[i], pFileAndMd5.second[i], false);
+			funcDetectCallbackHandler("1", pFileAndMd5.second[i]);
 			return 2;
 		}
 	}
@@ -64,7 +65,7 @@ int File_Protection_Engine::DetectInjection()
 		/*std::stringstream ss;
 		ss << "Number of ddls: " << iModuleCounter << " || " << "allowed are_: " << iMaxPossibleDlls;
 		MessageBoxA(0, ss.str().c_str(), "MessageBox caption", MB_OK);*/
-		funcDetectCallbackHandler("Main Application", "-", true);
+		funcDetectCallbackHandler("2", std::to_string(iModuleCounter));
 		return 2;
 	}
 	

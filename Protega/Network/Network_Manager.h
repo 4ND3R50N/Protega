@@ -24,16 +24,21 @@ private:
 
 	int iMaxRetries = 0;
 
-#pragma region Protocol related vars
 	int iAuthenticationTries = 0;
 	bool bAuthenticationSuccess = false;
 
 	int iPingTries = 0;
 	bool bPingSuccess = false;
-#pragma endregion
-	
+
+	//Only one pair for 3 protocols.
+	int iHackDetectionTries = 0;
+	bool bHackDetectionSuccess = false;
+
 	const int iAuthenticationProtocolID = 500;
 	const int iPingProtocolID = 600;
+	const int iHackDetectionHeID = 701;
+	const int iHackDetectionVmpID = 702;
+	const int iHackDetectionFpID = 703;
 
 	//Functions
 	bool SendAndGet(bool * bActualProtocolSuccessVar, int * iActualProtocolTryVar, std::string sMessage);
@@ -47,6 +52,10 @@ public:
 	bool TestMessage_001();
 	void Authentication_500(std::string sHardwareID, int iVersion, std::string sComputerArchitecture, std::string sLanguage);
 	void Ping_600(std::string sSessionID);
+	void HackDetection_HE_701(std::string sSessionID, unsigned int iHeSection, std::string sContent);
+	void HackDetection_VMP_702(std::string sSessionID, std::string sBaseAddress, std::string sOffset, std::string sDetectedValue, 
+		std::string sDefaultValue);
+	void HackDetection_FP_703(std::string sSessionID, unsigned int iFpSection, std::string sContent);
 
 	//Getter
 	bool GetAuthentificationSuccessStatus();

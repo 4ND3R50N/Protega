@@ -1,7 +1,7 @@
 #include "../stdafx.h"
 #include "Protection_Manager.h"
 
-Protection_Manager::Protection_Manager(std::function<void(std::list<std::string> lDetectionInformation)> funcCallbackHandler,
+Protection_Manager::Protection_Manager(std::function<void(unsigned int iType, std::vector<std::string> lDetectionInformation)> funcCallbackHandler,
 	int iTargetApplicationId,
 	double dThreadResponseDelta,
 	int iVMErrorCode,
@@ -31,13 +31,13 @@ Protection_Manager::Protection_Manager(std::function<void(std::list<std::string>
 	//Build protection classes
 	//	HE
 	HE = new Heuristic_Scan_Engine(vBlackListProcessNames, vBlackListWindowNames, vBlackListClassNames, vBlackListMd5Values, 
-		std::bind(&Protection_Manager::HE_Callback, this, std::placeholders::_1));
+		std::bind(&Protection_Manager::HE_Callback, this, std::placeholders::_1, std::placeholders::_2));
 	//	VMP
 	VMP = new Virtual_Memory_Protection_Cabal_Online(iTargetProcessId,
 		std::bind(&Protection_Manager::VMP_Callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 	//	File
 	FP = new File_Protection_Engine(iTargetProcessId,
-		std::bind(&Protection_Manager::FP_Callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), pFilesAndMd5, iFPMaxDlls);
+		std::bind(&Protection_Manager::FP_Callback, this, std::placeholders::_1, std::placeholders::_2), pFilesAndMd5, iFPMaxDlls);
 
 }
 
@@ -221,51 +221,39 @@ void Protection_Manager::FP_Thread()
 }
 
 //	Callbacks
-void Protection_Manager::HE_Callback(std::string sDetectionValue)
+void Protection_Manager::HE_Callback(std::string sSection, std::string sDetectionValue)
 {
 	bProtectionIsRunning = false;
-	std::list<std::string> lDetectionInformation;
-	lDetectionInformation.push_back("HE");
+	std::vector<std::string> lDetectionInformation;
+	lDetectionInformation.push_back(sSection);
 	lDetectionInformation.push_back(sDetectionValue);
-	funcCallbackHandler(lDetectionInformation);
+	funcCallbackHandler(1, lDetectionInformation);
 }
 
 void Protection_Manager::VMP_Callback(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sDefaultValue)
 {
 	bProtectionIsRunning = false;
 
-	std::list<std::string> lDetectionInformation;
-	lDetectionInformation.push_back("VMP");	
+	std::vector<std::string> lDetectionInformation;	
 	lDetectionInformation.push_back(sDetectedBaseAddress);
 	lDetectionInformation.push_back(sDetectedOffset);
 	lDetectionInformation.push_back(sDetectedValue);
 	lDetectionInformation.push_back(sDefaultValue);
 
-	funcCallbackHandler(lDetectionInformation);
+	funcCallbackHandler(2, lDetectionInformation);
 }
 
-void Protection_Manager::FP_Callback(std::string sFile, std::string sMd5, bool bInjection)
+void Protection_Manager::FP_Callback(std::string sSection, std::string sDetectionValue)
 {
 	bProtectionIsRunning = false;
 
 	std::string sInjection = "";
 
+	std::vector<std::string> lDetectionInformation;
+	lDetectionInformation.push_back(sSection);
+	lDetectionInformation.push_back(sDetectionValue);
 
-	if (bInjection)
-	{
-		sInjection = "1";
-	}
-	else
-	{
-		sInjection = "0";
-	}
-	std::list<std::string> lDetectionInformation;
-	lDetectionInformation.push_back("FP");
-	lDetectionInformation.push_back(sFile);
-	lDetectionInformation.push_back(sMd5);
-	lDetectionInformation.push_back(sInjection);
-
-	funcCallbackHandler(lDetectionInformation);
+	funcCallbackHandler(3, lDetectionInformation);
 }
 
 //	Normal functions

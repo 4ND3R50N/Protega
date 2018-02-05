@@ -56,6 +56,37 @@ void Network_Manager::Ping_600(std::string sSessionID)
 	th.join();
 }
 
+void Network_Manager::HackDetection_HE_701(std::string sSessionID, unsigned int iHeSection, std::string sContent)
+{
+	//Build protocol
+	std::stringstream ss;
+	ss << iHackDetectionHeID << sDataDelimiter << sSessionID << sDataDelimiter << iHeSection << sDataDelimiter << sContent;
+
+	std::thread th(&Network_Manager::SendAndGet, this, &bAuthenticationSuccess, &iHackDetectionTries, ss.str());
+	th.join();
+}
+
+void Network_Manager::HackDetection_VMP_702(std::string sSessionID, std::string sBaseAddress, std::string sOffset, std::string sDetectedValue, std::string sDefaultValue)
+{
+	//Build protocol
+	std::stringstream ss;
+	ss << iHackDetectionVmpID << sDataDelimiter << sSessionID << sDataDelimiter << sBaseAddress << sDataDelimiter << sOffset << sDataDelimiter
+		<< sDetectedValue << sDataDelimiter << sDefaultValue;
+
+	std::thread th(&Network_Manager::SendAndGet, this, &bAuthenticationSuccess, &iHackDetectionTries, ss.str());
+	th.join();
+}
+
+void Network_Manager::HackDetection_FP_703(std::string sSessionID, unsigned int iFpSection, std::string sContent)
+{
+	//Build protocol
+	std::stringstream ss;
+	ss << iHackDetectionFpID << sDataDelimiter << sSessionID << sDataDelimiter << iFpSection << sDataDelimiter << sContent;
+
+	std::thread th(&Network_Manager::SendAndGet, this, &bAuthenticationSuccess, &iHackDetectionTries, ss.str());
+	th.join();
+}
+
 //Getter
 bool Network_Manager::GetAuthentificationSuccessStatus()
 {
@@ -95,6 +126,7 @@ bool Network_Manager::SendAndGet(bool * bActualProtocolSuccessVar, int * iActual
 	{
 		//if the send/get was not successfull, retry the process. Use the current iActualTryVar address of the specific int value of the protocol to compare it with the max tries.
 		//if its lower, then retry, if not, error
+
 		int iActualTries = *iActualProtocolTryVar;
 		
 		if (iActualTries <= iMaxRetries)

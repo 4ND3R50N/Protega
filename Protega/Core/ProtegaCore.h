@@ -16,8 +16,8 @@ private:
 
 	//Main functions
 	//	Callbacks
-	void ServerAnswer(unsigned int iTelegramNumber, std::vector<std::string> lParameters);
-	void ProtectionManagerAnswer(std::list<std::string> sDetectionInformation);
+	void ServerAnswer(unsigned int iTelegramNumber, std::vector<std::string> vInformation);
+	void ProtectionManagerAnswer(unsigned int iType, std::vector<std::string> vDetectionInformation);
 	//	Thread routine after start
 	void Update();
 	
