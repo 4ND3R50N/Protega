@@ -160,19 +160,17 @@ namespace Protega___Server_Testsuite
         [TestMethod]
         public void testApplicationAdapter()
         {
-<<<<<<< HEAD
-            ApplicationAdapter dummy = new ApplicationAdapter(Path.Combine(Environment.CurrentDirectory,"DLL", "Cabal.dll"),new Protega___Server.Classes.Entity.EApplication());
-            dummy.PrepareServer("", "", "", 0, null, "");
+            ApplicationAdapter dummy = new ApplicationAdapter(Path.Combine(Environment.CurrentDirectory, "DLL", "Cabal.dll"), Core.Application);
+            //dummy.PrepareServer("", "", "", 0, null, "");
             //Assert.IsTrue(dummy.BanUser());
-            //Assert.IsTrue(dummy.KickUser());            
-=======
-            CCstData config = CCstData.GetInstance(Core.Application);
-            ApplicationAdapter dummy = new ApplicationAdapter(Path.Combine(Environment.CurrentDirectory, "Cabal.dll"));
+            //Assert.IsTrue(dummy.KickUser());           
 
-            Assert.IsTrue(dummy.PrepareServer("1.1.1.1", "hugo", "wurschd", 4711, null, "whoami", config));
-            Assert.IsTrue(dummy.AllowUser("IP", "UserName"));
-            Assert.IsTrue(dummy.BanUser("IP", "UserName", DateTime.Now));
->>>>>>> acc96097e87bf4abca192b21b2bf99f39f0c4002
+            //CCstData config = CCstData.GetInstance(Core.Application);
+            //ApplicationAdapter dummy = new ApplicationAdapter(Path.Combine(Environment.CurrentDirectory, "Cabal.dll"));
+
+            //Assert.IsTrue(dummy.PrepareServer("1.1.1.1", "hugo", "wurschd", 4711, null, "whoami", config));
+            //Assert.IsTrue(dummy.AllowUser("IP", "UserName"));
+            //Assert.IsTrue(dummy.BanUser("IP", "UserName", DateTime.Now));
         }
     }
 }

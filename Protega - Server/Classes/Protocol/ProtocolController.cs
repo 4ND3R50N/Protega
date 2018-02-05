@@ -217,7 +217,7 @@ namespace Protega___Server.Classes.Protocol
 
                 foreach (int item in Ports)
                 {
-                    ClientInterface.unixSshConnectorAccept.RunCommand("iptables -D INPUT -p tcp -s " + IP + " --dport " + item + " -j ACCEPT");
+                    ClientInterface.unixSshConnectorAccept.RunCommand("iptables -D INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT");
                 }
                 ClientInterface.unixSshConnectorAccept.Disconnect();
                 ClientInterface.unixSshConnectorAccept.Dispose();
