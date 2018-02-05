@@ -15,8 +15,8 @@ private:
 	Exception_Manager() {}
 	~Exception_Manager() {}
 	//Data
-	static const char* sExceptionCaption;
-	static const char* sTargetName;
+	static const char* sCrashReporterName;
+	static const char* sErrorFileName;
 
 	//Functions
 	static void ShowErrorA(int iErrorNumber, const char* sMessage);
@@ -31,8 +31,8 @@ public:
 	static void HandleProtegaStandardError(int iErrorNumber, std::wstring wsMessage);
 
 	//Setter
-	static void SetExeptionCaption(const char* sExceptionCaption);
-	static void SetTargetName(const char* sTargetName);
+	static void SetCrashReporterName(const char* _sTargetName);
+	static void SetErrorFileName(const char* _sErrorFileName);
 
 	
 };

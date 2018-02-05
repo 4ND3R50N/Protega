@@ -14,19 +14,9 @@ namespace ProtegaClientTestsuite
 	{
 	private:
 		std::string sCheckMessage = "Hello!";
-		Network_Manager *NetworkTestManager = new Network_Manager(TEST_IP, TEST_PORT, "~", ";",1,1, std::bind(&NetworkTests::ReceiveFunc, this, std::placeholders::_1));
+		
 	public:
 		
-		//tests normal Send/receive by repeating this process two times
-		TEST_METHOD(Network_SendReceiveCheck)
-		{		
-			NetworkTestManager->TestMessage_001();
-		}
-
-		void ReceiveFunc(NetworkTelegram NetworkTelegramMessage)
-		{
-			Assert::AreEqual(NetworkTelegramMessage.iTelegramNumber, 1);
-			Assert::AreEqual(NetworkTelegramMessage.lParameters[0], sCheckMessage);
-		}
+		
 	};
 }

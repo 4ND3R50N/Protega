@@ -38,10 +38,11 @@ std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::pFil
 
 //Protection data
 double Data_Manager::PROTECTION_THREAD_RESPONSE_DELTA = 60.0;
-int Data_Manager::PROTECTION_FP_MAX_DLL = 99;
+int Data_Manager::PROTECTION_FP_MAX_DLL = 109;
 
 //Exceptions
-const char* Data_Manager::EXCEPTION_CAPTION = "Protega Anti-Hack Engine";
+const char* Data_Manager::EXCEPTION_ERROR_FILE_NAME = "latest_protega_error.err";
+const char* Data_Manager::EXCEPTION_CRASH_REPORTER_NAME = "CrashReporter.exe";
 
 int Data_Manager::EXCEPTION_LOCAL_FILE_ERROR = 301;
 int Data_Manager::EXCEPTION_WEB_DOWNLOAD_ERROR = 302;
@@ -337,9 +338,14 @@ std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::GetF
 	return pFilesToCheck;
 }
 
-const char * Data_Manager::GetExceptionCaption()
+const char * Data_Manager::GetExceptionErrorFileName()
 {
-	return EXCEPTION_CAPTION;
+	return EXCEPTION_ERROR_FILE_NAME;
+}
+
+const char * Data_Manager::GetExceptionCrashReporterName()
+{
+	return EXCEPTION_CRASH_REPORTER_NAME;
 }
 
 int Data_Manager::GetExceptionLocalFileErrorNumber()

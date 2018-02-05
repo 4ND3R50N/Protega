@@ -1,9 +1,8 @@
 #include "../stdafx.h"
 #include "Exception_Manager.h"
 
-const char* Exception_Manager::sExceptionCaption = "";
-const char* Exception_Manager::sTargetName = "";
-
+const char* Exception_Manager::sCrashReporterName = "CrashReporter.exe";
+const char* Exception_Manager::sErrorFileName = "latest_protega_error.err";
 
 //Private
 void Exception_Manager::ShowErrorA(int iErrorNumber, const char * sMessage)
@@ -14,11 +13,17 @@ void Exception_Manager::ShowErrorA(int iErrorNumber, const char * sMessage)
 	system(ss.str().c_str());
 
 	std::ofstream myfile;
-	myfile.open("latest_protega_error.err");
+	myfile.open(sErrorFileName);
 	myfile << ss.str();
 	myfile.close();
+
 	Sleep(1000);
-	system("\".\\CrashReporter.exe\"");
+
+	ss.str("");
+
+	ss << "\".\\" << sCrashReporterName << "\"";
+
+	system(ss.str().c_str());
 	//std::terminate();
 }
 
@@ -36,10 +41,13 @@ void Exception_Manager::ShowErrorW(int iErrorNumber, std::wstring wsMessage)
 	sError = converter.to_bytes(wsError);
 	
 	std::ofstream myfile;
-	myfile.open("latest_protega_error.err");
+	myfile.open(sErrorFileName);
 	myfile << sError;
 	myfile.close();
+	
 	Sleep(1000);
+
+
 	system("\".\\CrashReporter.exe\"");
 	//std::terminate();
 }
@@ -116,14 +124,13 @@ void Exception_Manager::HandleProtegaStandardError(int iErrorNumber, std::wstrin
 	CloseOwnProcess();
 }
 
-
-void Exception_Manager::SetExeptionCaption(const char * _sExceptionCaption)
+void Exception_Manager::SetCrashReporterName(const char * _sCrashReporter)
 {
-	sExceptionCaption = _sExceptionCaption;
+	sCrashReporterName = _sCrashReporter;
 }
 
-void Exception_Manager::SetTargetName(const char * _sTargetName)
+void Exception_Manager::SetErrorFileName(const char * _sErrorFileName)
 {
-	sTargetName = _sTargetName;
+	sErrorFileName = _sErrorFileName;
 }
 

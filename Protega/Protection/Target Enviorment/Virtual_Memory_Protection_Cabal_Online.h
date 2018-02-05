@@ -41,7 +41,8 @@ private:
 	//	Map
 	int iCabalMapDefaultValue = 4294967295;
 	//	Zoom
-	int iCabalDefaultZoom = 2;
+	int iCabalDefaultZoom1 = 2;
+	int iCabalDefaultZoom2 = 1;
 	//	NSD + NCT
 	int iCabalSkillAnimationDefaultValue = 4294967295;
 	int iCabalSkillValueLowerLimit = 3000000;
@@ -51,7 +52,7 @@ private:
 	int iCabalLatestNoCastTimeValue = 0;
 	int iCabalLatestCastValue = 0;
 	//	Speedcheck
-	float fCabalNormalSpeed = 450.f;
+	float fCabalMaxPossibleSpeed = 870.f;
 	//	Rangecheck
 	int iCabalDefaultGM = 0;
 	int iCabalDefaultRange = 0;

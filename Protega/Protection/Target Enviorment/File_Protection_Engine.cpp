@@ -61,6 +61,9 @@ int File_Protection_Engine::DetectInjection()
 	
 	if (iModuleCounter > iMaxPossibleDlls)
 	{
+		/*std::stringstream ss;
+		ss << "Number of ddls: " << iModuleCounter << " || " << "allowed are_: " << iMaxPossibleDlls;
+		MessageBoxA(0, ss.str().c_str(), "MessageBox caption", MB_OK);*/
 		funcDetectCallbackHandler("Main Application", "-", true);
 		return 2;
 	}

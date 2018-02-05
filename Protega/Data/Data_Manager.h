@@ -40,7 +40,8 @@ private:
 	static double PROTECTION_THREAD_RESPONSE_DELTA;
 	static int PROTECTION_FP_MAX_DLL;
 
-	static const char* EXCEPTION_CAPTION;
+	static const char* EXCEPTION_ERROR_FILE_NAME;
+	static const char* EXCEPTION_CRASH_REPORTER_NAME;
 	static int EXCEPTION_LOCAL_FILE_ERROR;
 	static int EXCEPTION_WEB_DOWNLOAD_ERROR;
 	static int EXCEPTION_DATA_CONVERSION_ERROR;
@@ -89,7 +90,8 @@ public:
 	static std::vector<std::string> GetHeuristicMD5Values();
 	static std::pair<std::vector<std::string>, std::vector<std::string>> GetFilesToCheckValues();
 
-	static const char* GetExceptionCaption();
+	static const char* GetExceptionErrorFileName();
+	static const char* GetExceptionCrashReporterName();
 	static int GetExceptionLocalFileErrorNumber();
 	static int GetExceptionWebDownloadErrorNumber();
 	static int GetExceptionDataConversionErrorNumber();

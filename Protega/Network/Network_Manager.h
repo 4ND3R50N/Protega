@@ -38,10 +38,10 @@ private:
 	//Functions
 	bool SendAndGet(bool * bActualProtocolSuccessVar, int * iActualProtocolTryVar, std::string sMessage);
 	void OnReceiveConverter(string sMessage);
-	std::function<void(NetworkTelegram Telegram)> funcCallbackHandler;
+	std::function<void(unsigned int iTelegramNumber, std::vector<std::string> lParameters)> funcCallbackHandler;
 public:
 	Network_Manager(std::string sIP, int iPort, std::string sProtocolDelimiter, const char* sDataDelimiter, int iMaxRetries, int iNetworkErrorCode,
-		std::function<void(NetworkTelegram Telegram)> funcCallbackHandler);
+		std::function<void(unsigned int iTelegramNumber, std::vector<std::string> lParameters)> funcCallbackHandler);
 	~Network_Manager();
 	//Protocols C2S
 	bool TestMessage_001();

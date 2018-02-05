@@ -33,7 +33,7 @@ bool Virtual_Memory_Protection_Cabal_Online::CloseProcessInstance()
 
 bool Virtual_Memory_Protection_Cabal_Online::DetectManipulatedMemory()
 {
-	if ((VMP_CheckGameSpeed() || VMP_CheckWallBorders() || VMP_CheckZoomState() || VMP_CheckNoSkillDelay()  || 
+	if ((/*VMP_CheckGameSpeed() ||*/ VMP_CheckWallBorders() || VMP_CheckZoomState() || VMP_CheckNoSkillDelay()  || 
 		VMP_CheckNoCastTime() || VMP_CheckSkillRange() || VMP_CheckSkillCooldown() /*|| VMP_CheckNation()*/) == true)
 	{
 		return true;
@@ -52,10 +52,10 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckGameSpeed()
 	{
 		//Check if the speed is normal (450)
 		float fCurrentSpeed = GetFloatViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSpeedOffset);
-		if (fCurrentSpeed != fCabalNormalSpeed)
+		if (fCurrentSpeed < fCabalMaxPossibleSpeed)
 		{
 			//Function callback triggern
-			funcCallbackHandler("CABAL BASE ADDRESS", "SPEED OFFSET", boost::lexical_cast<std::string>(fCurrentSpeed), boost::lexical_cast<std::string>(fCabalNormalSpeed));
+			funcCallbackHandler("CABAL BASE ADDRESS", "SPEED OFFSET", boost::lexical_cast<std::string>(fCurrentSpeed), boost::lexical_cast<std::string>(fCabalMaxPossibleSpeed));
 			return true;
 		}
 	}
@@ -125,13 +125,14 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckZoomState()
 	int iZoom2 = ReadMemoryInt(hProcessHandle, (LPCVOID)((unsigned int)lpcvCabalModuleAddress + (unsigned int)lpcvCabalZoomOffset2));
 	
 	//Check if they are showing the default value
-	if (iZoom1 != iCabalDefaultZoom || iZoom2 != iCabalDefaultZoom)
+	if ((iZoom1 != iCabalDefaultZoom1 && iZoom1 != iCabalDefaultZoom2)  ||
+		iZoom2 != iCabalDefaultZoom1 && iZoom2 != iCabalDefaultZoom2)
 	{
 		std::stringstream ss;
 		ss << "Zoom1: " << iZoom1 << " | Zoom2: " << iZoom2;
 		std::string sDetectedValue = ss.str();
 		ss.str("");
-		ss << "Default Zoom 1/2: " << iCabalDefaultZoom;
+		ss << "Default Zoom 1/2: " << iCabalDefaultZoom1 << " and " << iCabalDefaultZoom2;
 		std::string sDefaultValue = ss.str();
 		ss.str("");
 
@@ -205,7 +206,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime()
 			
 			if (iCabalLatestNoCastTimeValue == iCurrentNoCastValue)
 			{
-				funcCallbackHandler("CABAL MODULE ADDRESS", "SKILL CAST OFFSET", ">3000000", "");
+				funcCallbackHandler("CABAL MODULE ADDRESS", "NO CAST TIME OFFSET", ">3000000", "");
 				return true;
 			}
 			else

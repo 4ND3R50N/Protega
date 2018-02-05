@@ -8,8 +8,8 @@ std::string CryptoPP_Converter::AESEncrypt(const char * sKey, const char * sIV, 
 	std::string ciphertext;
 
 	// Create Cipher Text
-	CryptoPP::AES::Encryption aesEncryption((byte *)sKey, CryptoPP::AES::DEFAULT_KEYLENGTH);
-	CryptoPP::CBC_Mode_ExternalCipher::Encryption cbcEncryption(aesEncryption, (byte *)sIV);
+	CryptoPP::AES::Encryption aesEncryption((BYTE *)sKey, CryptoPP::AES::DEFAULT_KEYLENGTH);
+	CryptoPP::CBC_Mode_ExternalCipher::Encryption cbcEncryption(aesEncryption, (BYTE *)sIV);
 
 	CryptoPP::StreamTransformationFilter stfEncryptor(cbcEncryption, new CryptoPP::StringSink(ciphertext));
 	stfEncryptor.Put(reinterpret_cast<const unsigned char*>(sData.c_str()), sData.length() + 1);
@@ -23,8 +23,8 @@ std::string CryptoPP_Converter::AESDecrypt(const char * sKey, const char * sIV, 
 	std::string sResult = "";
 	try
 	{		
-		CryptoPP::AES::Decryption aesDecryption((byte *)sKey, CryptoPP::AES::DEFAULT_KEYLENGTH);
-		CryptoPP::CBC_Mode_ExternalCipher::Decryption cbcDecryption(aesDecryption, (byte *)sIV);
+		CryptoPP::AES::Decryption aesDecryption((BYTE *)sKey, CryptoPP::AES::DEFAULT_KEYLENGTH);
+		CryptoPP::CBC_Mode_ExternalCipher::Decryption cbcDecryption(aesDecryption, (BYTE *)sIV);
 
 		CryptoPP::StreamTransformationFilter stfDecryptor(cbcDecryption, new CryptoPP::StringSink(sResult));
 		stfDecryptor.Put(reinterpret_cast<const unsigned char*>(sData.c_str()), sData.size());
