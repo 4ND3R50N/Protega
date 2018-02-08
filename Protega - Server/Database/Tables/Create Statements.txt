@@ -1,0 +1,393 @@
+--Database "Protega"
+
+USE [Protega]
+GO
+
+/****** Object:  Table [dbo].[Applications]    Script Date: 02/08/2018 11:17:44 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Applications](
+	[ApplicationID] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [nvarchar](50) NOT NULL,
+	[Description] [nvarchar](500) NULL,
+	[RepresentValue] [nvarchar](10) NOT NULL,
+ CONSTRAINT [PK_Applications] PRIMARY KEY CLUSTERED 
+(
+	[ApplicationID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [dbo].[Applications] ADD  CONSTRAINT [DF_Applications_RepresentValue]  DEFAULT ([dbo].[fn_getRandom_Value]()) FOR [RepresentValue]
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  Table [dbo].[Languages]    Script Date: 02/08/2018 11:18:08 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Languages](
+	[LanguageID] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [nvarchar](50) NOT NULL,
+ CONSTRAINT [PK_Languages] PRIMARY KEY CLUSTERED 
+(
+	[LanguageID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  Table [dbo].[LoggerData]    Script Date: 02/08/2018 11:18:18 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[LoggerData](
+	[ErrorId] [int] IDENTITY(1,1) NOT NULL,
+	[Date] [datetime] NULL,
+	[LoggerTypeID] [int] NULL,
+	[UserID] [int] NULL,
+	[Description] [nvarchar](200) NULL,
+	[ApplicationID] [int] NULL,
+ CONSTRAINT [PK_LoggerData] PRIMARY KEY CLUSTERED 
+(
+	[ErrorId] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [dbo].[LoggerData]  WITH CHECK ADD  CONSTRAINT [FK_LoggerData_Applications] FOREIGN KEY([ApplicationID])
+REFERENCES [dbo].[Applications] ([ApplicationID])
+GO
+
+ALTER TABLE [dbo].[LoggerData] CHECK CONSTRAINT [FK_LoggerData_Applications]
+GO
+
+ALTER TABLE [dbo].[LoggerData]  WITH CHECK ADD  CONSTRAINT [FK_LoggerData_LoggerType] FOREIGN KEY([LoggerTypeID])
+REFERENCES [dbo].[LoggerType] ([LoggerTypeID])
+GO
+
+ALTER TABLE [dbo].[LoggerData] CHECK CONSTRAINT [FK_LoggerData_LoggerType]
+GO
+
+ALTER TABLE [dbo].[LoggerData] ADD  CONSTRAINT [DF_LoggerData_Date]  DEFAULT (getdate()) FOR [Date]
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  Table [dbo].[LoggerType]    Script Date: 02/08/2018 11:18:27 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[LoggerType](
+	[LoggerTypeID] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [nvarchar](50) NULL,
+ CONSTRAINT [PK_LoggerType] PRIMARY KEY CLUSTERED 
+(
+	[LoggerTypeID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  Table [dbo].[MAC]    Script Date: 02/08/2018 11:18:35 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[MAC](
+	[MacID] [int] IDENTITY(1,1) NOT NULL,
+	[Mac] [nvarchar](50) NOT NULL,
+ CONSTRAINT [PK_MAC] PRIMARY KEY CLUSTERED 
+(
+	[MacID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  Table [dbo].[OperatingSystems]    Script Date: 02/08/2018 11:18:43 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[OperatingSystems](
+	[OsID] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [nvarchar](50) NULL,
+ CONSTRAINT [PK_OperatingSystems] PRIMARY KEY CLUSTERED 
+(
+	[OsID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  Table [dbo].[p_Detections]    Script Date: 02/08/2018 11:18:49 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[p_Detections](
+	[DetectionID] [int] IDENTITY(1,1) NOT NULL,
+	[UserID] [int] NOT NULL,
+	[Date] [datetime] NULL,
+	[ApplicationID] [int] NOT NULL,
+ CONSTRAINT [PK_Rel_Detections] PRIMARY KEY CLUSTERED 
+(
+	[DetectionID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [dbo].[p_Detections]  WITH CHECK ADD  CONSTRAINT [FK_p_Detections_Applications] FOREIGN KEY([ApplicationID])
+REFERENCES [dbo].[Applications] ([ApplicationID])
+GO
+
+ALTER TABLE [dbo].[p_Detections] CHECK CONSTRAINT [FK_p_Detections_Applications]
+GO
+
+ALTER TABLE [dbo].[p_Detections]  WITH CHECK ADD  CONSTRAINT [FK_p_Detections_Users] FOREIGN KEY([UserID])
+REFERENCES [dbo].[Users] ([UserID])
+GO
+
+ALTER TABLE [dbo].[p_Detections] CHECK CONSTRAINT [FK_p_Detections_Users]
+GO
+
+ALTER TABLE [dbo].[p_Detections] ADD  CONSTRAINT [DF_Rel_Detections_Date]  DEFAULT (getdate()) FOR [Date]
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  Table [dbo].[p_Heuristic]    Script Date: 02/08/2018 11:18:57 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[p_Heuristic](
+	[DetectionID] [int] NOT NULL,
+	[ProcessName] [nvarchar](50) NOT NULL,
+	[WindowName] [nvarchar](50) NULL,
+	[ClassName] [nvarchar](50) NULL,
+	[MD5Value] [nvarchar](50) NULL
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [dbo].[p_Heuristic]  WITH CHECK ADD  CONSTRAINT [FK_p_Heuristic_p_Detections] FOREIGN KEY([DetectionID])
+REFERENCES [dbo].[p_Detections] ([DetectionID])
+GO
+
+ALTER TABLE [dbo].[p_Heuristic] CHECK CONSTRAINT [FK_p_Heuristic_p_Detections]
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  Table [dbo].[p_VirtualMemory]    Script Date: 02/08/2018 11:19:07 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[p_VirtualMemory](
+	[DetectionID] [int] NOT NULL,
+	[BaseAddress] [nvarchar](50) NULL,
+	[Type] [nvarchar](5) NULL,
+	[DetectedValue] [nvarchar](50) NULL,
+	[AllowedValues] [nvarchar](50) NULL
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [dbo].[p_VirtualMemory]  WITH CHECK ADD  CONSTRAINT [FK_p_VirtualMemory_p_Detections] FOREIGN KEY([DetectionID])
+REFERENCES [dbo].[p_Detections] ([DetectionID])
+GO
+
+ALTER TABLE [dbo].[p_VirtualMemory] CHECK CONSTRAINT [FK_p_VirtualMemory_p_Detections]
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  Table [dbo].[Rel_ApplicationUsers]    Script Date: 02/08/2018 11:19:14 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Rel_ApplicationUsers](
+	[UserID] [int] NOT NULL,
+	[ApplicationID] [int] NOT NULL,
+ CONSTRAINT [PK_Rel_ApplicationUsers] PRIMARY KEY CLUSTERED 
+(
+	[UserID] ASC,
+	[ApplicationID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [dbo].[Rel_ApplicationUsers]  WITH CHECK ADD  CONSTRAINT [FK_Rel_ApplicationUsers_Applications] FOREIGN KEY([ApplicationID])
+REFERENCES [dbo].[Applications] ([ApplicationID])
+GO
+
+ALTER TABLE [dbo].[Rel_ApplicationUsers] CHECK CONSTRAINT [FK_Rel_ApplicationUsers_Applications]
+GO
+
+ALTER TABLE [dbo].[Rel_ApplicationUsers]  WITH CHECK ADD  CONSTRAINT [FK_Rel_ApplicationUsers_Users] FOREIGN KEY([UserID])
+REFERENCES [dbo].[Users] ([UserID])
+GO
+
+ALTER TABLE [dbo].[Rel_ApplicationUsers] CHECK CONSTRAINT [FK_Rel_ApplicationUsers_Users]
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  Table [dbo].[Rel_UsersMac]    Script Date: 02/08/2018 11:19:20 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Rel_UsersMac](
+	[UserID] [int] NOT NULL,
+	[MacID] [int] NOT NULL,
+ CONSTRAINT [PK_Rel_UsersMac] PRIMARY KEY CLUSTERED 
+(
+	[UserID] ASC,
+	[MacID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [dbo].[Rel_UsersMac]  WITH CHECK ADD  CONSTRAINT [FK_Rel_UsersMac_MAC] FOREIGN KEY([MacID])
+REFERENCES [dbo].[MAC] ([MacID])
+GO
+
+ALTER TABLE [dbo].[Rel_UsersMac] CHECK CONSTRAINT [FK_Rel_UsersMac_MAC]
+GO
+
+ALTER TABLE [dbo].[Rel_UsersMac]  WITH CHECK ADD  CONSTRAINT [FK_Rel_UsersMac_Users] FOREIGN KEY([UserID])
+REFERENCES [dbo].[Users] ([UserID])
+GO
+
+ALTER TABLE [dbo].[Rel_UsersMac] CHECK CONSTRAINT [FK_Rel_UsersMac_Users]
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  Table [dbo].[Users]    Script Date: 02/08/2018 11:19:27 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Users](
+	[UserID] [int] IDENTITY(1,1) NOT NULL,
+	[HardwareID] [nvarchar](50) NOT NULL,
+	[LatestIP] [nvarchar](50) NULL,
+	[LanguageID] [int] NULL,
+	[OsID] [int] NULL,
+ CONSTRAINT [PK_Users] PRIMARY KEY CLUSTERED 
+(
+	[UserID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [dbo].[Users]  WITH CHECK ADD  CONSTRAINT [FK_Users_Languages] FOREIGN KEY([LanguageID])
+REFERENCES [dbo].[Languages] ([LanguageID])
+GO
+
+ALTER TABLE [dbo].[Users] CHECK CONSTRAINT [FK_Users_Languages]
+GO
+
+ALTER TABLE [dbo].[Users]  WITH CHECK ADD  CONSTRAINT [FK_Users_OperatingSystems] FOREIGN KEY([OsID])
+REFERENCES [dbo].[OperatingSystems] ([OsID])
+GO
+
+ALTER TABLE [dbo].[Users] CHECK CONSTRAINT [FK_Users_OperatingSystems]
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  Table [dbo].[p_File]    Script Date: 02/08/2018 11:19:33 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[p_File](
+	[DetectionID] [int] NOT NULL,
+	[CaseID] [int] NULL,
+	[Content] [nvarchar](50) NULL,
+ CONSTRAINT [PK_p_File] PRIMARY KEY CLUSTERED 
+(
+	[DetectionID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+
