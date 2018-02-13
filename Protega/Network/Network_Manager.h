@@ -5,11 +5,6 @@
 #include <thread>
 #include "../Core/Exception_Manager.h"
 
-struct NetworkTelegram {
-	int iTelegramNumber;
-	std::vector<std::string> lParameters;
-};
-
 class Network_Manager
 {
 private:
@@ -18,7 +13,7 @@ private:
 	int iPort;
 	std::string sProtocolDelimiter;
 	const char* sDataDelimiter;
-	NetworkTelegram NetworkTelegramMessage;
+
 
 	int iNetworkErrorCode = 0;
 

@@ -8,6 +8,7 @@ Protection_Manager::Protection_Manager(std::function<void(unsigned int iType, st
 	int iFPErrorCode,
 	int iThreadErrorCode,
 	int iFPMaxDlls,
+	std::string sBaseFolder,
 	std::vector<std::wstring> vBlackListProcessNames,
 	std::vector<std::string> vBlackListWindowNames,
 	std::vector<std::string> vBlackListClassNames,
@@ -36,7 +37,7 @@ Protection_Manager::Protection_Manager(std::function<void(unsigned int iType, st
 	VMP = new Virtual_Memory_Protection_Cabal_Online(iTargetProcessId,
 		std::bind(&Protection_Manager::VMP_Callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 	//	File
-	FP = new File_Protection_Engine(iTargetProcessId,
+	FP = new File_Protection_Engine(iTargetProcessId, sBaseFolder,
 		std::bind(&Protection_Manager::FP_Callback, this, std::placeholders::_1, std::placeholders::_2), pFilesAndMd5, iFPMaxDlls);
 
 }

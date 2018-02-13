@@ -1,7 +1,7 @@
 #include "../../stdafx.h"
 #include "File_Protection_Engine.h"
 
-File_Protection_Engine::File_Protection_Engine(int iTargetApplicationId, 
+File_Protection_Engine::File_Protection_Engine(int iTargetApplicationId, std::string sBaseFolder,
 	std::function<void(std::string s, std::string sMd5) > funcDetectCallbackHandler,
 	std::pair<std::vector<std::string>, std::vector<std::string>> pFileAndMd5, int iMaxPossibleDlls)
 {
@@ -9,6 +9,7 @@ File_Protection_Engine::File_Protection_Engine(int iTargetApplicationId,
 	this->iTargetApplicationId = iTargetApplicationId;
 	this->iMaxPossibleDlls = iMaxPossibleDlls;
 	this->funcDetectCallbackHandler = funcDetectCallbackHandler;
+	this->sBaseFolder = sBaseFolder;
 }
 
 //Public
@@ -16,7 +17,11 @@ int File_Protection_Engine::DetectLocalFileChange()
 {
 	for (unsigned int i = 0; i < pFileAndMd5.first.size(); i++)
 	{
-		std::string sActualMd5 = CryptoPP_Converter::GetMD5ofFile(pFileAndMd5.first[i].c_str());
+		std::stringstream ss;
+
+		ss << sBaseFolder << pFileAndMd5.first[i];
+
+		std::string sActualMd5 = CryptoPP_Converter::GetMD5ofFile(ss.str().c_str());
 
 		if (sActualMd5 == "") {
 			return 1;
