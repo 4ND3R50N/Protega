@@ -32,7 +32,7 @@ namespace ProtegaClientTestsuite
 			vBlackListClassNames.push_back("miaudfhh");
 
 			Protection_Manager* PM = new Protection_Manager(std::bind(&ProtectionTests::PM_Callback, this, std::placeholders::_1, std::placeholders::_2),
-				9999, 20, 1, 2, 2, 99,
+				9999, 20, 1, 2, 2, 99, "",
 				vBlackListProcessNames, vBlackListWindowNames, vBlackListClassNames, vBlackListMd5Values,
 				std::pair<std::vector<std::string>,std::vector<std::string>>());
 			PM->StartProtectionThreads();
@@ -211,7 +211,7 @@ namespace ProtegaClientTestsuite
 			vBlackListWindowNames.push_back("D:\\Games\\CABAL CODEZERO NEW\\Data\\Map\\world_01.mcl");
 			vBlackListMd5Values.push_back("B5865AAAFB570F68DCA4C6326587E939");
 
-			File_Protection_Engine* FP = new File_Protection_Engine(processId, std::bind(&ProtectionTests::FP_Callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+			File_Protection_Engine* FP = new File_Protection_Engine(processId, "", std::bind(&ProtectionTests::FP_Callback, this, std::placeholders::_1, std::placeholders::_2),
 				std::make_pair(vBlackListWindowNames, vBlackListMd5Values), 100);
 			
 			FP->DetectLocalFileChange();
@@ -224,13 +224,13 @@ namespace ProtegaClientTestsuite
 			vBlackListWindowNames.push_back("D:\\Games\\CABAL CODEZERO NEW\\Data\\Map\\world_01.mcl");
 			vBlackListMd5Values.push_back("B5865AAAFB570F68DCA4C6326587E939");
 
-			File_Protection_Engine* FP = new File_Protection_Engine(processId, std::bind(&ProtectionTests::FP_Callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+			File_Protection_Engine* FP = new File_Protection_Engine(processId, "", std::bind(&ProtectionTests::FP_Callback, this, std::placeholders::_1, std::placeholders::_2),
 				std::make_pair(vBlackListWindowNames, vBlackListMd5Values), 100);
 
 			FP->DetectInjection();
 		}
 
-		void FP_Callback(std::string sFile, std::string sMd5, bool bInjection)
+		void FP_Callback(std::string sSection, std::string sContent)
 		{
 
 		}
