@@ -1,0 +1,19 @@
+USE [Protega]
+GO
+
+/****** Object:  View [dbo].[vw_Function_Base]    Script Date: 02/08/2018 11:22:20 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+
+CREATE VIEW [dbo].[vw_Function_Base]
+AS
+SELECT substring(replace(convert(varchar(100), NEWID()), '-', ''), 1, 10) AS Rand_Value
+
+GO
+
+

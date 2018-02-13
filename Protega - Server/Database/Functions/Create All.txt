@@ -1,0 +1,24 @@
+USE [Protega]
+GO
+
+/****** Object:  UserDefinedFunction [dbo].[fn_getRandom_Value]    Script Date: 02/08/2018 11:21:43 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE FUNCTION [dbo].[fn_getRandom_Value]()
+RETURNS VARCHAR(10)
+AS
+BEGIN
+  DECLARE @Rand_Value VARCHAR(10);
+SELECT @Rand_Value = Rand_Value
+FROM vw_Function_Base
+
+  RETURN @Rand_Value;
+END
+
+GO
+
+

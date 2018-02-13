@@ -1,0 +1,311 @@
+--Database "Protega"
+
+USE [Protega]
+GO
+
+/****** Object:  StoredProcedure [dbo].[Application_GetID]    Script Date: 02/08/2018 11:20:44 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE PROCEDURE [dbo].[Application_GetID]
+@ApplicationHash nvarchar(50)
+AS
+BEGIN
+	declare @ApplicationID int
+	select top 1 @ApplicationID=ApplicationID from Applications where RepresentValue=@ApplicationHash
+
+	return @ApplicationID
+END
+
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  StoredProcedure [dbo].[Application_GetByName]    Script Date: 02/08/2018 11:21:03 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE PROCEDURE [dbo].[Application_GetByName]
+@ApplicationName nvarchar(50)
+AS
+BEGIN
+	select top 1 ApplicationID, Name, RepresentValue as 'Hash', [Description] as 'Description'
+	from Applications
+	where Name=@ApplicationName
+END
+
+GO
+
+
+
+
+USE [Protega]
+GO
+
+/****** Object:  StoredProcedure [dbo].[User_GetID]    Script Date: 02/08/2018 11:20:17 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE PROCEDURE [dbo].[User_GetID]
+@HardWareID nvarchar(50)
+AS
+BEGIN
+declare @UserID int;
+if((select COUNT(*) from Users where HardwareID=@HardWareID)=1)
+begin
+	select @UserID=UserID from Users where HardwareID=@HardWareID;
+return @UserID
+end
+
+return -1
+END
+
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  StoredProcedure [dbo].[User_Authenticate]    Script Date: 02/08/2018 11:20:33 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE PROCEDURE [dbo].[User_Authenticate]
+@ComputerID nvarchar(50),
+@IP nvarchar(50),
+@Language nvarchar(50),
+@OperatingSystem nvarchar(50),
+@ApplicationHash nvarchar(50)
+AS
+BEGIN
+	declare @UserCount int
+	Select @UserCount=COUNT(*) from Users where HardwareID=@ComputerID
+
+declare @ApplicationID int
+exec @ApplicationID=Application_GetID @ApplicationHash
+
+ 	IF(@UserCount > 1)
+	begin
+		--Error
+		insert into LoggerData(LoggerTypeID, Description,UserID, ApplicationID)
+		values (2,'User exists multiple times', (Select UserID from Users where HardwareID=@ComputerID), @ApplicationID);
+		select -1,'','','';
+		return;
+	end
+	
+	--If Language does not yet exist in the database, add it
+	if((Select COUNT(*) from Languages where Name=@Language)=0)
+	begin
+		insert into Languages (Name) values (@Language);
+	end
+	
+	--If Operating System does not yet exist in the database, add it
+	if((Select COUNT(*) from OperatingSystems where Name=@OperatingSystem)=0)
+	begin
+		insert into OperatingSystems (Name) values (@OperatingSystem);
+	end
+
+	IF(@UserCount=0)
+	begin
+	--Register new user
+	insert into Users (HardwareID, LatestIP, LanguageID, OsID)
+	values (@ComputerID, @IP,
+	(select LanguageID from Languages where Name=@Language),
+	(select OsID from OperatingSystems where Name=@OperatingSystem))
+	end
+
+	declare @UserID int
+	select @UserID=UserID from Users where HardwareID=@ComputerID
+
+	-- Select User
+	select HardwareID, LatestIP, @ApplicationID as ApplicationID,
+	case (select COUNT(*) from p_Detections where UserID=@UserID and ApplicationID=@ApplicationID)
+	--1 is banned, 0 is unbanned
+	when 0 then '0'
+	when 1 then '0'
+	when 2 then '0'
+	when 3 then '0'
+	when 4 then '0'
+	else '0'
+	end as 'isBanned'
+	from Users where HardwareID=@ComputerID;
+
+END
+
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  StoredProcedure [dbo].[HackDetection_Insert]    Script Date: 02/08/2018 11:21:16 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE PROCEDURE [dbo].[HackDetection_Insert]
+@ApplicationID int,
+@UserID int
+AS
+BEGIN
+
+declare @ID table (ID int)
+
+	insert into p_Detections (ApplicationID, UserID)
+	output inserted.DetectionID into @ID(ID)
+	values (@ApplicationID, @UserID)
+
+return (select top 1 ID from @ID)
+
+END
+
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  StoredProcedure [dbo].[HackDetection_Insert_Heuristic]    Script Date: 02/08/2018 11:21:24 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE PROCEDURE [dbo].[HackDetection_Insert_Heuristic] 
+@ApplicationID int,
+@ComputerID nvarchar(50),
+@ProcessName nvarchar(50),
+@WindowName nvarchar(50),
+@ClassName nvarchar(50),
+@MD5Value nvarchar(50)
+AS
+BEGIN
+declare @UserID int
+exec @UserID=User_GetID @ComputerID
+
+if(@UserID=-1)
+begin
+	select -1
+	return
+end
+
+--Insert the detection into the database and get the unique ID
+declare @DetectionID int
+exec @DetectionID=HackDetection_Insert @ApplicationID, @UserID
+
+--Insert the specified data
+insert into p_Heuristic (DetectionID, ProcessName, WindowName, ClassName, MD5Value)
+values (@DetectionID, @ProcessName, @WindowName, @ClassName, @MD5Value)
+
+if(@@ERROR<>0)
+begin
+	select '-2' as 'ID'
+end
+
+select '0' as 'ID'
+
+END
+
+GO
+
+
+USE [Protega]
+GO
+
+/****** Object:  StoredProcedure [dbo].[HackDetection_Insert_VirtualMemory]    Script Date: 02/08/2018 11:21:30 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE PROCEDURE [dbo].[HackDetection_Insert_VirtualMemory]
+@ApplicationID int,
+@ComputerID nvarchar(50),
+@BaseAddress nvarchar(50),
+@Type nvarchar(5),
+@DetectedValue nvarchar(50),
+@AllowedValues nvarchar(50)
+AS
+BEGIN
+declare @UserID int
+exec @UserID=User_GetID @ComputerID
+
+if(@UserID=-1)
+begin
+	select -1
+	return
+end
+
+--Insert the detection into the database and get the unique ID
+declare @DetectionID int
+exec @DetectionID=HackDetection_Insert @ApplicationID, @UserID
+
+--Insert the specified data
+insert into p_VirtualMemory(DetectionID, BaseAddress, [Type], DetectedValue, AllowedValues)
+values (@DetectionID, @BaseAddress, @Type, @DetectedValue,@AllowedValues)
+
+if(@@ERROR<>0)
+begin
+	select '-2' as 'ID'
+end
+
+select '0' as 'ID'
+
+END
+
+GO
+
+
