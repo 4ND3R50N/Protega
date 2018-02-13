@@ -16,7 +16,7 @@ char* Data_Manager::TARGET_ENVIORMENT_FTC_FILE_NAME = "Files_To_Check.csv.enc";
 std::string Data_Manager::LOCAL_HARDWARE_SID = "";
 const char* Data_Manager::LOCAL_DATA_NEWLINE_DELIMITER = "~";
 const char* Data_Manager::LOCAL_DATA_DELIMITER = ";";
-const char* Data_Manager::LOCAL_DATA_FOLDER = ".\\protega\\";
+const char* Data_Manager::LOCAL_DATA_FOLDER = "protega\\";
 const char* Data_Manager::LOCAL_DATA_PROTEGA_IMAGE = "Protega_Logo.bmp";
 std::string Data_Manager::LOCAL_DATA_PROTECTION_TARGET = "CabalMain.exe";
 
@@ -38,7 +38,7 @@ std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::pFil
 
 //Protection data
 double Data_Manager::PROTECTION_THREAD_RESPONSE_DELTA = 60.0;
-int Data_Manager::PROTECTION_FP_MAX_DLL = 109;
+int Data_Manager::PROTECTION_FP_MAX_DLL = 126;
 
 //Exceptions
 const char* Data_Manager::EXCEPTION_ERROR_FILE_NAME = "latest_protega_error.err";
@@ -157,11 +157,14 @@ int Data_Manager::CollectDynamicProtesData()
 	//Download data from web
 	std::stringstream ssUrlCombiner;
 	std::stringstream ssLocalPathCombiner;
+	std::string sLocalFolderPath = GetProgramFolderPath();
 
 	//Get FP decrypted string
 
+	
+
 	ssUrlCombiner << TARGET_ENVIORMENT_DATA_URL << TARGET_ENVIORMENT_FTC_FILE_NAME;
-	ssLocalPathCombiner << LOCAL_DATA_FOLDER << TARGET_ENVIORMENT_FTC_FILE_NAME;
+	ssLocalPathCombiner << sLocalFolderPath << LOCAL_DATA_FOLDER << TARGET_ENVIORMENT_FTC_FILE_NAME;
 	
 	if (!Data_Gathering::DownloadWebFile(_strdup(ssUrlCombiner.str().c_str()), _strdup(ssLocalPathCombiner.str().c_str())))
 	{
@@ -176,7 +179,7 @@ int Data_Manager::CollectDynamicProtesData()
 	//Get heuristic md5 decrypted string
 
 	ssUrlCombiner << TARGET_ENVIORMENT_DATA_URL << TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME;
-	ssLocalPathCombiner << LOCAL_DATA_FOLDER << TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME;	
+	ssLocalPathCombiner << sLocalFolderPath << LOCAL_DATA_FOLDER << TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME;
 
 	if (!Data_Gathering::DownloadWebFile(_strdup(ssUrlCombiner.str().c_str()), _strdup(ssLocalPathCombiner.str().c_str())))
 	{
@@ -191,7 +194,7 @@ int Data_Manager::CollectDynamicProtesData()
 	//Get heuristic process name
 
 	ssUrlCombiner << TARGET_ENVIORMENT_DATA_URL << TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME;
-	ssLocalPathCombiner << LOCAL_DATA_FOLDER << TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME;
+	ssLocalPathCombiner << sLocalFolderPath << LOCAL_DATA_FOLDER << TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME;
 
 	if (!Data_Gathering::DownloadWebFile(_strdup(ssUrlCombiner.str().c_str()), _strdup(ssLocalPathCombiner.str().c_str())))
 	{
@@ -243,6 +246,17 @@ std::string Data_Manager::GetSoftwareLanguage()
 	sLanguageCode = converter.to_bytes(wsLanguageCode);
 
 	return sLanguageCode;
+}
+
+std::string Data_Manager::GetProgramFolderPath()
+{
+	std::string sFilePath = Data_Gathering::GetApplicationFilePath();
+	std::string sTmpLocalDataProtectionTarget = LOCAL_DATA_PROTECTION_TARGET;
+	boost::to_upper(sTmpLocalDataProtectionTarget);
+	boost::to_upper(sFilePath);
+	std::vector<std::string> vFolderPath;
+	boost::algorithm::split_regex(vFolderPath, sFilePath, boost::regex(sTmpLocalDataProtectionTarget));
+	return vFolderPath[0];
 }
 
 
@@ -308,10 +322,6 @@ std::string Data_Manager::GetLocalHardwareSID()
 	return LOCAL_HARDWARE_SID;
 }
 
-std::string Data_Manager::GetLocalDataProtectionTarget()
-{
-	return LOCAL_DATA_PROTECTION_TARGET;
-}
 
 const char * Data_Manager::GetLocalDataFolder()
 {

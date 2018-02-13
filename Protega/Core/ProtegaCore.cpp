@@ -14,6 +14,7 @@ ProtegaCore::ProtegaCore()
 	//Set exception vars
 	Exception_Manager::SetErrorFileName(Data_Manager::GetExceptionErrorFileName());
 	Exception_Manager::SetCrashReporterName(Data_Manager::GetExceptionCrashReporterName());
+	Exception_Manager::SetBaseFolder(Data_Manager::GetProgramFolderPath());
 }
 
 
@@ -26,7 +27,7 @@ void ProtegaCore::StartAntihack()
 #pragma region Check local protega files
 	//Get logo file path
 	std::stringstream ss;
-	ss << Data_Manager::GetLocalDataFolder() << Data_Manager::GetLocalProtegaImage();
+	ss << Data_Manager::GetProgramFolderPath() << Data_Manager::GetLocalDataFolder() << Data_Manager::GetLocalProtegaImage();
 
 	//Check if logo/Other files are here
 	if (!CheckProtegaFiles(ss.str().c_str()))
@@ -58,7 +59,6 @@ void ProtegaCore::StartAntihack()
 
 #pragma endregion
 
-
 #pragma region Collect Dynamic Data
 	int iErrorCode = Data_Manager::CollectDynamicProtesData();
 	if (iErrorCode == 1)
@@ -87,13 +87,13 @@ void ProtegaCore::StartAntihack()
 
 	ProtectionManager = new Protection_Manager(std::bind(&ProtegaCore::ProtectionManagerAnswer, this, std::placeholders::_1, std::placeholders::_2), (int)GetCurrentProcessId(),
 		Data_Manager::GetProtectionThreadResponseDelta(), Data_Manager::GetExceptionVmErrorNumber(), Data_Manager::GetExceptionFpErrorNumber(), Data_Manager::GetExceptionThreadErrorNumber(),
-		Data_Manager::GetProtectionMaxFpDll(), Data_Manager::GetHeuristicProcessNames(), vBlackListWindowName, vBlackListClassName, Data_Manager::GetHeuristicMD5Values(),
+		Data_Manager::GetProtectionMaxFpDll(), Data_Manager::GetProgramFolderPath(), Data_Manager::GetHeuristicProcessNames(), vBlackListWindowName, vBlackListClassName, Data_Manager::GetHeuristicMD5Values(),
 		Data_Manager::GetFilesToCheckValues());
 
 	ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
 	ProtectionManager->StartProtectionThreads();
 #pragma endregion
-	
+
 	Splash.CloseSplash();
 	Splash.~SplashDisplayer();
 

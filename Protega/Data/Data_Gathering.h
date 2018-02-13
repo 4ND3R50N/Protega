@@ -6,7 +6,7 @@
 #include <tchar.h>
 #include <intrin.h> 
 #include <stdio.h>
-
+#include <codecvt>
 #define INFO_BUFFER_SIZE 32767
 
 class Data_Gathering
@@ -24,6 +24,7 @@ public:
 	static std::string GetWebFileAsString(const char* sTargetURL);
 
 	//Hardware
+	static std::string GetApplicationFilePath();
 	static bool Is64BitOS();
 	static uint16_t GetVolumeHash();
 	static uint16_t GetCpuHash();

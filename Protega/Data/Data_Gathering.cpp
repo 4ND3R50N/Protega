@@ -65,6 +65,18 @@ std::string Data_Gathering::GetWebFileAsString(const char* sTargetURL)
 	return readBuffer;
 }
 
+std::string Data_Gathering::GetApplicationFilePath()
+{
+	WCHAR result[MAX_PATH];
+	std::string sPath = "";
+	using convert_type = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_type, wchar_t> converter;
+
+	//use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
+	sPath = converter.to_bytes(std::wstring(result, GetModuleFileName(NULL, result, MAX_PATH)));
+	return sPath;
+}
+
 bool Data_Gathering::Is64BitOS()
 {	
 

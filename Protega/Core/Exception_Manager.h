@@ -17,6 +17,7 @@ private:
 	//Data
 	static const char* sCrashReporterName;
 	static const char* sErrorFileName;
+	static std::string sBaseFolder;
 
 	//Functions
 	static void ShowErrorA(int iErrorNumber, const char* sMessage);
@@ -33,6 +34,7 @@ public:
 	//Setter
 	static void SetCrashReporterName(const char* _sTargetName);
 	static void SetErrorFileName(const char* _sErrorFileName);
+	static void SetBaseFolder(std::string _sBaseFolder);
 
 	
 };

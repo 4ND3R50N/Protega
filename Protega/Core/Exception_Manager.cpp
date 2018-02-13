@@ -3,26 +3,24 @@
 
 const char* Exception_Manager::sCrashReporterName = "CrashReporter.exe";
 const char* Exception_Manager::sErrorFileName = "latest_protega_error.err";
-
+std::string Exception_Manager::sBaseFolder = ".\\";
 //Private
 void Exception_Manager::ShowErrorA(int iErrorNumber, const char * sMessage)
 {
 
 	std::stringstream ss;
-	ss << "Error " << iErrorNumber << ": " << sMessage;
-	system(ss.str().c_str());
-
+	
+	
 	std::ofstream myfile;
-	myfile.open(sErrorFileName);
+	ss << sBaseFolder << sErrorFileName;
+	myfile.open(ss.str());
+	ss.str("");
+	ss << "Error " << iErrorNumber << ": " << sMessage;
 	myfile << ss.str();
 	myfile.close();
-
 	Sleep(1000);
-
 	ss.str("");
-
-	ss << "\".\\" << sCrashReporterName << "\"";
-
+	ss << "\"" << sBaseFolder << sCrashReporterName << "\"";
 	system(ss.str().c_str());
 	//std::terminate();
 }
@@ -132,5 +130,10 @@ void Exception_Manager::SetCrashReporterName(const char * _sCrashReporter)
 void Exception_Manager::SetErrorFileName(const char * _sErrorFileName)
 {
 	sErrorFileName = _sErrorFileName;
+}
+
+void Exception_Manager::SetBaseFolder(std::string _sBaseFolder)
+{
+	sBaseFolder = _sBaseFolder;
 }
 

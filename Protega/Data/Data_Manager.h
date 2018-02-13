@@ -5,6 +5,7 @@
 #include <locale>
 #include <codecvt>
 #include <sstream>
+#include <boost\algorithm\string\regex.hpp>
 #include "../Tools/CryptoPP_Converter.h"
 #include "Data_Gathering.h"
 
@@ -68,6 +69,7 @@ public:
 	static std::string GenerateComputerID();
 	static std::string GetSoftwareArchitecture();
 	static std::string GetSoftwareLanguage();
+	static std::string GetProgramFolderPath();
 
 	//Getter
 
@@ -83,7 +85,6 @@ public:
 	static double GetProtectionThreadResponseDelta();
 	static int GetProtectionMaxFpDll();
 	static std::string GetLocalHardwareSID();
-	static std::string GetLocalDataProtectionTarget();
 	static const char* GetLocalDataFolder();
 	static const char* GetLocalProtegaImage();
 	static std::vector<std::wstring> GetHeuristicProcessNames();
