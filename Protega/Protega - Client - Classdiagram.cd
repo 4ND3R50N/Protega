@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ProtegaCore" Collapsed="true">
+    <Position X="4.25" Y="0.5" Width="1.5" />
+    <AssociationLine Name="ProtectionManager" Type="Protection_Manager" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="5" Y="1.062" />
+        <Point X="5" Y="3.2" />
+        <Point X="1.25" Y="3.2" />
+        <Point X="1.25" Y="3.5" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true" ManuallySized="true">
+        <Position X="-3.734" Y="0.414" Height="0.182" Width="1.436" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAYAAAAAAAAAgAAAAAACAgAAQAAAAAAQAAAgAAAAAAA=</HashCode>
+      <FileName>Core\ProtegaCore.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="NetworkManager" />
+      <Field Name="ProtectionManager" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Data_Manager" Collapsed="true">
+    <Position X="2.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACnGYAABYoiEAGGAKSASEHCAAkDgQgASBFgVaBMgIB0=</HashCode>
+      <FileName>Data\Data_Manager.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protection_Manager" Collapsed="true">
+    <Position X="0.5" Y="3.5" Width="1.5" />
+    <AssociationLine Name="HE" Type="Heuristic_Scan_Engine" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="2" Y="3.609" />
+        <Point X="2.656" Y="3.609" />
+        <Point X="2.656" Y="4.5" />
+        <Point X="3.75" Y="4.5" />
+      </Path>
+    </AssociationLine>
+    <AssociationLine Name="VMP" Type="Virtual_Memory_Protection_Cabal_Online" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="2" Y="3.875" />
+        <Point X="2.375" Y="3.875" />
+        <Point X="2.375" Y="6.062" />
+        <Point X="3.75" Y="6.062" />
+      </Path>
+    </AssociationLine>
+    <AssociationLine Name="FP" Type="File_Protection_Engine" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="2" Y="3.75" />
+        <Point X="2.542" Y="3.75" />
+        <Point X="2.542" Y="5.25" />
+        <Point X="3.75" Y="5.25" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAIQIAAoACAAKQEEAACASABQAAASAoAAAQEAEAkCAME=</HashCode>
+      <FileName>Protection\Protection_Manager.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="HE" />
+      <Field Name="VMP" />
+      <Field Name="FP" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Exception_Manager" Collapsed="true">
+    <Position X="2.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAgAAAAIABAEBAAQAAAAAAAAAACAACCQAgIQAAIAAAA=</HashCode>
+      <FileName>Core\Exception_Manager.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="File_Protection_Engine" Collapsed="true">
+    <Position X="3.75" Y="5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAAAAAAACAAAAAAAAEAAAAAAQEIAEEAAAgA=</HashCode>
+      <FileName>Protection\Target Enviorment\File_Protection_Engine.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Heuristic_Scan_Engine" Collapsed="true">
+    <Position X="3.75" Y="4.25" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAgBQQQAAAAaAQgAAAAAAgEQAAAAAgAAAQAAACA=</HashCode>
+      <FileName>Protection\Target Enviorment\Heuristic_Scan_Engine.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Virtual_Memory_Protection_Cabal_Online" Collapsed="true">
+    <Position X="3.75" Y="5.75" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAASEgIwCqICIQACJmCABEwAACgqAoQBA0EDAAQhIAA=</HashCode>
+      <FileName>Protection\Target Enviorment\Virtual_Memory_Protection_Cabal_Online.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Data_Gathering" Collapsed="true">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAgAAAEAAAAAAAAAAAAAAAAAAJAAAARAAACAKA=</HashCode>
+      <FileName>Data\Data_Gathering.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Network_Manager" Collapsed="true">
+    <Position X="7.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AUEAAhEAACAAAAQgJMgCAQAAAgEAEEAkABEAABAEBCA=</HashCode>
+      <FileName>Network\Network_Manager.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Tcp_Connector" Collapsed="true">
+    <Position X="7.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CCCAAAAAACEAUAQAAAAAQIAAAABAAACAAAEAACiAAQA=</HashCode>
+      <FileName>Network\Tcp_Connector.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Virtual_Memory_IO" Collapsed="true">
+    <Position X="7.5" Y="5.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AgAIQAAAAAAAAAAAgAAAAAAAQUBAAAAAAAAIAAIAAAA=</HashCode>
+      <FileName>Protection\Target Enviorment\Virtual_Memory_IO.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WatchDog_Manager" Collapsed="true">
+    <Position X="4" Y="6.75" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAA=</HashCode>
+      <FileName>Protection\Protega\WatchDog_Engine.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SplashDisplayer" Collapsed="true">
+    <Position X="5.25" Y="2.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AQCAoAIAIAAAQQAAAAAAgEAAAIAAACkAAAAAAgAAAEE=</HashCode>
+      <FileName>Tools\SplashDisplayer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CryptoPP_Converter" Collapsed="true">
+    <Position X="5.25" Y="1.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAQAAAAACAAAAAAAAAAEAAAAAgAAA=</HashCode>
+      <FileName>Tools\CryptoPP_Converter.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

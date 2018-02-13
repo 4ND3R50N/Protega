@@ -155,4 +155,7 @@
       <Filter>Quelldateien\Core</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Protega - Client - Classdiagram.cd" />
+  </ItemGroup>
 </Project>
