@@ -12,7 +12,7 @@ namespace ProtegaClientTestsuite
 	{
 	private:
 		//Global
-		char* sProcessName = "CabalMain22.exe";
+		std::wstring sProcessName = L"CabalMain.exe";
 		bool bDetect = false;
 		
 		//HEP
@@ -20,6 +20,36 @@ namespace ProtegaClientTestsuite
 		std::vector<std::string> vBlackListWindowNames;
 		std::vector<std::string> vBlackListClassNames;
 		std::vector<std::string> vBlackListMd5Values;
+
+
+		DWORD FindProcessId(const std::wstring& processName)
+		{
+			PROCESSENTRY32 processInfo;
+			processInfo.dwSize = sizeof(processInfo);
+
+			HANDLE processesSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+			if (processesSnapshot == INVALID_HANDLE_VALUE)
+				return 0;
+
+			Process32First(processesSnapshot, &processInfo);
+			if (!processName.compare(processInfo.szExeFile))
+			{
+				CloseHandle(processesSnapshot);
+				return processInfo.th32ProcessID;
+			}
+
+			while (Process32Next(processesSnapshot, &processInfo))
+			{
+				if (!processName.compare(processInfo.szExeFile))
+				{
+					CloseHandle(processesSnapshot);
+					return processInfo.th32ProcessID;
+				}
+			}
+
+			CloseHandle(processesSnapshot);
+			return 0;
+		}
 
 	public:
 		//Protection manager
@@ -53,7 +83,7 @@ namespace ProtegaClientTestsuite
 		TEST_METHOD(Protection_VMP_SpeedHackPrevention_Test)
 		{
 			//Get process id
-			unsigned int processId = GetProcessId(sProcessName);
+			unsigned int processId = (int)FindProcessId(sProcessName);
 			//init class
 			Virtual_Memory_Protection_Cabal_Online *VMP_S = new Virtual_Memory_Protection_Cabal_Online(processId,
 				std::bind(&ProtectionTests::VMP_S_CallBack, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
@@ -71,7 +101,7 @@ namespace ProtegaClientTestsuite
 		TEST_METHOD(Protection_VMP_WallHackPrevention_Test)
 		{
 			//Get process id
-			unsigned int processId = GetProcessId(sProcessName);
+			unsigned int processId = (int)FindProcessId(sProcessName);
 			//init class
 			Virtual_Memory_Protection_Cabal_Online *VMP_S = new Virtual_Memory_Protection_Cabal_Online(processId,
 				std::bind(&ProtectionTests::VMP_S_CallBack, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
@@ -83,7 +113,7 @@ namespace ProtegaClientTestsuite
 		TEST_METHOD(Protection_VMP_ZoomHackPrevention_Test) 
 		{
 			//Get process id
-			unsigned int processId = GetProcessId(sProcessName);
+			unsigned int processId = (int)FindProcessId(sProcessName);
 			//init class
 			Virtual_Memory_Protection_Cabal_Online *VMP_S = new Virtual_Memory_Protection_Cabal_Online(processId,
 				std::bind(&ProtectionTests::VMP_S_CallBack, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
@@ -101,7 +131,7 @@ namespace ProtegaClientTestsuite
 		TEST_METHOD(Protection_VMP_NoSkillDelayAndNoCastTimePrevention_Test)
 		{
 			//Get process id
-			unsigned int processId = GetProcessId(sProcessName);
+			unsigned int processId = (int)FindProcessId(sProcessName);
 			//init class
 			Virtual_Memory_Protection_Cabal_Online *VMP_S = new Virtual_Memory_Protection_Cabal_Online(processId,
 				std::bind(&ProtectionTests::VMP_S_CallBack, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
@@ -111,7 +141,7 @@ namespace ProtegaClientTestsuite
 			//Loop "scan all addresses" function
 			do
 			{
-				VMP_S->VMP_CheckNoSkillDelay();
+				//VMP_S->VMP_CheckNoSkillDelay();
 				VMP_S->VMP_CheckNoCastTime();
 				Sleep(1000);
 			} while (!bDetect);
@@ -120,7 +150,7 @@ namespace ProtegaClientTestsuite
 		TEST_METHOD(Protection_VMP_RangeHackPrevention_Test)
 		{
 			//Get process id
-			unsigned int processId = GetProcessId(sProcessName);
+			unsigned int processId = (int)FindProcessId(sProcessName);
 			//init class
 			Virtual_Memory_Protection_Cabal_Online *VMP_S = new Virtual_Memory_Protection_Cabal_Online(processId,
 				std::bind(&ProtectionTests::VMP_S_CallBack, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
@@ -138,7 +168,7 @@ namespace ProtegaClientTestsuite
 		TEST_METHOD(Protection_VMP_NoSkillCooldownPrevention_Test)
 		{
 			//Get process id
-			unsigned int processId = GetProcessId(sProcessName);
+			unsigned int processId = (int)FindProcessId(sProcessName);
 			//init class
 			Virtual_Memory_Protection_Cabal_Online *VMP_S = new Virtual_Memory_Protection_Cabal_Online(processId,
 				std::bind(&ProtectionTests::VMP_S_CallBack, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
@@ -207,7 +237,7 @@ namespace ProtegaClientTestsuite
 		//This tests emulates the usage of File_Protection_Engine
 		TEST_METHOD(Protection_FP_LocalFileChange)
 		{
-			unsigned int processId = GetProcessId(sProcessName);
+			unsigned int processId = (int)FindProcessId(sProcessName);
 			vBlackListWindowNames.push_back("D:\\Games\\CABAL CODEZERO NEW\\Data\\Map\\world_01.mcl");
 			vBlackListMd5Values.push_back("B5865AAAFB570F68DCA4C6326587E939");
 
