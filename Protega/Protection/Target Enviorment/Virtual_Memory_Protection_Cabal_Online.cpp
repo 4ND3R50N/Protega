@@ -211,8 +211,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime()
 			}
 			else
 			{
-				iCabalLatestNoCastTimeValue = iCurrentNoCastValue;
-				
+				iCabalLatestNoCastTimeValue = iCurrentNoCastValue;				
 			}
 		}
 		iCabalLatestCastValue = iCurrentSkillCastValue;
