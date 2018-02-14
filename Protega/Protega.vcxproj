@@ -168,6 +168,7 @@
     <ClInclude Include="Protection\Target Enviorment\Heuristic_Scan_Engine.h" />
     <ClInclude Include="Protection\Target Enviorment\Virtual_Memory_IO.h" />
     <ClInclude Include="Protection\Target Enviorment\Virtual_Memory_Protection_Cabal_Online.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Tools\CryptoPP_Converter.h" />
@@ -275,6 +276,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Protega - Client - Classdiagram.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Protega - Client.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

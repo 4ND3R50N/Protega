@@ -104,6 +104,9 @@
     <ClInclude Include="Core\Exception_Manager.h">
       <Filter>Headerdateien\Core</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -157,5 +160,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Protega - Client - Classdiagram.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Protega - Client.rc" />
   </ItemGroup>
 </Project>
