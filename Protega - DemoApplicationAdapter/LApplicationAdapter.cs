@@ -82,22 +82,22 @@ namespace Protega.ApplicationAdapter
 
             if (!unixSshConnectorAccept.IsConnected)
             {
-                LogFunction(1, LogCategory.ERROR, "Cannot connect to Linux Server!");
+                LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, "Cannot connect to Linux Server!");
                 return false;
             }
-            LogFunction(1, LogCategory.OK, "Linux Server connected successfully!");
+            LogFunction(1, LogCategory.OK, LoggerType.GAMEDLL, "Linux Server connected successfully!");
 
             if (DefaultCommand != null && DefaultCommand.Length > 0)
             {
                 bool Success = unixSshConnectorAccept.RunCommand(DefaultCommand).Error.Length == 0;
                 if (!Success)
                 {
-                    LogFunction(1, LogCategory.ERROR, "Cannot execute starting Query!");
+                    LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, "Cannot execute starting Query!");
                     return false;
                 }
                 else
                 {
-                    LogFunction(2, LogCategory.OK, "Starting Query executed successfully!");
+                    LogFunction(2, LogCategory.OK, LoggerType.GAMEDLL, "Starting Query executed successfully!");
                 }
             }
             else
@@ -115,12 +115,12 @@ namespace Protega.ApplicationAdapter
                         PortBlockingSucceeded = unixSshConnectorAccept.RunCommand("iptables -A INPUT -p tcp --destination-port " + item + " -j DROP").Error.Length == 0;
                     else
                     {
-                        LogFunction(1, LogCategory.ERROR, string.Format("Could not block Port {0}", item));
+                        LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, string.Format("Could not block Port {0}", item));
                         return false;
                     }
                 }
 
-                LogFunction(3, LogCategory.OK, "Ports successfully blocked!");
+                LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, "Ports successfully blocked!");
             }
 
             bool IPTablesSave;
@@ -128,7 +128,7 @@ namespace Protega.ApplicationAdapter
 
             if(!IPTablesSave)
             {
-                LogFunction(1, LogCategory.ERROR, "Could not save IPTables!");
+                LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, "Could not save IPTables!");
                 return false;
             }
 
@@ -136,12 +136,12 @@ namespace Protega.ApplicationAdapter
             IPTablesStart = unixSshConnectorAccept.RunCommand("service iptables start").Error.Length != 0;
             if(!IPTablesStart)
             {
-                LogFunction(1, LogCategory.ERROR, "Could not start IPTables!");
+                LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, "Could not start IPTables!");
                 return false;
             }
             
             unixSshConnectorAccept.Disconnect();
-            LogFunction(1, LogCategory.OK, "Linux interaction successful!");
+            LogFunction(1, LogCategory.OK, LoggerType.GAMEDLL, "Linux interaction successful!");
 
             ServerPrepared = true;
             return true;
@@ -152,17 +152,17 @@ namespace Protega.ApplicationAdapter
         {
             if(!ServerPrepared)
             {
-                LogFunction(1, LogCategory.ERROR, "Server must be prepared at first!");
+                LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, "Server must be prepared at first!");
                 return false;
             }
 
-            LogFunction(3, LogCategory.OK, "Adding User to IPTables initiated!");
+            LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, "Adding User to IPTables initiated!");
             SshClient unixSshConnectorAccept = new SshClient(IP, Port, LoginName, LoginPass);
             unixSshConnectorAccept.Connect();
 
             if (!unixSshConnectorAccept.IsConnected)
             {
-                LogFunction(2, LogCategory.ERROR, String.Format("Could not connect to IPTables. Add IP: {0}", IP));
+                LogFunction(2, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Could not connect to IPTables. Add IP: {0}", IP));
                 return false;
             }
 
@@ -174,25 +174,25 @@ namespace Protega.ApplicationAdapter
                     AddToPortsSuceeded = unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp -s " + IP + " --dport " + item + " -j ACCEPT").Error.Length == 0;
                 else
                 {
-                    LogFunction(2, LogCategory.ERROR, String.Format("Could not add IP to Port. Port: {0}, IP: {1}", item, IP));
+                    LogFunction(2, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Could not add IP to Port. Port: {0}, IP: {1}", item, IP));
                     return false;
                 }
             }
             //if (AddToPortsSuceeded)
-                LogFunction(3, LogCategory.OK, String.Format("Successfully added IP {0} to Ports.", IP));
+                LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, String.Format("Successfully added IP {0} to Ports.", IP));
 
             return true;
         }
 
         public bool KickUser(string IP, string UserName)
         {
-            LogFunction(3, LogCategory.OK, "Kicking from IPTables initiated!");
+            LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, "Kicking from IPTables initiated!");
             SshClient unixSshConnectorAccept = new SshClient(IP, Port, LoginName, LoginPass);
             unixSshConnectorAccept.Connect();
 
             if(!unixSshConnectorAccept.IsConnected)
             {
-                LogFunction(2, LogCategory.ERROR, String.Format("Could not connect to IPTables. KickIP: {0}", IP));
+                LogFunction(2, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Could not connect to IPTables. KickIP: {0}", IP));
                 return false;
             }
 
@@ -204,12 +204,12 @@ namespace Protega.ApplicationAdapter
                     KickFromPortsSuceeded = unixSshConnectorAccept.RunCommand("iptables -D INPUT -p tcp -s " + IP + " --dport " + item + " -j ACCEPT").Error.Length == 0;
                 else
                 {
-                    LogFunction(2, LogCategory.ERROR, String.Format("Could not kick from Port. Port: {0}, IP: {1}", item, IP));
+                    LogFunction(2, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Could not kick from Port. Port: {0}, IP: {1}", item, IP));
                     return false;
                 }
             }
             //if (KickFromPortsSuceeded)
-                LogFunction(3, LogCategory.OK, String.Format("Successfully kicked IP {0} from Ports.", IP));
+                LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, String.Format("Successfully kicked IP {0} from Ports.", IP));
 
             return true;
         }
