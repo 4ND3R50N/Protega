@@ -10,10 +10,11 @@ namespace Support
 {
     public class logWriter
     {
-        public delegate void WriteLog(int Importance, LogCategory Category, string Message);
+        public delegate void WriteLog(int Importance, LogCategory Category, LoggerType LType, string Message);
         public WriteLog writeLog;
         string path;
         int LogLevel;
+        public int ApplicationID = 0;
 
         public logWriter(string path, int LogLevel)
         {
@@ -22,8 +23,13 @@ namespace Support
             writeLog += writeInLog;
         }
 
-        public void writeInLog(int Importance, LogCategory Category, string Message)
+        public void writeInLog(int Importance, LogCategory Category, LoggerType LType, string Message)
         {
+            if (Category == LogCategory.ERROR || Category == LogCategory.CRITICAL)
+            {
+                LogDatabase(Importance, Category, LType, Message);
+            }
+
             //1=Important, 2=Medium, 3=Debug Infos
             if (Importance > LogLevel)
                 return;
@@ -39,11 +45,10 @@ namespace Support
             Console.WriteLine(Message);
         }
 
-        void LogDatabase(string BasicInformation, string DetailledInformation)
+        void LogDatabase(int Importance, LogCategory Category, LoggerType LType, string Message)
         {
-            //@Sunny Überleg dir wie wir Logs in der Datenbank speichern wollen
-            //Welche Infos sind wirklich relevant? Wie übergeben wir die?
-            //Wir können gern das aktuelle Logging anpassen, wenn der Aufbau anders sein soll
+            if (ApplicationID != 0)
+                Protega___Server.Classes.SLoggerData.Insert(ApplicationID, Category, LType, Importance, Message);
         }
 
         private void logFile(string Message)
@@ -58,9 +63,12 @@ namespace Support
         {
             logFile("---------------------------------------------------------------");
         }
-        
+
     }
 
     public enum LogCategory
     { OK, ERROR, CRITICAL }
+
+    public enum LoggerType
+    { SERVER, CLIENT, GAMEDLL, DATABASE }
 }

@@ -24,13 +24,13 @@ namespace Protega___Server.Classes.Core
         public Classes.Entity.EApplication Application;
 
         //Konstruktor
-        public ControllerCore(string _ApplicationName, short _iPort, char _cProtocolDelimiter, char _cDataDelimiter, string _sAesKey, string _sDatabaseDriver,
-            string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath, int LogLevel)
+        public ControllerCore(string _ApplicationName, short _iPort, char _cProtocolDelimiter, string _EncryptionKey, string _EncryptionIV, int _PingTimer, int SessionLength, string _sDatabaseDriver,
+            string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath, int LogLevel, string LinuxIP, short LinuxPort, string LinuxLogin, string LinuxPass, List<int> LinuxPorts)
         {
             //Logging initialisations
             Support.logWriter Logger = new logWriter(_sLogPath, LogLevel);
             Logger.Seperate();
-            Logger.writeInLog(1, LogCategory.OK, "Logging class initialized!");
+            Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "Logging class initialized!");
             DBEngine dBEngine = null;
             
             //Database Initialisations
@@ -47,39 +47,44 @@ namespace Protega___Server.Classes.Core
             //Database test
             if (dBEngine.testDBConnection())
             {
-                Logger.writeInLog(1, LogCategory.OK, "Database test successfull!");
+                Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.DATABASE, "Database test successfull!");
             }else
             {
-                Logger.writeInLog(1, LogCategory.ERROR, "Database test was not successfull!");
+                Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.DATABASE, "Database test was not successfull!");
                 return;
             }
 
             Application = SApplication.GetByName(_ApplicationName, dBEngine);
             if(Application==null)
             {
-                Logger.writeInLog(1, LogCategory.ERROR, "The application name was not found in the database!");
+                Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.DATABASE, "The application name was not found in the database!");
                 return;
             }
 
-
+            Logger.ApplicationID = Application.ID;
             CCstData Config = new CCstData(Application, dBEngine, Logger);
 
             if (CCstData.GetInstance(Application.ID).DatabaseEngine.testDBConnection())
             {
-                CCstData.GetInstance(Application.ID).Logger.writeInLog(1, LogCategory.OK, "Instance successfully created!");
+                CCstData.GetInstance(Application.ID).Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "Instance successfully created!");
             } else
             {
-                Logger.writeInLog(1, LogCategory.ERROR, "Instance could not be created!");
+                Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.SERVER, "Instance could not be created!");
                 return;
             }
 
+            CCstData.GetInstance(Application.ID).EncryptionKey = _EncryptionKey;
+            CCstData.GetInstance(Application.ID).EncryptionIV = _EncryptionIV;
+            CCstData.GetInstance(Application.ID).PingTimer = _PingTimer;
+            CCstData.GetInstance(Application.ID).SessionIDLength = SessionLength;
+
             //Block Linux Ports
 
-            SshClient unixSshConnectorAccept = new SshClient("167.88.15.106", 22, "root", "Wn51b453gpEdZTB5Bl");
+            SshClient unixSshConnectorAccept = new SshClient(LinuxIP, LinuxPort, LinuxLogin, LinuxPass);
             unixSshConnectorAccept.Connect();
             if(!unixSshConnectorAccept.IsConnected)
             {
-                Logger.writeInLog(1, LogCategory.ERROR, "Cannot connect to Linux Server");
+                Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "Cannot connect to Linux Server");
                 return;
             }
             string PuttyStringBuilder = "";
@@ -143,13 +148,13 @@ namespace Protega___Server.Classes.Core
             
                 //Network Initialisations
                 ActiveConnections = new List<networkServer.networkClientInterface>();
-            sAesKey = _sAesKey;
+            sAesKey = "";
             this.cProtocolDelimiter = _cProtocolDelimiter;
-            this.cDataDelimiter = _cDataDelimiter;
-            TcpServer = new networkServer(NetworkProtocol, _sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            this.cDataDelimiter = _cProtocolDelimiter;
+            TcpServer = new networkServer(NetworkProtocol, sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         
             ProtocolController.SendProtocol += this.SendProtocol;
-            Logger.writeInLog(1, LogCategory.OK, "TCP Server ready for start!");
+            Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "TCP Server ready for start!");
             Logger.Seperate();
             ProtocolController = new ProtocolController(ref ActiveConnections, Application.ID);
             
@@ -194,11 +199,11 @@ namespace Protega___Server.Classes.Core
         {
             if(TcpServer.startListening())
             {
-                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, "Server has been started successfully!");
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "Server has been started successfully!");
             }
             else
             {
-                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.ERROR, "The server was not able to start!");
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.SERVER, "The server was not able to start!");
             }
            
         }
@@ -207,7 +212,7 @@ namespace Protega___Server.Classes.Core
         public void NetworkProtocol(networkServer.networkClientInterface NetworkClient, string message)
         {
             //Public for the Unit Tests
-            CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, "Protocol received: " + message);
+            CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received: " + message);
             try
             {
                 //Öañ4\u001b3[\b\nÎbÞö}\u0010VDYZ‚\u009d\u0005sQ˜e@p•\u001e\ab{ó¥Ÿ›¨YÉ`\\wõˆ¹éî\0
@@ -227,10 +232,10 @@ namespace Protega___Server.Classes.Core
             catch (Exception e)
             {
                 //If decryption failed, something was probably manipulated -> Log it
-                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, "Protocol Decryption failed! Message: " + e.ToString());
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Protocol Decryption failed! Message: " + e.ToString());
                 return;
             }
-            CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, "Protocol received decrypted: " + message);
+            CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received decrypted: " + message);
             ProtocolController.ReceivedProtocol(NetworkClient, message);
         }
 
@@ -244,7 +249,7 @@ namespace Protega___Server.Classes.Core
                 LengthAddition = "0" + LengthAddition;
             }
             EncryptedProt = LengthAddition + EncryptedProt;
-            CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, String.Format("Protocol encrypted: {0} ({1})", EncryptedProt, Protocol));
+            CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Protocol encrypted: {0} ({1})", EncryptedProt, Protocol));
 
             TcpServer.sendMessage(EncryptedProt, ClientInterface);
         }
