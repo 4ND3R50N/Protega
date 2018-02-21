@@ -11,7 +11,7 @@ using Renci.SshNet;
 
 namespace Protega___Server.Classes.Core
 {
-    public class ControllerCore
+    public class ControllerCore:IDisposable
     {
         //Variablen
         public networkServer TcpServer;
@@ -22,9 +22,8 @@ namespace Protega___Server.Classes.Core
         private char   cProtocolDelimiter;
         private char   cDataDelimiter;
         public Classes.Entity.EApplication Application;
-
         //Konstruktor
-        public ControllerCore(string _ApplicationName, short _iPort, char _cProtocolDelimiter, string _EncryptionKey, string _EncryptionIV, int _PingTimer, int SessionLength, string _sDatabaseDriver,
+        public ControllerCore(string _ApplicationName, int LatestClientVersion, short _iPort, char _cProtocolDelimiter, string _EncryptionKey, string _EncryptionIV, int _PingTimer, int SessionLength, string _sDatabaseDriver,
             string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath, int LogLevel, string LinuxIP, short LinuxPort, string LinuxLogin, string LinuxPass, List<int> LinuxPorts)
         {
             //Logging initialisations
@@ -73,6 +72,7 @@ namespace Protega___Server.Classes.Core
                 return;
             }
 
+            CCstData.GetInstance(Application.ID).LatestClientVersion = LatestClientVersion;
             CCstData.GetInstance(Application.ID).EncryptionKey = _EncryptionKey;
             CCstData.GetInstance(Application.ID).EncryptionIV = _EncryptionIV;
             CCstData.GetInstance(Application.ID).PingTimer = _PingTimer;
@@ -81,12 +81,19 @@ namespace Protega___Server.Classes.Core
             //Block Linux Ports
 
             SshClient unixSshConnectorAccept = new SshClient(LinuxIP, LinuxPort, LinuxLogin, LinuxPass);
-            unixSshConnectorAccept.Connect();
-            if(!unixSshConnectorAccept.IsConnected)
+            try
+            {
+                unixSshConnectorAccept.Connect();
+                if (!unixSshConnectorAccept.IsConnected)
+                    throw new Exception();
+                
+            }
+            catch (Exception e)
             {
                 Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "Cannot connect to Linux Server");
                 return;
             }
+
             string PuttyStringBuilder = "";
             PuttyStringBuilder += " service iptables stop";
             PuttyStringBuilder += " && iptables -F";
@@ -205,14 +212,32 @@ namespace Protega___Server.Classes.Core
             {
                 CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.SERVER, "The server was not able to start!");
             }
-           
+
         }
+
+        #region Destructor
+        public void Dispose()
+        {
+            //Kick all connected clients and remove the objects
+            foreach (networkServer.networkClientInterface item in ActiveConnections)
+            {
+                item.Dispose();
+            }
+
+            //Close network server
+            TcpServer.Dispose();
+
+            //Remove instance from CCstData
+            if (CCstData.InstanceExists(Application.Hash))
+                CCstData.InstanceClose(Application.ID);
+        }
+        #endregion
 
         #region Protocol
         public void NetworkProtocol(networkServer.networkClientInterface NetworkClient, string message)
         {
             //Public for the Unit Tests
-            CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received: " + message);
+            CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received: " + message);
             try
             {
                 //Öañ4\u001b3[\b\nÎbÞö}\u0010VDYZ‚\u009d\u0005sQ˜e@p•\u001e\ab{ó¥Ÿ›¨YÉ`\\wõˆ¹éî\0
@@ -235,7 +260,7 @@ namespace Protega___Server.Classes.Core
                 CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Protocol Decryption failed! Message: " + e.ToString());
                 return;
             }
-            CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received decrypted: " + message);
+            CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received decrypted: " + message);
             ProtocolController.ReceivedProtocol(NetworkClient, message);
         }
 

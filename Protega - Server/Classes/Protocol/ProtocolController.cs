@@ -101,10 +101,12 @@ namespace Protega___Server.Classes.Protocol
                 return false;
             }
 
-            ///asCCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, "201 sent");
-            //SendProtocol("201;1;Es war einmal ein Engellein, fdg hatte keine Flügel mehr", ClientInterface);
-            ////SendProtocol("201;1;Contact Admin#!sG36&§$-ENDE", ClientInterface);
-            //return false;
+            //if(CCstData.GetInstance(ApplicationHash).LatestClientVersion!=version)
+            //{
+            //    CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Invalid version! Having {0}, expected {1}. Hardware ID {2}", version, CCstData.GetInstance(ApplicationHash).LatestClientVersion, ComputerID));
+            //    SendProtocol("201;35;Antihack Client version outdated!", ClientInterface);
+            //    return false;
+            //}
 
             //Check if user is already connected
             foreach (networkServer.networkClientInterface item in ActiveConnections)
@@ -114,7 +116,7 @@ namespace Protega___Server.Classes.Protocol
                 {
                     //User is already registered
                     CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.CLIENT, "Authentification: User is already added to list!");
-                    SendProtocol("201;2;Contact Admin", ClientInterface);
+                    SendProtocol("201;2;Still logged in. Please try again", ClientInterface);
                     return false;
                 }
             }
@@ -152,13 +154,13 @@ namespace Protega___Server.Classes.Protocol
                 if (ActiveConnections.Where(Client => Client.SessionID == SessionID).ToList().Count == 0)
                 {
                     ClientInterface.SessionID = SessionID;
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Unique session ID created + " + SessionID);
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("New user authentificated! HardwareID: {0}, Session ID: {1}", dataClient.ID, SessionID));
                     break;
                 }
             }
 
             //Add the new connection to the list of connected connections
-            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, "167.88.15.106", "root", "Wn51b453gpEdZTB5Bl", 22, KickUser);
+            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, "167.88.15.106", "root", "6nL7s04ywYVmP2Cx1U", 22, KickUser);
 
 
             bool IpExistsAlready= ActiveConnections.Select(Client => Client.IP == ClientInterface.IP).ToList().Count > 0;
@@ -196,7 +198,7 @@ namespace Protega___Server.Classes.Protocol
             ActiveConnections.Add(ClientInterface);
 
             SendProtocol("200;" + ClientInterface.SessionID, ClientInterface);
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Protocol sent. Session ID + " + ClientInterface.SessionID);
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user. Computer ID: {0}, Session ID: {1}", ClientInterface.User.ID, ClientInterface.SessionID));
             return true;
         }
 
@@ -225,7 +227,7 @@ namespace Protega___Server.Classes.Protocol
                 ClientInterface.unixSshConnectorAccept.Disconnect();
                 ClientInterface.unixSshConnectorAccept.Dispose();
             }
-            CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "User kicked. Session ID: " + ClientInterface.SessionID);
+            CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "User kicked. Session ID: " + ClientInterface.SessionID);
             ActiveConnections.Remove(ClientInterface);
             ClientInterface.Dispose();
         }
@@ -266,7 +268,7 @@ namespace Protega___Server.Classes.Protocol
 
                 return true;
             }
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.CLIENT, "Ping: User does not exist in the active connections");
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Ping: User does not exist in the active connections ({0})", prot.GetUserID()));
             return false;
         }
 
@@ -274,7 +276,7 @@ namespace Protega___Server.Classes.Protocol
         #region Hack Detections
         private bool HackDetection_Heuristic(networkServer.networkClientInterface Client, Protocol prot)
         {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "H-Detection received. User: " + prot.GetUserID());
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "H-Detection received. User: " + prot.GetUserID());
             networkServer.networkClientInterface ClientInterface = Client;
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
@@ -345,7 +347,7 @@ namespace Protega___Server.Classes.Protocol
 
         private bool HackDetection_File(networkServer.networkClientInterface Client, Protocol prot)
         {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "F-Detection received. User: " + prot.GetUserID());
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "F-Detection received. User: " + prot.GetUserID());
             networkServer.networkClientInterface ClientInterface = Client;
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
@@ -400,7 +402,7 @@ namespace Protega___Server.Classes.Protocol
 
         private bool HackDetection_VirtualMemory(networkServer.networkClientInterface Client, Protocol prot)
         {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "V-Detection received. User: "+prot.GetUserID());
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "V-Detection received. User: "+prot.GetUserID());
             networkServer.networkClientInterface ClientInterface = Client;
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {

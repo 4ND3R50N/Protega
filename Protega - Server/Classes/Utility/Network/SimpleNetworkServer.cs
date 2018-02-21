@@ -18,7 +18,7 @@ using System.Collections.Generic;
 
 namespace Protega___Server
 {
-    public class networkServer
+    public class networkServer:IDisposable
     {
         //Variables
         //--Public
@@ -29,7 +29,6 @@ namespace Protega___Server
         private Socket serverSocket;
         private event protocolFunction protAnalyseFunction;
         private string network_AKey;
-
 
         //Constructor
         public networkServer(protocolFunction protAnalyseFunction, string network_AKey)
@@ -68,7 +67,7 @@ namespace Protega___Server
                     serverSocket.BeginAccept(
                         new AsyncCallback(AcceptCallback), serverSocket);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 return false;
             }
@@ -88,8 +87,8 @@ namespace Protega___Server
                 serverSocket.BeginAccept(new AsyncCallback(AcceptCallback),
                     result.AsyncState);
                 //for (int i = 0; i < 1000; i++)
-                    serverSocket.BeginAccept(
-                        new AsyncCallback(AcceptCallback), serverSocket);
+                serverSocket.BeginAccept(
+                    new AsyncCallback(AcceptCallback), serverSocket);
 
             }
             catch (SocketException)
@@ -154,6 +153,12 @@ namespace Protega___Server
         public void closeServer()
         {
             serverSocket.Close();
+        }
+
+        public void Dispose()
+        {
+            serverSocket.Close();
+            //serverSocket.Dispose();
         }
 
         //Class model -> Client -> MUST be edited for each implementation 
