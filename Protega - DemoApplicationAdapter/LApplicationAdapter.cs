@@ -13,11 +13,7 @@ namespace Protega.ApplicationAdapter
     // Oder der Server muss so umgebaut werden, dass der Klassenname per config file angegeben werden kann
     public class ApplicationAdapter
     {
-        public delegate void LogError(int Importance, LogCategory Category, string Message);
-        public delegate void Testing(string Test);
-        public event Testing TestingEvent;
-        event LogError Log;
-        Support.logWriter.WriteLog LogFunction;
+        logWriter.WriteLog LogFunction;
 
         string IP, LoginName, LoginPass;
         int Port;
@@ -29,11 +25,6 @@ namespace Protega.ApplicationAdapter
 
         bool ServerPrepared = false;
 
-        public LogError LogIt(string MEssage)
-        {
-            return Log;
-        }
-
         #region Constructor
         /// <summary>
         /// Create the object for the application adapter
@@ -44,14 +35,6 @@ namespace Protega.ApplicationAdapter
         {
             this.LogPath = LogPath;
             this.LogLevel = LogLevel;            
-        }
-
-        public void SetEvent(Testing _Test)
-        { TestingEvent = _Test; }
-
-        public void TestEvent(string nothing)
-        {
-            TestingEvent("Succeeded!");
         }
         #endregion
 
@@ -78,13 +61,20 @@ namespace Protega.ApplicationAdapter
 
             // SSH Login SHOULD be based on certificates, not username/password!
             SshClient unixSshConnectorAccept = new SshClient(IP, LoginPort, LoginName, LoginPass);
-            unixSshConnectorAccept.Connect();
 
-            if (!unixSshConnectorAccept.IsConnected)
+            try
             {
-                LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, "Cannot connect to Linux Server!");
+                unixSshConnectorAccept.Connect();
+                if (!unixSshConnectorAccept.IsConnected)
+                    throw new Exception();
+            }
+            catch (Exception e)
+            {
+
+                LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Cannot connect to Linux Server! ({0})", e.ToString()));
                 return false;
             }
+
             LogFunction(1, LogCategory.OK, LoggerType.GAMEDLL, "Linux Server connected successfully!");
 
             if (DefaultCommand != null && DefaultCommand.Length > 0)
@@ -217,5 +207,38 @@ namespace Protega.ApplicationAdapter
         public bool BanUser() { Console.WriteLine("Ban User"); return false; }
         #endregion
 
+        List<int> PortsToBlock = new List<int>();
+        string LinuxIP, LinuxLoginName, LinuxPassword;
+        short LinuxPort;
+
+
+        bool LoadConfig(string Path, string Section)
+        {
+            iniManager iniEngine = new iniManager(Path);
+
+            LinuxIP = iniEngine.IniReadValue(Section, "LinuxIP");
+            LinuxLoginName = iniEngine.IniReadValue(Section, "LinuxLoginName");
+            LinuxPassword = iniEngine.IniReadValue(Section, "LinuxPassword");
+            if (!short.TryParse(iniEngine.IniReadValue(Section, "LinuxPort"), out LinuxPort))
+            {
+                return false;
+            }
+
+            bool bPortError = false;
+            foreach (string Port in iniEngine.IniReadValue(Section, "Ports").Split(';'))
+            {
+                int tmpPort;
+                if (!Int32.TryParse(Port, out tmpPort))
+                {
+                    bPortError = true;
+                    return false;
+                }
+                PortsToBlock.Add(tmpPort);
+            }
+            if (bPortError)
+                return false;
+
+            return true;
+        }
     }
 }
