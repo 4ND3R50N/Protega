@@ -33,7 +33,7 @@ bool Virtual_Memory_Protection_Cabal_Online::CloseProcessInstance()
 
 bool Virtual_Memory_Protection_Cabal_Online::DetectManipulatedMemory()
 {
-	if ((/*VMP_CheckGameSpeed() ||*/ VMP_CheckWallBorders() || VMP_CheckZoomState() || VMP_CheckNoSkillDelay()  || 
+	if ((VMP_CheckGameSpeed() || VMP_CheckWallBorders() || VMP_CheckZoomState() || VMP_CheckNoSkillDelay()  || 
 		VMP_CheckNoCastTime() || VMP_CheckSkillRange() || VMP_CheckSkillCooldown() /*|| VMP_CheckNation()*/) == true)
 	{
 		return true;
@@ -52,7 +52,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckGameSpeed()
 	{
 		//Check if the speed is normal (450)
 		float fCurrentSpeed = GetFloatViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSpeedOffset);
-		if (fCurrentSpeed < fCabalMaxPossibleSpeed)
+		if (fCurrentSpeed > fCabalMaxPossibleSpeed)
 		{
 			//Function callback triggern
 			funcCallbackHandler("CABAL BASE ADDRESS", "SPEED OFFSET", boost::lexical_cast<std::string>(fCurrentSpeed), boost::lexical_cast<std::string>(fCabalMaxPossibleSpeed));
@@ -64,10 +64,12 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckGameSpeed()
 
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckWallBorders()
 {
+	//Skip algorithm, if MapValue is on default
 	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalMapOffset) == iCabalMapDefaultValue)
 	{
 		return false;
 	}
+	//Use a delay after joining the game for the first time
 	else if (bFirstChannelJoin)
 	{
 		Sleep(iWallhackScanDelay);
@@ -83,10 +85,11 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckWallBorders()
 	
 	for (unsigned int i = 0; i < (unsigned int)lpcvCabalWallStopOffset; i = i + 4)
 	{
+		//Get the current variable in wall address room
 		int iCurrentVal = ReadMemoryInt(hProcessHandle, (LPCVOID)((unsigned int)StartAdress + i));
+		
 		//Count Zeros + Non Zeros
 		(iCurrentVal != 0) ? iNonZeros++ : iZeros++;
-
 		//Debug		
 		//file << "Value on iteration " << i << " | Startaddress: " << (unsigned int)StartAdress << " | VALUE: " << iCurrentVal << "\n";
 	}
@@ -96,7 +99,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckWallBorders()
 	double dPercentOfZeros = (100.0 / iAmountOfAllAddresses)*iZeros;
 	double dPercentOfNonZeros = 100.0 - dPercentOfZeros;
 
-	//This decision must be adjusted later!!!
+	//If the percent of zeros are higher than the setted tolerance -> detect
 	if (dPercentOfZeros >= iWallhackZeroTolerance)
 	{
 		std::stringstream ss;
@@ -145,6 +148,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckZoomState()
 //NOTE: There has to be some other checks. E.G: No stun = 7 -> cast > 30000000, No stun = 3 -> 1XXXXXXXX ....
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay()
 {
+	//Skip algorithm if skill animation is default
 	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
 	{
 		return false;
@@ -178,32 +182,48 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay()
 
 //NOTE: Set sleep vars global! Algorithm speed: 100ms! Gamestart + freeze NCT = 0 -> Makes some problems. Check it later!
 //NOTE: Map or animation check is necessary.... maybe...
-//Comment code!
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime()
 {
+	//Skip algorithm if animation var is default
 	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
 	{
 		return false;
 	}
 
-	//Check if its the first run
+	//Check if its the first run, collect NSD + NCT Value
 	if (iCabalLatestNoCastTimeValue == 0 && iCabalLatestCastValue == 0)
 	{
 		iCabalLatestNoCastTimeValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
 		iCabalLatestCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
+		//BM Fix
+		iCabalLatestBattleModeStateValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
 	}
 
+	//Get actual NSD value
 	int iCurrentSkillCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
 
+	//Check, if there was a skill change after the last run of this algorithm
 	if (iCurrentSkillCastValue != iCabalLatestCastValue)
 	{
+		//Collect the animation value
 		int iCurrentAnimationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
-		
-		if (iCurrentAnimationValue == iCabalAnimationSkill && iCurrentSkillCastValue >= iCabalSkillValueLowerLimit)
+		//Collect battle mode value
+		int iCurrentBattleModeValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
+
+		//Check, if we are currently performing an attack + check if the animation is also an attack + check if we havent changed the battle mode 
+		if (iCurrentAnimationValue == iCabalAnimationSkill && iCurrentSkillCastValue >= iCabalSkillValueLowerLimit && iCurrentBattleModeValue == iCabalLatestBattleModeStateValue)
 		{
+			//This sleep exist for the following reason:
+			//If you freeze the NCT var via hack, it rewrites the variable permanently. That means, the NCT is toggling between a random value + the value that is freezig.
+			//There must be a smart delay, after the algorithm detected a skill change + recognized, that there is a attack performing (IF1 and IF2) to catch the var that the hack is freezing.
+			//Since we store the latest NCT value, it will recognize -> a change, if there is no hack
+			//														 -> no change, if there is a hack
 			Sleep(200);
+
+			//Get the actual NCT value
 			int iCurrentNoCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
 			
+			//Check if the var did not change after a second attack skill
 			if (iCabalLatestNoCastTimeValue == iCurrentNoCastValue)
 			{
 				funcCallbackHandler("CABAL MODULE ADDRESS", "NO CAST TIME OFFSET", ">3000000", "");
@@ -215,6 +235,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime()
 			}
 		}
 		iCabalLatestCastValue = iCurrentSkillCastValue;
+		iCabalLatestBattleModeStateValue = iCabalLatestBattleModeStateValue;
 	}
 
 	return false;
@@ -244,7 +265,10 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckSkillRange()
 
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckSkillCooldown()
 {	
+	//Get skill cooldown value
 	int iCurrentSkillCooldownValue = ReadMemoryInt(hProcessHandle, lpcvCabalSkillCooldownAddress);
+
+	//If the variable gets changed, detect.
 	if (iCurrentSkillCooldownValue != iCabalDefaultSkillCooldown)
 	{
 		std::stringstream ss;
@@ -262,7 +286,10 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckSkillCooldown()
 
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNation()
 {
+	//Get nation value
 	int iCurrentNationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNationOffset);
+
+	//Check if its the GM nation
 	if (iCurrentNationValue == iCabalGm)
 	{
 		std::stringstream ss;
@@ -280,8 +307,10 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNation()
 bool Virtual_Memory_Protection_Cabal_Online::VMP_EnableWallHack()
 {
 	//Iterate through the Wall adresses
+	//Get Start address of wall based address room
 	LPCVOID StartAdress = (LPCVOID)(ReadMemoryInt(hProcessHandle, lpcvCabalWallBaseAddress) + (unsigned int)lpcvCabalWallStartOffset);
 
+	//Iterate throu the address room. Do i + 4 steps to get the right addresses. Set them to 0, to set the walls down
 	for (unsigned int i = 0; i < (unsigned int)lpcvCabalWallStopOffset; i = i + 4)
 	{
 		WriteIntToMemory(hProcessHandle, (LPCVOID)((unsigned int)StartAdress + i), 0);
@@ -307,5 +336,3 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_EnableWallHack()
 //	} while (dDuration < 0.1);
 //	
 //}
-
-
