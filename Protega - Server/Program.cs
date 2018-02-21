@@ -14,6 +14,37 @@ namespace Protega___Server
 
         static void Main(string[] args)
         {
+            StartServer();
+
+            while(true)
+            {
+                string Command = Console.ReadLine();
+                switch (Command)
+                {
+                    case "Online":
+                        if(AppsRunning.Count>0)
+                            Console.WriteLine("Online players: " + AppsRunning[0].ActiveConnections.Count.ToString());
+                        break;
+                    case "Restart":
+                        /*foreach (ControllerCore item in AppsRunning)
+                        {
+                            item.Dispose();
+                        }
+                        StartServer();*/
+                        break;
+                    case "ConfigReload":
+                        RefreshSettings();
+                        break;
+                    default:
+                        Console.WriteLine("Command '" + Command + "' unknown!");
+                        Console.WriteLine("Available: Online, ConfigReload (refreshes Version, PingTimer, EncryptionKey/IV from Config.ini");
+                        break;
+                }
+            }
+        }
+
+        static bool StartServer()
+        {
             List<string> Sections = GetSections(Path.Combine(Environment.CurrentDirectory, "config.ini"));
             Support.iniManager iniEngine = new Support.iniManager(Path.Combine(Environment.CurrentDirectory, "config.ini"));
             foreach (string item in Sections)
@@ -23,6 +54,12 @@ namespace Protega___Server
                 bool isActive = iniEngine.IniReadValue(item, "isActive") == "1";
                 if (!isActive)
                     continue;
+
+                int Version;
+                if (!Int32.TryParse(iniEngine.IniReadValue(item, "Version"), out Version))
+                {
+                    continue;
+                }
 
                 short InputPort;
                 if (!Int16.TryParse(iniEngine.IniReadValue(item, "InputPort"), out InputPort))
@@ -88,7 +125,7 @@ namespace Protega___Server
                 if (bPortError)
                     continue;
 
-                ControllerCore Controller = new ControllerCore(ApplicationName, InputPort, ProtocolDelimiter, EncryptionKey, EncryptionIV, PingTimer, SessionLength, DatabaseDriver, DatabaseIP, DatabasePort, DatabaseLoginName, DatabasePassword, DatabaseDefault, LogFile, LogLevel, LinuxIP, LinuxPort, LinuxLoginName, LinuxPassword, Ports);
+                ControllerCore Controller = new ControllerCore(ApplicationName, Version, InputPort, ProtocolDelimiter, EncryptionKey, EncryptionIV, PingTimer, SessionLength, DatabaseDriver, DatabaseIP, DatabasePort, DatabaseLoginName, DatabasePassword, DatabaseDefault, LogFile, LogLevel, LinuxIP, LinuxPort, LinuxLoginName, LinuxPassword, Ports);
 
                 try
                 {
@@ -97,11 +134,66 @@ namespace Protega___Server
                 }
                 catch (Exception)
                 {
-                    return;
+                    return false;
                 }
             }
+            return true;
+        }
 
-            Console.ReadLine();
+        static bool RefreshSettings()
+        {
+            List<string> Sections = GetSections(Path.Combine(Environment.CurrentDirectory, "config.ini"));
+            Support.iniManager iniEngine = new Support.iniManager(Path.Combine(Environment.CurrentDirectory, "config.ini"));
+            foreach (string item in Sections)
+            {
+
+                int NewVersion;
+                if (!Int32.TryParse(iniEngine.IniReadValue(item, "Version"), out NewVersion))
+                {
+                    return false;
+                }
+                string EncryptionKey = iniEngine.IniReadValue(item, "EncryptionKey");
+                string EncryptionIV = iniEngine.IniReadValue(item, "EncryptionIV");
+
+                int PingTimer;
+                if (!int.TryParse(iniEngine.IniReadValue(item, "PingTimer"), out PingTimer))
+                {
+                    return false;
+                }
+
+                if(AppsRunning.Count>0)
+                {
+                    int FormerVersion = Classes.CCstData.GetInstance(AppsRunning[0].Application).LatestClientVersion;
+                    if(NewVersion!=FormerVersion)
+                    {
+                        Classes.CCstData.GetInstance(AppsRunning[0].Application).LatestClientVersion = NewVersion;
+                        Console.WriteLine("CONFIG update: Using now version " + NewVersion.ToString());
+                    }
+
+                    string FormerEncryptionKey = Classes.CCstData.GetInstance(AppsRunning[0].Application).EncryptionKey;
+                    if (FormerEncryptionKey != EncryptionKey)
+                    {
+                        Classes.CCstData.GetInstance(AppsRunning[0].Application).EncryptionKey = EncryptionKey;
+                        Console.WriteLine("CONFIG update: Using now encryption key " + EncryptionKey);
+                    }
+                    
+                    string FormerEncryptionIV = Classes.CCstData.GetInstance(AppsRunning[0].Application).EncryptionIV;
+                    if (FormerEncryptionIV != EncryptionIV)
+                    {
+                        Classes.CCstData.GetInstance(AppsRunning[0].Application).EncryptionIV = EncryptionIV;
+                        Console.WriteLine("CONFIG update: Using now encryption IV " + EncryptionIV);
+                    }
+
+                    int FormerPingTimer = Classes.CCstData.GetInstance(AppsRunning[0].Application).PingTimer;
+                    if (FormerEncryptionIV != EncryptionIV)
+                    {
+                        Classes.CCstData.GetInstance(AppsRunning[0].Application).PingTimer = PingTimer;
+                        Console.WriteLine("CONFIG update: Using now PingTimer " + PingTimer.ToString() + "ms");
+                    }
+                }
+
+            }
+            return true;
         }
 
         static List<string> GetSections(string ConfigPath)
