@@ -36,6 +36,7 @@ private:
 
 	LPCVOID lpcvCabalNationOffset = (LPCVOID)0x35C;
 
+	LPCVOID lpcvCabalBattleModeStateOffset = (LPCVOID)0x41B0;
 
 	//Cabal Values
 	//	Map
@@ -51,8 +52,9 @@ private:
 
 	int iCabalLatestNoCastTimeValue = 0;
 	int iCabalLatestCastValue = 0;
+	int iCabalLatestBattleModeStateValue = 0;
 	//	Speedcheck
-	float fCabalMaxPossibleSpeed = 870.f;
+	float fCabalMaxPossibleSpeed = 1200.f;
 	//	Rangecheck
 	int iCabalDefaultGM = 0;
 	int iCabalDefaultRange = 0;
@@ -67,8 +69,7 @@ private:
 	int iCabalGm = 2;
 	
 	//Vars
-	unsigned int iProcessID;
-	
+	unsigned int iProcessID;	
 	
 	//Functions Vars
 	std::function<void(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sStandartValue) > funcCallbackHandler;
@@ -83,8 +84,6 @@ public:
 	bool OpenProcessInstance();
 	bool CloseProcessInstance();
 	bool DetectManipulatedMemory();
-
-
 
 	//VMP Functions
 	bool VMP_CheckGameSpeed();
