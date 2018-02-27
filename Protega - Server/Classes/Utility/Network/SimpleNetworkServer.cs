@@ -63,7 +63,7 @@ namespace Protega___Server
             {
                 serverSocket.Bind(serverEndPoint);
                 serverSocket.Listen((int)SocketOptionName.MaxConnections);
-                for (int i = 0; i < 1000; i++)
+                //for (int i = 0; i < 1000; i++)
                     serverSocket.BeginAccept(
                         new AsyncCallback(AcceptCallback), serverSocket);
             }
@@ -181,6 +181,7 @@ namespace Protega___Server
             
             public void Dispose()
             {
+                networkSocket.Close();
                 if (unixSshConnectorAccept != null)
                     unixSshConnectorAccept.Dispose();
                 if (tmrPing != null)

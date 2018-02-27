@@ -13,7 +13,7 @@ namespace Support
         public delegate void WriteLog(int Importance, LogCategory Category, LoggerType LType, string Message);
         public WriteLog writeLog;
         string path;
-        int LogLevel;
+        public int LogLevel;
         public int ApplicationID = 0;
 
         public logWriter(string path, int LogLevel)
@@ -35,8 +35,9 @@ namespace Support
                 return;
             
             string OutMessage = string.Format("[{0} {1}]: ({2}) - {3}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), Category, Message);
-                     
-            conOut(OutMessage);
+    
+            if(!Message.Contains("Protocol received"))
+                conOut(OutMessage);
             logFile(OutMessage);
         }
 

@@ -15,11 +15,17 @@ namespace Protega___Server.Classes.Protocol
     {
         List<networkServer.networkClientInterface> ActiveConnections;
         int ApplicationID;
+        string LinuxIP, LinuxLogin, LinuxPass;
+        int LinuxPort;
 
-        public ProtocolController(ref List<networkServer.networkClientInterface> ActiveConnections, int _ApplicationID)
+        public ProtocolController(ref List<networkServer.networkClientInterface> ActiveConnections, int _ApplicationID, int LinuxPort, string LinuxLogin, string LinuxPass, string LinuxIP)
         {
             this.ActiveConnections = ActiveConnections;
             ApplicationID = _ApplicationID;
+            this.LinuxIP = LinuxIP;
+            this.LinuxLogin = LinuxLogin;
+            this.LinuxPass = LinuxPass;
+            this.LinuxPort = LinuxPort;
         }
         
         public delegate void SendProt(string Protocol, networkServer.networkClientInterface ClientInterface);
@@ -101,12 +107,12 @@ namespace Protega___Server.Classes.Protocol
                 return false;
             }
 
-            //if(CCstData.GetInstance(ApplicationHash).LatestClientVersion!=version)
-            //{
-            //    CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Invalid version! Having {0}, expected {1}. Hardware ID {2}", version, CCstData.GetInstance(ApplicationHash).LatestClientVersion, ComputerID));
-            //    SendProtocol("201;35;Antihack Client version outdated!", ClientInterface);
-            //    return false;
-            //}
+            if (CCstData.GetInstance(ApplicationHash).LatestClientVersion != version)
+            {
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Invalid version! Having {0}, expected {1}. Hardware ID {2}", version, CCstData.GetInstance(ApplicationHash).LatestClientVersion, ComputerID));
+                SendProtocol("201;35;Antihack Client version outdated!", ClientInterface);
+                return false;
+            }
 
             //Check if user is already connected
             foreach (networkServer.networkClientInterface item in ActiveConnections)
@@ -160,7 +166,7 @@ namespace Protega___Server.Classes.Protocol
             }
 
             //Add the new connection to the list of connected connections
-            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, "167.88.15.106", "root", "6nL7s04ywYVmP2Cx1U", 22, KickUser);
+            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, LinuxIP, LinuxLogin, LinuxPass, LinuxPort, KickUser);
 
 
             bool IpExistsAlready= ActiveConnections.Select(Client => Client.IP == ClientInterface.IP).ToList().Count > 0;
@@ -168,17 +174,47 @@ namespace Protega___Server.Classes.Protocol
             if (!IpExistsAlready)
             {
                 //If there is already an IP exception, we dont need another
-                ClientInterface.unixSshConnectorAccept.Connect();
+                try
+                {
+                    ClientInterface.unixSshConnectorAccept.Connect();
+                }
+                catch (Exception)
+                {
+                    
+                }
                 if (ClientInterface.unixSshConnectorAccept.IsConnected)
                 {
                     List<int> Ports = new List<int>();
-                    Ports.Add(12001);
-                    Ports.Add(12002);
-                    Ports.Add(12003);
-
+                    Ports.Add(50001);
+                    Ports.Add(50002);
+                    Ports.Add(50003);
+                    Ports.Add(50004);
+                    Ports.Add(50005);
+                    Ports.Add(50006);
+                    Ports.Add(50007);
+                    Ports.Add(50008);
+                    Ports.Add(50009);
+                    Ports.Add(50010);
+                    Ports.Add(50011);
+                    Ports.Add(50012);
+                    Ports.Add(50013);
+                    Ports.Add(50014);
+                    Ports.Add(50015);
+                    Ports.Add(50016);
+                    Ports.Add(50017);
+                    Ports.Add(50018);
+                    Ports.Add(50019);
+                    Ports.Add(50020);
+                    string LinuxPorts = "";
                     foreach (int item in Ports)
                     {
-                        ClientInterface.unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT");
+                        LinuxPorts += "iptables -I INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT && ";
+                    }
+                    if(LinuxPorts.Length > 0)
+                    {
+                        LinuxPorts = LinuxPorts.TrimEnd(' ');
+                        LinuxPorts = LinuxPorts.TrimEnd('&');
+                        //ClientInterface.unixSshConnectorAccept.RunCommand(LinuxPorts);
                     }
 
                     ClientInterface.unixSshConnectorAccept.Disconnect();
@@ -205,7 +241,14 @@ namespace Protega___Server.Classes.Protocol
         void KickUser(networkServer.networkClientInterface ClientInterface)
         {
             System.Threading.Thread.Sleep(1000);
-            bool IpExistsAlready = ActiveConnections.Select(Client => Client.IP == ClientInterface.IP && Client.SessionID != ClientInterface.SessionID).ToList().Count > 0;
+            bool IpExistsAlready = false;// = ActiveConnections.Select(Client => Client.IP == ClientInterface.IP && Client.SessionID != ClientInterface.SessionID).ToList().Count > 0;
+            foreach (var item in ActiveConnections)
+            {
+                if (item.IP == ClientInterface.IP)
+                    if (item.SessionID != ClientInterface.SessionID)
+                        IpExistsAlready = true;
+            }
+            
             if (!IpExistsAlready)
             {
                 //If there is another user with the same IP, we have to keep it in the IPTables
@@ -216,18 +259,42 @@ namespace Protega___Server.Classes.Protocol
 
                 }
                 List<int> Ports = new List<int>();
-                Ports.Add(12001);
-                Ports.Add(12002);
-                Ports.Add(12003);
+                Ports.Add(50001);
+                Ports.Add(50002);
+                Ports.Add(50003);
+                Ports.Add(50004);
+                Ports.Add(50005);
+                Ports.Add(50006);
+                Ports.Add(50007);
+                Ports.Add(50008);
+                Ports.Add(50009);
+                Ports.Add(50010);
+                Ports.Add(50011);
+                Ports.Add(50012);
+                Ports.Add(50013);
+                Ports.Add(50014);
+                Ports.Add(50015);
+                Ports.Add(50016);
+                Ports.Add(50017);
+                Ports.Add(50018);
+                Ports.Add(50019);
+                Ports.Add(50020);
 
+                string LinuxPorts = "";
                 foreach (int item in Ports)
                 {
-                    ClientInterface.unixSshConnectorAccept.RunCommand("iptables -D INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT");
+                    LinuxPorts += "iptables -D INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT && ";
+                }
+                if (LinuxPorts.Length > 0)
+                {
+                    LinuxPorts=LinuxPorts.TrimEnd(' ');
+                    LinuxPorts=LinuxPorts.TrimEnd('&');
+                    //ClientInterface.unixSshConnectorAccept.RunCommand(LinuxPorts);
                 }
                 ClientInterface.unixSshConnectorAccept.Disconnect();
                 ClientInterface.unixSshConnectorAccept.Dispose();
             }
-            CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "User kicked. Session ID: " + ClientInterface.SessionID);
+            CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "User disconnected. Session ID: " + ClientInterface.SessionID);
             ActiveConnections.Remove(ClientInterface);
             ClientInterface.Dispose();
         }
@@ -276,7 +343,7 @@ namespace Protega___Server.Classes.Protocol
         #region Hack Detections
         private bool HackDetection_Heuristic(networkServer.networkClientInterface Client, Protocol prot)
         {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "H-Detection received. User: " + prot.GetUserID());
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Heuristic-Detection received. User: " + prot.GetUserID());
             networkServer.networkClientInterface ClientInterface = Client;
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
@@ -317,7 +384,7 @@ namespace Protega___Server.Classes.Protocol
                         break;
                 }
 
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "H-Detection: Saved protocol values: ProcessName: " + ProcessName + ", WindowName: " + WindowName + ", ClassName: " + ClassName + ", MD5Value: " + MD5Value);
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "H-Detection: Saved protocol values: ProcessName: " + ProcessName + ", WindowName: " + WindowName + ", ClassName: " + ClassName + ", MD5Value: " + MD5Value);
 
                 int Counter = 0;
                 while (!SHackHeuristic.Insert(ClientInterface.User.ID, ClientInterface.User.Application.ID, ProcessName, WindowName, ClassName, MD5Value))
@@ -347,7 +414,7 @@ namespace Protega___Server.Classes.Protocol
 
         private bool HackDetection_File(networkServer.networkClientInterface Client, Protocol prot)
         {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "F-Detection received. User: " + prot.GetUserID());
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "File-Detection received. User: " + prot.GetUserID());
             networkServer.networkClientInterface ClientInterface = Client;
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
@@ -402,7 +469,7 @@ namespace Protega___Server.Classes.Protocol
 
         private bool HackDetection_VirtualMemory(networkServer.networkClientInterface Client, Protocol prot)
         {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "V-Detection received. User: "+prot.GetUserID());
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Virtual-Detection received. User: "+prot.GetUserID());
             networkServer.networkClientInterface ClientInterface = Client;
             if (CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
@@ -421,7 +488,7 @@ namespace Protega___Server.Classes.Protocol
                 string DetectedValue = Convert.ToString(Objects[2]);
                 string DefaultValue = Convert.ToString(Objects[3]);
 
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "V-Detection: Saved protocol successfully. Values: BaseAddress: " + BaseAddress + ", Offset: " + Offset + ", DetectedValue: " + DetectedValue + ", DefaultValue: " + DefaultValue);
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "V-Detection: Saved protocol successfully. Values: BaseAddress: " + BaseAddress + ", Offset: " + Offset + ", DetectedValue: " + DetectedValue + ", DefaultValue: " + DefaultValue);
                 
                 int Counter = 0;
                 while (!SHackVirtual.Insert(ClientInterface.User.ID, ClientInterface.User.Application.ID, BaseAddress, Offset, DetectedValue, DefaultValue))

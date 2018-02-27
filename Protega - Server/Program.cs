@@ -125,7 +125,10 @@ namespace Protega___Server
                 if (bPortError)
                     continue;
 
-                ControllerCore Controller = new ControllerCore(ApplicationName, Version, InputPort, ProtocolDelimiter, EncryptionKey, EncryptionIV, PingTimer, SessionLength, DatabaseDriver, DatabaseIP, DatabasePort, DatabaseLoginName, DatabasePassword, DatabaseDefault, LogFile, LogLevel, LinuxIP, LinuxPort, LinuxLoginName, LinuxPassword, Ports);
+
+                bool DeactivatePortBlocking = iniEngine.IniReadValue(item, "DeactivatePortBlocking") == "1";
+
+                ControllerCore Controller = new ControllerCore(ApplicationName, Version, InputPort, ProtocolDelimiter, EncryptionKey, EncryptionIV, PingTimer, SessionLength, DatabaseDriver, DatabaseIP, DatabasePort, DatabaseLoginName, DatabasePassword, DatabaseDefault, LogFile, LogLevel, LinuxIP, LinuxPort, LinuxLoginName, LinuxPassword, Ports, DeactivatePortBlocking);
 
                 try
                 {
@@ -161,13 +164,26 @@ namespace Protega___Server
                     return false;
                 }
 
-                if(AppsRunning.Count>0)
+                int LogLevel;
+                if (!int.TryParse(iniEngine.IniReadValue(item, "LogLevel"), out LogLevel))
+                {
+                    return false;
+                }
+
+                if (AppsRunning.Count>0)
                 {
                     int FormerVersion = Classes.CCstData.GetInstance(AppsRunning[0].Application).LatestClientVersion;
-                    if(NewVersion!=FormerVersion)
+                    if (NewVersion != FormerVersion)
                     {
                         Classes.CCstData.GetInstance(AppsRunning[0].Application).LatestClientVersion = NewVersion;
                         Console.WriteLine("CONFIG update: Using now version " + NewVersion.ToString());
+                    }
+
+                    int FormerLogLevel = Classes.CCstData.GetInstance(AppsRunning[0].Application).Logger.LogLevel;
+                    if (LogLevel != FormerLogLevel)
+                    {
+                        Classes.CCstData.GetInstance(AppsRunning[0].Application).LatestClientVersion = NewVersion;
+                        Console.WriteLine("CONFIG update: Using now LogLevel " + LogLevel.ToString());
                     }
 
                     string FormerEncryptionKey = Classes.CCstData.GetInstance(AppsRunning[0].Application).EncryptionKey;

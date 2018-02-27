@@ -24,7 +24,7 @@ namespace Protega___Server.Classes.Core
         public Classes.Entity.EApplication Application;
         //Konstruktor
         public ControllerCore(string _ApplicationName, int LatestClientVersion, short _iPort, char _cProtocolDelimiter, string _EncryptionKey, string _EncryptionIV, int _PingTimer, int SessionLength, string _sDatabaseDriver,
-            string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath, int LogLevel, string LinuxIP, short LinuxPort, string LinuxLogin, string LinuxPass, List<int> LinuxPorts)
+            string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath, int LogLevel, string LinuxIP, short LinuxPort, string LinuxLogin, string LinuxPass, List<int> LinuxPorts, bool DeactivatePortBlocking)
         {
             //Logging initialisations
             Support.logWriter Logger = new logWriter(_sLogPath, LogLevel);
@@ -86,7 +86,8 @@ namespace Protega___Server.Classes.Core
                 unixSshConnectorAccept.Connect();
                 if (!unixSshConnectorAccept.IsConnected)
                     throw new Exception();
-                
+                unixSshConnectorAccept.Disconnect();
+
             }
             catch (Exception e)
             {
@@ -95,26 +96,26 @@ namespace Protega___Server.Classes.Core
             }
 
             string PuttyStringBuilder = "";
-            PuttyStringBuilder += " service iptables stop";
-            PuttyStringBuilder += " && iptables -F";
-            PuttyStringBuilder += " && iptables -Z";
-            PuttyStringBuilder += " && iptables -X";
-            PuttyStringBuilder += " && iptables -A INPUT -p tcp --destination-port 80 -j DROP";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 112.211.180.233 -j ACCEPT";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 62.138.6.50 -j ACCEPT";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.104 -j ACCEPT";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 142.44.136.74 -j ACCEPT";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.234 -j ACCEPT";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.206 -j ACCEPT";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.102 -j ACCEPT";
-            PuttyStringBuilder += " && service iptables save";
-            PuttyStringBuilder += " && service iptables start";
+            //PuttyStringBuilder += " service iptables stop";
+            //PuttyStringBuilder += " && iptables -F";
+            //PuttyStringBuilder += " && iptables -Z";
+            //PuttyStringBuilder += " && iptables -X";
+            //PuttyStringBuilder += " && iptables -A INPUT -p tcp --destination-port 80 -j DROP";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 112.211.180.233 -j ACCEPT";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 62.138.6.50 -j ACCEPT";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.104 -j ACCEPT";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 142.44.136.74 -j ACCEPT";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.234 -j ACCEPT";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.206 -j ACCEPT";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.102 -j ACCEPT";
+            //PuttyStringBuilder += " && service iptables save";
+            //PuttyStringBuilder += " && service iptables start";
 
-            SshCommand testing = unixSshConnectorAccept.RunCommand(PuttyStringBuilder);
-            string Result1 = testing.Result;
-            string Err = testing.Error;
+            //SshCommand testing = unixSshConnectorAccept.RunCommand(PuttyStringBuilder);
+            //string Result1 = testing.Result;
+            //string Err = testing.Error;
             //SshCommand test = unixSshConnectorAccept.RunCommand("service iptables stop");
-            
+
             //SshCommand Test4 = unixSshConnectorAccept.RunCommand("cd ../etc/ppp/");
             //SshCommand Test3 = unixSshConnectorAccept.RunCommand("ls -l");
             //string Res = Test3.Result;
@@ -134,23 +135,40 @@ namespace Protega___Server.Classes.Core
 
             //unixSshConnectorAccept.RunCommand("iptables -F OUTPUT");
             //Block World-Ports
+            if (DeactivatePortBlocking)
+                return;
+
             List<string> Ports = new List<string>();
             Ports.Add("12001");
             Ports.Add("12002");
             Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
             //Ports.Add("entextnetwk");
-            
+
+
             foreach (string item in Ports)
             {
                 //Bestimmte Ports blocken
                 //unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp --dport " + item + " -j DROP");
-                unixSshConnectorAccept.RunCommand("iptables -A INPUT -p tcp --destination-port " + item + " -j DROP");
+                //unixSshConnectorAccept.RunCommand("iptables -A INPUT -p tcp --destination-port " + item + " -j DROP");
             }
 
-            unixSshConnectorAccept.RunCommand("service iptables save");
-            unixSshConnectorAccept.RunCommand("service iptables start");
+            //unixSshConnectorAccept.RunCommand("service iptables save");
+            //unixSshConnectorAccept.RunCommand("service iptables start");
 
-            unixSshConnectorAccept.Disconnect();
+            //unixSshConnectorAccept.Disconnect();
 
             
                 //Network Initialisations
@@ -163,7 +181,7 @@ namespace Protega___Server.Classes.Core
             ProtocolController.SendProtocol += this.SendProtocol;
             Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "TCP Server ready for start!");
             Logger.Seperate();
-            ProtocolController = new ProtocolController(ref ActiveConnections, Application.ID);
+            ProtocolController = new ProtocolController(ref ActiveConnections, Application.ID, LinuxPort, LinuxLogin, LinuxPass, LinuxIP);
             
             /*//TESTCASE
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
@@ -260,7 +278,7 @@ namespace Protega___Server.Classes.Core
                 CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Protocol Decryption failed! Message: " + e.ToString());
                 return;
             }
-            CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received decrypted: " + message);
+            CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received decrypted: " + message);
             ProtocolController.ReceivedProtocol(NetworkClient, message);
         }
 
