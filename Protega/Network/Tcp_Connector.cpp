@@ -46,7 +46,14 @@ bool Tcp_Connector::SendAndReceive(string sMessage)
 	{
 		m_SendBuffer = sMessage;
 	}
-	
+
+	/*ofstream filestr;
+	filestr.open(".\\test.txt", fstream::in | fstream::out | fstream::app);
+
+	clock_t start = std::clock();
+
+	filestr << sMessage << endl;*/
+
 	m_Socket.send(boost::asio::buffer(m_SendBuffer.c_str(), m_SendBuffer.length() + 1));
 
 	std::string sDecryptedMessage;
@@ -57,8 +64,7 @@ bool Tcp_Connector::SendAndReceive(string sMessage)
 		size_t len = m_Socket.read_some(boost::asio::buffer(m_ReceiveBuffer), m_Error);
 	
 		if (m_Error)
-			//INFO: Error must be called in the core class
-			throw boost::system::system_error(m_Error); // Some other error.
+			return false; // Some other error.
 		
 				
 		//Delete the junk after the eof + pass the answer to the upper layer
@@ -88,7 +94,11 @@ bool Tcp_Connector::SendAndReceive(string sMessage)
 
 		break;
 	}
-	
+
+	//clock_t dCurrentDuration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+
+	//filestr << "Duration: " << dCurrentDuration << ": " << sDecryptedMessage << endl;
+	//filestr.close();
 	funcCallbackHandler(sDecryptedMessage);
 	return true;
 }

@@ -35,7 +35,8 @@ void Network_Manager::Authentication_500(std::string sHardwareID, int iVersion,
 
 	//Build protocol
 	std::stringstream ss;
-	ss << iAuthenticationProtocolID << sDataDelimiter << sHardwareID << sDataDelimiter << std::to_string(iVersion) << sDataDelimiter << "BF1426C6DA"
+	// BF1426C6DA
+	ss << iAuthenticationProtocolID << sDataDelimiter << sHardwareID << sDataDelimiter << std::to_string(iVersion) << sDataDelimiter << "D6D4ABB30s"
 		<< sDataDelimiter << sComputerArchitecture << sDataDelimiter << sLanguage;
 	
 	//Call SendAndGet threaded with parameters
@@ -52,8 +53,8 @@ void Network_Manager::Ping_600(std::string sSessionID)
 	std::stringstream ss;
 	ss << iPingProtocolID << sDataDelimiter << sSessionID;
 
-	std::thread th(&Network_Manager::SendAndGet, this, &bPingSuccess, &iPingTries, ss.str());
-	th.join();
+	std::thread* th = new std::thread(&Network_Manager::SendAndGet, this, &bPingSuccess, &iPingTries, ss.str());
+	//th.join();
 }
 
 void Network_Manager::HackDetection_HE_701(std::string sSessionID, unsigned int iHeSection, std::string sContent)
@@ -62,8 +63,8 @@ void Network_Manager::HackDetection_HE_701(std::string sSessionID, unsigned int 
 	std::stringstream ss;
 	ss << iHackDetectionHeID << sDataDelimiter << sSessionID << sDataDelimiter << iHeSection << sDataDelimiter << sContent;
 
-	std::thread th(&Network_Manager::SendAndGet, this, &bAuthenticationSuccess, &iHackDetectionTries, ss.str());
-	th.join();
+	std::thread* th = new std::thread(&Network_Manager::SendAndGet, this, &bAuthenticationSuccess, &iHackDetectionTries, ss.str());
+	//th.join();
 }
 
 void Network_Manager::HackDetection_VMP_702(std::string sSessionID, std::string sBaseAddress, std::string sOffset, std::string sDetectedValue, std::string sDefaultValue)
@@ -73,8 +74,8 @@ void Network_Manager::HackDetection_VMP_702(std::string sSessionID, std::string 
 	ss << iHackDetectionVmpID << sDataDelimiter << sSessionID << sDataDelimiter << sBaseAddress << sDataDelimiter << sOffset << sDataDelimiter
 		<< sDetectedValue << sDataDelimiter << sDefaultValue;
 
-	std::thread th(&Network_Manager::SendAndGet, this, &bAuthenticationSuccess, &iHackDetectionTries, ss.str());
-	th.join();
+	std::thread* th = new std::thread(&Network_Manager::SendAndGet, this, &bAuthenticationSuccess, &iHackDetectionTries, ss.str());
+	//th.join();
 }
 
 void Network_Manager::HackDetection_FP_703(std::string sSessionID, unsigned int iFpSection, std::string sContent)
@@ -83,8 +84,8 @@ void Network_Manager::HackDetection_FP_703(std::string sSessionID, unsigned int 
 	std::stringstream ss;
 	ss << iHackDetectionFpID << sDataDelimiter << sSessionID << sDataDelimiter << iFpSection << sDataDelimiter << sContent;
 
-	std::thread th(&Network_Manager::SendAndGet, this, &bAuthenticationSuccess, &iHackDetectionTries, ss.str());
-	th.join();
+	std::thread* th = new std::thread(&Network_Manager::SendAndGet, this, &bAuthenticationSuccess, &iHackDetectionTries, ss.str());
+	//th.join();
 }
 
 //Getter
@@ -113,9 +114,7 @@ bool Network_Manager::SendAndGet(bool * bActualProtocolSuccessVar, int * iActual
 		Tcp_C.Connect();
 		if (!Tcp_C.SendAndReceive(sMessage))
 		{
-			//NOTE: Hier muss man auf jedenfall was anderes machen!
-			SendAndGet(bActualProtocolSuccessVar, iActualProtocolTryVar, sMessage);
-			return false;
+			throw;
 		}
 		Tcp_C.Close();
 		Tcp_C.~Tcp_Connector();
