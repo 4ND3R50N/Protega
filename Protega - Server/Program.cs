@@ -192,7 +192,7 @@ namespace Protega___Server
                     int FormerLogLevel = Classes.CCstData.GetInstance(AppsRunning[0].Application).Logger.LogLevel;
                     if (LogLevel != FormerLogLevel)
                     {
-                        Classes.CCstData.GetInstance(AppsRunning[0].Application).LatestClientVersion = NewVersion;
+                        Classes.CCstData.GetInstance(AppsRunning[0].Application).Logger.LogLevel = LogLevel;
                         Console.WriteLine("CONFIG update: Using now LogLevel " + LogLevel.ToString());
                     }
 

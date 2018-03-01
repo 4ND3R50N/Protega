@@ -79,13 +79,13 @@ namespace Protega___Server.Classes.Core
             CCstData.GetInstance(Application.ID).SessionIDLength = SessionLength;
 
             //Block Linux Ports
-            //SshClient unixSshConnectorAccept = new SshClient(LinuxIP, LinuxPort, LinuxLogin, LinuxPass);
+            SshClient unixSshConnectorAccept = new SshClient(LinuxIP, LinuxPort, LinuxLogin, LinuxPass);
             try
             {
-                //unixSshConnectorAccept.Connect();
-                //if (!unixSshConnectorAccept.IsConnected)
-                //    throw new Exception();
-                //unixSshConnectorAccept.Disconnect();
+                unixSshConnectorAccept.Connect();
+                if (!unixSshConnectorAccept.IsConnected)
+                    throw new Exception();
+                unixSshConnectorAccept.Disconnect();
 
             }
             catch (Exception e)
@@ -175,7 +175,7 @@ namespace Protega___Server.Classes.Core
             sAesKey = "";
             this.cProtocolDelimiter = _cProtocolDelimiter;
             this.cDataDelimiter = _cProtocolDelimiter;
-            TcpServer = new networkServer(NetworkProtocol, sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            TcpServer = new networkServer(NetworkProtocol, sAesKey, Application.ID, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         
             ProtocolController.SendProtocol += this.SendProtocol;
             Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "TCP Server ready for start!");
@@ -274,7 +274,7 @@ namespace Protega___Server.Classes.Core
             catch (Exception e)
             {
                 //If decryption failed, something was probably manipulated -> Log it
-                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Protocol Decryption failed! Message: " + e.ToString());
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Protocol Decryption failed! Message: " + message + ", Error: " + e.ToString());
                 return;
             }
             CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received decrypted: " + message);

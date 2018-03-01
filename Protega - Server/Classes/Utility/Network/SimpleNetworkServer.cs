@@ -29,19 +29,22 @@ namespace Protega___Server
         private Socket serverSocket;
         private event protocolFunction protAnalyseFunction;
         private string network_AKey;
+        int ApplicationID;
 
         //Constructor
-        public networkServer(protocolFunction protAnalyseFunction, string network_AKey)
+        public networkServer(protocolFunction protAnalyseFunction, string network_AKey, int ApplicationID)
         { 
             this.network_AKey = network_AKey;
             this.protAnalyseFunction = protAnalyseFunction;
+            this.ApplicationID = ApplicationID;
         }
 
-        public networkServer(protocolFunction protAnalyseFunction, string network_AKey, IPAddress ip, short port, 
+        public networkServer(protocolFunction protAnalyseFunction, string network_AKey, int ApplicationID, IPAddress ip, short port, 
             AddressFamily familyType, SocketType socketType, ProtocolType protocolType)
         {
             this.network_AKey = network_AKey;
             this.protAnalyseFunction = protAnalyseFunction;
+            this.ApplicationID = ApplicationID;
             serverEndPoint = new IPEndPoint(IPAddress.Any, port);
             serverSocket = new Socket(familyType, socketType, protocolType);
             serverSocket.Blocking = false;
@@ -76,6 +79,7 @@ namespace Protega___Server
 
         private void AcceptCallback(IAsyncResult result)
         {
+            Protega___Server.Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, Support.LogCategory.OK, Support.LoggerType.SERVER, "Protocol accepted");
             //Wenns klappt, using drum!
             networkClientInterface connection = new networkClientInterface((Socket)result.AsyncState, result);
             
@@ -106,6 +110,7 @@ namespace Protega___Server
 
         private void ReceiveCallback(IAsyncResult result)
         {
+            Protega___Server.Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.OK, Support.LoggerType.SERVER, "Protocol received");
             networkClientInterface connection = (networkClientInterface)result.AsyncState;
             try
             {

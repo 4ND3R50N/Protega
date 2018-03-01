@@ -307,7 +307,7 @@ namespace Protega___Server.Classes.Protocol
                 //ClientInterface.unixSshConnectorAccept.Disconnect();
                 //ClientInterface.unixSshConnectorAccept.Dispose();
             }
-            CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "User disconnected. Session ID: " + ClientInterface.SessionID);
+            CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("User disconnected. {0} - {1]", ClientInterface.User.ID, ClientInterface.SessionID));
             ActiveConnections.Remove(ClientInterface);
             ClientInterface.Dispose();
         }

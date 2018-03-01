@@ -15,6 +15,7 @@ namespace Support
         string path;
         public int LogLevel;
         public int ApplicationID = 0;
+        static bool LogInUse = false;
 
         public logWriter(string path, int LogLevel)
         {
@@ -33,10 +34,10 @@ namespace Support
             //1=Important, 2=Medium, 3=Debug Infos
             if (Importance > LogLevel)
                 return;
-            
-            string OutMessage = string.Format("[{0} {1}-{4}]: ({2}) - {3}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), Category, Message, DateTime.Now.Millisecond);
+
+            string OutMessage = string.Format("[{0} {1}:{2}:{3} ({4})]: ({5}) - {6}", DateTime.Now.ToShortDateString(), DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second, DateTime.Now.Millisecond, Category, Message);
     
-            //if(!Message.Contains("Protocol received"))
+            if(!Message.Contains("Protocol received"))
                 conOut(OutMessage);
             logFile(OutMessage);
         }
@@ -71,11 +72,32 @@ namespace Support
 
         }
 
+        private System.Threading.ReaderWriterLockSlim lock_ = new System.Threading.ReaderWriterLockSlim();
         private void logFile(string Message)
         {
-            using (StreamWriter file = new StreamWriter(path, true))
+            lock_.EnterWriteLock();
+            try
             {
-                file.WriteLine(Message);
+                //while (LogInUse)
+                //{
+                //    System.Threading.Thread.Sleep(100);
+                //}
+                //LogInUse = true;
+                using (StreamWriter file = new StreamWriter(path, true))
+                {
+                    file.WriteLine(Message);
+
+                }
+                //LogInUse = false;
+
+            }
+            catch (Exception e)
+            {
+                writeInLog(2, LogCategory.ERROR, LoggerType.SERVER, "Couldnt write log in file! " + Message);
+            }
+            finally
+            {
+                lock_.ExitWriteLock();
             }
         }
 
