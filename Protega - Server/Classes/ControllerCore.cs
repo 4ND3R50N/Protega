@@ -11,7 +11,7 @@ using Renci.SshNet;
 
 namespace Protega___Server.Classes.Core
 {
-    public class ControllerCore
+    public class ControllerCore:IDisposable
     {
         //Variablen
         public networkServer TcpServer;
@@ -22,15 +22,14 @@ namespace Protega___Server.Classes.Core
         private char   cProtocolDelimiter;
         private char   cDataDelimiter;
         public Classes.Entity.EApplication Application;
-
         //Konstruktor
-        public ControllerCore(string _ApplicationName, short _iPort, char _cProtocolDelimiter, char _cDataDelimiter, string _sAesKey, string _sDatabaseDriver,
-            string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath, int LogLevel)
+        public ControllerCore(string _ApplicationName, int LatestClientVersion, short _iPort, char _cProtocolDelimiter, string _EncryptionKey, string _EncryptionIV, int _PingTimer, int SessionLength, string _sDatabaseDriver,
+            string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath, int LogLevel, string LinuxIP, short LinuxPort, string LinuxLogin, string LinuxPass, List<int> LinuxPorts, bool DeactivatePortBlocking)
         {
             //Logging initialisations
             Support.logWriter Logger = new logWriter(_sLogPath, LogLevel);
             Logger.Seperate();
-            Logger.writeInLog(1, LogCategory.OK, "Logging class initialized!");
+            Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "Logging class initialized!");
             DBEngine dBEngine = null;
             
             //Database Initialisations
@@ -47,62 +46,75 @@ namespace Protega___Server.Classes.Core
             //Database test
             if (dBEngine.testDBConnection())
             {
-                Logger.writeInLog(1, LogCategory.OK, "Database test successfull!");
+                Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.DATABASE, "Database test successfull!");
             }else
             {
-                Logger.writeInLog(1, LogCategory.ERROR, "Database test was not successfull!");
+                Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.DATABASE, "Database test was not successfull!");
                 return;
             }
 
             Application = SApplication.GetByName(_ApplicationName, dBEngine);
             if(Application==null)
             {
-                Logger.writeInLog(1, LogCategory.ERROR, "The application name was not found in the database!");
+                Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.DATABASE, "The application name was not found in the database!");
                 return;
             }
 
-
+            Logger.ApplicationID = Application.ID;
             CCstData Config = new CCstData(Application, dBEngine, Logger);
 
             if (CCstData.GetInstance(Application.ID).DatabaseEngine.testDBConnection())
             {
-                CCstData.GetInstance(Application.ID).Logger.writeInLog(1, LogCategory.OK, "Instance successfully created!");
+                CCstData.GetInstance(Application.ID).Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "Instance successfully created!");
             } else
             {
-                Logger.writeInLog(1, LogCategory.ERROR, "Instance could not be created!");
+                Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.SERVER, "Instance could not be created!");
                 return;
             }
+
+            CCstData.GetInstance(Application.ID).LatestClientVersion = LatestClientVersion;
+            CCstData.GetInstance(Application.ID).EncryptionKey = _EncryptionKey;
+            CCstData.GetInstance(Application.ID).EncryptionIV = _EncryptionIV;
+            CCstData.GetInstance(Application.ID).PingTimer = _PingTimer;
+            CCstData.GetInstance(Application.ID).SessionIDLength = SessionLength;
 
             //Block Linux Ports
-
-            SshClient unixSshConnectorAccept = new SshClient("167.88.15.106", 22, "root", "Wn51b453gpEdZTB5Bl");
-            unixSshConnectorAccept.Connect();
-            if(!unixSshConnectorAccept.IsConnected)
+            //SshClient unixSshConnectorAccept = new SshClient(LinuxIP, LinuxPort, LinuxLogin, LinuxPass);
+            try
             {
-                Logger.writeInLog(1, LogCategory.ERROR, "Cannot connect to Linux Server");
+                //unixSshConnectorAccept.Connect();
+                //if (!unixSshConnectorAccept.IsConnected)
+                //    throw new Exception();
+                //unixSshConnectorAccept.Disconnect();
+
+            }
+            catch (Exception e)
+            {
+                Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "Cannot connect to Linux Server");
                 return;
             }
-            string PuttyStringBuilder = "";
-            PuttyStringBuilder += " service iptables stop";
-            PuttyStringBuilder += " && iptables -F";
-            PuttyStringBuilder += " && iptables -Z";
-            PuttyStringBuilder += " && iptables -X";
-            PuttyStringBuilder += " && iptables -A INPUT -p tcp --destination-port 80 -j DROP";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 112.211.180.233 -j ACCEPT";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 62.138.6.50 -j ACCEPT";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.104 -j ACCEPT";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 142.44.136.74 -j ACCEPT";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.234 -j ACCEPT";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.206 -j ACCEPT";
-            PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.102 -j ACCEPT";
-            PuttyStringBuilder += " && service iptables save";
-            PuttyStringBuilder += " && service iptables start";
 
-            SshCommand testing = unixSshConnectorAccept.RunCommand(PuttyStringBuilder);
-            string Result1 = testing.Result;
-            string Err = testing.Error;
+            string PuttyStringBuilder = "";
+            //PuttyStringBuilder += " service iptables stop";
+            //PuttyStringBuilder += " && iptables -F";
+            //PuttyStringBuilder += " && iptables -Z";
+            //PuttyStringBuilder += " && iptables -X";
+            //PuttyStringBuilder += " && iptables -A INPUT -p tcp --destination-port 80 -j DROP";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 112.211.180.233 -j ACCEPT";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 62.138.6.50 -j ACCEPT";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.104 -j ACCEPT";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 142.44.136.74 -j ACCEPT";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.234 -j ACCEPT";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.206 -j ACCEPT";
+            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.102 -j ACCEPT";
+            //PuttyStringBuilder += " && service iptables save";
+            //PuttyStringBuilder += " && service iptables start";
+
+            //SshCommand testing = unixSshConnectorAccept.RunCommand(PuttyStringBuilder);
+            //string Result1 = testing.Result;
+            //string Err = testing.Error;
             //SshCommand test = unixSshConnectorAccept.RunCommand("service iptables stop");
-            
+
             //SshCommand Test4 = unixSshConnectorAccept.RunCommand("cd ../etc/ppp/");
             //SshCommand Test3 = unixSshConnectorAccept.RunCommand("ls -l");
             //string Res = Test3.Result;
@@ -122,37 +134,54 @@ namespace Protega___Server.Classes.Core
 
             //unixSshConnectorAccept.RunCommand("iptables -F OUTPUT");
             //Block World-Ports
+            if (DeactivatePortBlocking)
+                return;
+
             List<string> Ports = new List<string>();
             Ports.Add("12001");
             Ports.Add("12002");
             Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
+            Ports.Add("12003");
             //Ports.Add("entextnetwk");
-            
+
+
             foreach (string item in Ports)
             {
                 //Bestimmte Ports blocken
                 //unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp --dport " + item + " -j DROP");
-                unixSshConnectorAccept.RunCommand("iptables -A INPUT -p tcp --destination-port " + item + " -j DROP");
+                //unixSshConnectorAccept.RunCommand("iptables -A INPUT -p tcp --destination-port " + item + " -j DROP");
             }
 
-            unixSshConnectorAccept.RunCommand("service iptables save");
-            unixSshConnectorAccept.RunCommand("service iptables start");
+            //unixSshConnectorAccept.RunCommand("service iptables save");
+            //unixSshConnectorAccept.RunCommand("service iptables start");
 
-            unixSshConnectorAccept.Disconnect();
+            //unixSshConnectorAccept.Disconnect();
 
             
                 //Network Initialisations
                 ActiveConnections = new List<networkServer.networkClientInterface>();
-            sAesKey = _sAesKey;
+            sAesKey = "";
             this.cProtocolDelimiter = _cProtocolDelimiter;
-            this.cDataDelimiter = _cDataDelimiter;
-            TcpServer = new networkServer(NetworkProtocol, _sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            this.cDataDelimiter = _cProtocolDelimiter;
+            TcpServer = new networkServer(NetworkProtocol, sAesKey, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         
             ProtocolController.SendProtocol += this.SendProtocol;
-            Logger.writeInLog(1, LogCategory.OK, "TCP Server ready for start!");
+            Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "TCP Server ready for start!");
             Logger.Seperate();
-            ProtocolController = new ProtocolController(ref ActiveConnections, Application.ID);
-            
+            ProtocolController = new ProtocolController(ref ActiveConnections, Application.ID, LinuxPort, LinuxLogin, LinuxPass, LinuxIP);
+
             /*//TESTCASE
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
             //Registration
@@ -194,20 +223,38 @@ namespace Protega___Server.Classes.Core
         {
             if(TcpServer.startListening())
             {
-                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, "Server has been started successfully!");
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "Server has been started successfully!");
             }
             else
             {
-                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.ERROR, "The server was not able to start!");
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.SERVER, "The server was not able to start!");
             }
-           
+
         }
 
+        #region Destructor
+        public void Dispose()
+        {
+            //Kick all connected clients and remove the objects
+            foreach (networkServer.networkClientInterface item in ActiveConnections)
+            {
+                item.Dispose();
+            }
+
+            //Close network server
+            TcpServer.Dispose();
+
+            //Remove instance from CCstData
+            if (CCstData.InstanceExists(Application.Hash))
+                CCstData.InstanceClose(Application.ID);
+        }
+        #endregion
+
         #region Protocol
-        public void NetworkProtocol(networkServer.networkClientInterface NetworkClient, string message)
+        public void NetworkProtocol(ref networkServer.networkClientInterface NetworkClient, string message)
         {
             //Public for the Unit Tests
-            CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, "Protocol received: " + message);
+            CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received: " + message);
             try
             {
                 //Öañ4\u001b3[\b\nÎbÞö}\u0010VDYZ‚\u009d\u0005sQ˜e@p•\u001e\ab{ó¥Ÿ›¨YÉ`\\wõˆ¹éî\0
@@ -227,10 +274,10 @@ namespace Protega___Server.Classes.Core
             catch (Exception e)
             {
                 //If decryption failed, something was probably manipulated -> Log it
-                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, "Protocol Decryption failed! Message: " + e.ToString());
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Protocol Decryption failed! Message: " + e.ToString());
                 return;
             }
-            CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, "Protocol received decrypted: " + message);
+            CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received decrypted: " + message);
             ProtocolController.ReceivedProtocol(NetworkClient, message);
         }
 
@@ -244,7 +291,7 @@ namespace Protega___Server.Classes.Core
                 LengthAddition = "0" + LengthAddition;
             }
             EncryptedProt = LengthAddition + EncryptedProt;
-            CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, String.Format("Protocol encrypted: {0} ({1})", EncryptedProt, Protocol));
+            CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Protocol encrypted: {0} ({1})", EncryptedProt, Protocol));
 
             TcpServer.sendMessage(EncryptedProt, ClientInterface);
         }

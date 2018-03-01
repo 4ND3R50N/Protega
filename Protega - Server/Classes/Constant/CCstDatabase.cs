@@ -24,7 +24,7 @@ namespace Protega___Server.Classes
         #endregion
 
         #region LoggerType
-        public const string SP_LoggerType_GetList = "LoggerType_GetList";
+        public const string SP_LoggerData_Insert = "Log_Insert";
         #endregion
 
         #region Hack Detection

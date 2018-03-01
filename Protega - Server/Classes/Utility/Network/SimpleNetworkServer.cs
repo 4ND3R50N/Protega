@@ -18,18 +18,17 @@ using System.Collections.Generic;
 
 namespace Protega___Server
 {
-    public class networkServer
+    public class networkServer:IDisposable
     {
         //Variables
         //--Public
-        public delegate void protocolFunction(networkClientInterface NetworkClient, string prot);
+        public delegate void protocolFunction(ref networkClientInterface NetworkClient, string prot);
         public delegate void _AuthenticateClient(networkClientInterface Client);
         //--Private
         private IPEndPoint serverEndPoint;
         private Socket serverSocket;
         private event protocolFunction protAnalyseFunction;
         private string network_AKey;
-
 
         //Constructor
         public networkServer(protocolFunction protAnalyseFunction, string network_AKey)
@@ -64,11 +63,11 @@ namespace Protega___Server
             {
                 serverSocket.Bind(serverEndPoint);
                 serverSocket.Listen((int)SocketOptionName.MaxConnections);
-                for (int i = 0; i < 1000; i++)
+                //for (int i = 0; i < 1000; i++)
                     serverSocket.BeginAccept(
                         new AsyncCallback(AcceptCallback), serverSocket);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 return false;
             }
@@ -77,7 +76,9 @@ namespace Protega___Server
 
         private void AcceptCallback(IAsyncResult result)
         {
+            //Wenns klappt, using drum!
             networkClientInterface connection = new networkClientInterface((Socket)result.AsyncState, result);
+            
             try
             {
                 // Start Receive
@@ -85,14 +86,14 @@ namespace Protega___Server
                     connection.buffer.Length, SocketFlags.None,
                     new AsyncCallback(ReceiveCallback), connection);
                 // Start new Accept
-                serverSocket.BeginAccept(new AsyncCallback(AcceptCallback),
-                    result.AsyncState);
+                //serverSocket.BeginAccept(new AsyncCallback(AcceptCallback),
+                //    result.AsyncState);
                 //for (int i = 0; i < 1000; i++)
-                    serverSocket.BeginAccept(
-                        new AsyncCallback(AcceptCallback), serverSocket);
+                serverSocket.BeginAccept(
+                    new AsyncCallback(AcceptCallback), serverSocket);
 
             }
-            catch (SocketException)
+            catch (SocketException e)
             {
                 closeConnection(connection);
             }
@@ -112,7 +113,7 @@ namespace Protega___Server
                 int bytesRead = connection.networkSocket.EndReceive(result);
                 if (0 != bytesRead)
                 {
-                    protAnalyseFunction(connection, Encoding.Default.GetString(connection.buffer, 0, bytesRead));
+                    protAnalyseFunction(ref connection, Encoding.Default.GetString(connection.buffer, 0, bytesRead));
                     connection.networkSocket.BeginReceive(connection.buffer, 0,
                       connection.buffer.Length, SocketFlags.None,
                       new AsyncCallback(ReceiveCallback), connection);
@@ -122,10 +123,26 @@ namespace Protega___Server
             catch (SocketException)
             {
                 closeConnection(connection);
+                try
+                {
+                    connection.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Could not dispose connection! Error: " + e.Message);
+                }
             }
             catch (Exception e)
             {
                 closeConnection(connection);
+                try
+                {
+                    connection.Dispose();
+                }
+                catch (Exception f)
+                {
+                    Console.WriteLine("Could not dispose connection 2! Error: " + f.Message);
+                }
             }
         }
 
@@ -136,12 +153,12 @@ namespace Protega___Server
                 byte[] bytes = Encoding.Default.GetBytes(message);
                 client.networkSocket.Send(bytes, bytes.Length,
                                 SocketFlags.None);
-                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, String.Format("Protocol sending succeeded. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
+                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, Support.LoggerType.SERVER, String.Format("Protocol sending succeeded. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
                 //Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, String.Format("Protocol sent. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
             }
             catch (Exception e)
             {
-                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.ERROR, String.Format("Protocol sending failed. Protocol: {0}, Session: {1}, HardwareID: {2}. Error {3}", message, client.SessionID, client.User.ID, e.Message));
+                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Protocol sending failed. Protocol: {0}, Session: {1}, HardwareID: {2}. Error {3}", message, client.SessionID, client.User.ID, e.Message));
                 closeConnection(client);
             }
         }
@@ -156,6 +173,12 @@ namespace Protega___Server
             serverSocket.Close();
         }
 
+        public void Dispose()
+        {
+            serverSocket.Close();
+            //serverSocket.Dispose();
+        }
+
         //Class model -> Client -> MUST be edited for each implementation 
         public class networkClientInterface:IDisposable
         {
@@ -166,7 +189,28 @@ namespace Protega___Server
             public Classes.Entity.EPlayer User;
             public string SessionID;
             public DateTime ConnectedTime;
-            public IPAddress IP;
+
+            private IPAddress _IP;
+
+            public IPAddress IP
+            {
+                get
+                {
+                    if (_IP == null)
+                    {
+                        try
+                        {
+                            _IP = (networkSocket.RemoteEndPoint as IPEndPoint).Address;
+                        }
+                        catch (Exception)
+                        {
+                            Console.WriteLine("Could not get IP. User: " + User.ID + ", Session: " + SessionID);
+                        }
+                    }
+                    return _IP;
+                }
+                set { _IP = value; }
+            }
             public SshClient unixSshConnectorAccept;
             public int Counter = 0;
 
@@ -176,10 +220,25 @@ namespace Protega___Server
             
             public void Dispose()
             {
+                if (networkSocket != null)
+                {
+                    try
+                    {
+                        networkSocket.Shutdown(SocketShutdown.Both);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    networkSocket.Close();
+                    networkSocket.Dispose();
+                }
                 if (unixSshConnectorAccept != null)
                     unixSshConnectorAccept.Dispose();
                 if (tmrPing != null)
+                {
+                    tmrPing.Enabled = false;
                     tmrPing.Dispose();
+                }
             }
 
             public networkClientInterface()
@@ -188,7 +247,7 @@ namespace Protega___Server
             public void SetPingTimer(int Interval, string LinuxIP, string User, string Pass, int Port, KickUser _Kick, string _IP=null)
             {
                 //IPAddress.TryParse(_IP, out IP);
-                IP = (networkSocket.RemoteEndPoint as IPEndPoint).Address;
+
                 unixSshConnectorAccept = new SshClient(LinuxIP, Port, User, Pass);
                 this.Kick = _Kick;
 
@@ -204,7 +263,7 @@ namespace Protega___Server
                 //Kick - Timer elapsed
                 Kick(this);
 
-                Classes.CCstData.GetInstance(this.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, String.Format("User timeout! Session: {0}, HardwareID: {1}", this.SessionID, this.User.ID));
+                Classes.CCstData.GetInstance(this.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, Support.LoggerType.SERVER, String.Format("User timeout! Session: {0}, HardwareID: {1}", this.SessionID, this.User.ID));
                 this.Dispose();
                 //User kicked
             }

@@ -12,6 +12,7 @@ namespace Protega___Server.Classes
         public string EncryptionKey = "1234567890123456";
         public string EncryptionIV = "bbbbbbbbbbbbbbbb";
 
+        public int LatestClientVersion;
         public int SessionIDLength = 10;
         public int PingTimer = 20000;
 

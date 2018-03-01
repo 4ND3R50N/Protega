@@ -19,6 +19,11 @@ namespace Protega___Server.Classes.Entity
         private string _OperatingSystem;
         private EApplication _Application;
 
+        //Game Account details
+        private string _GameAccID;
+        private string _GameAccName;
+        private int _CheckCounter;
+
         /// <summary>
         /// Ban status of the player. 0 = unpunished, 1 = banned
         /// </summary>
