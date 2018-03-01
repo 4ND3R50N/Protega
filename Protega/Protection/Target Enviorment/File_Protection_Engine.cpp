@@ -15,25 +15,41 @@ File_Protection_Engine::File_Protection_Engine(int iTargetApplicationId, std::st
 //Public
 int File_Protection_Engine::DetectLocalFileChange()
 {
-	for (unsigned int i = 0; i < pFileAndMd5.first.size(); i++)
+	if (bIsAtStart)
 	{
-		std::stringstream ss;
-
-		ss << sBaseFolder << pFileAndMd5.first[i];
-
-		std::string sActualMd5 = CryptoPP_Converter::GetMD5ofFile(ss.str().c_str());
-
-		if (sActualMd5 == "") {
-			return 1;
-		}
-
-		if (sActualMd5 != pFileAndMd5.second[i])
-		{
-			//funcDetectCallbackHandler(pFileAndMd5.first[i], pFileAndMd5.second[i], false);
-			funcDetectCallbackHandler("1", pFileAndMd5.second[i]);
-			return 2;
-		}
+		sItFile = pFileAndMd5.first.begin();
+		sItMd5 = pFileAndMd5.second.begin();
+		bIsAtStart = false;
 	}
+
+	std::string& sFile(*sItFile);
+	std::string& sMd5(*sItMd5);
+
+	std::stringstream ss;
+
+	ss << sBaseFolder << sFile;
+
+	std::string sActualMd5 = CryptoPP_Converter::GetMD5ofFile(ss.str().c_str());
+
+	if (sActualMd5 == "") {
+		return 1;
+	}
+
+	if (sActualMd5 != sMd5)
+	{
+		//funcDetectCallbackHandler(pFileAndMd5.first[i], pFileAndMd5.second[i], false);
+		funcDetectCallbackHandler("1", sMd5);
+		return 2;
+	}
+
+	++sItFile;
+	++sItMd5;
+
+	if (sItFile == pFileAndMd5.first.end() || sItMd5 == pFileAndMd5.second.end())
+	{
+		bIsAtStart = true;
+	}
+	
 	return 0;
 }
 
