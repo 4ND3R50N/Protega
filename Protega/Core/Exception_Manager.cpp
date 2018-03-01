@@ -9,8 +9,7 @@ void Exception_Manager::ShowErrorA(int iErrorNumber, const char * sMessage)
 {
 
 	std::stringstream ss;
-	
-	
+		
 	std::ofstream myfile;
 	ss << sBaseFolder << sErrorFileName;
 	myfile.open(ss.str());
@@ -21,39 +20,16 @@ void Exception_Manager::ShowErrorA(int iErrorNumber, const char * sMessage)
 	Sleep(1000);
 	ss.str("");
 	ss << "\"" << sBaseFolder << sCrashReporterName << "\"";
-	system(ss.str().c_str());
-	//std::terminate();
-}
 
-void Exception_Manager::ShowErrorW(int iErrorNumber, std::wstring wsMessage)
-{
-	std::wstringstream ss;
-	ss << "Error " << iErrorNumber << ": " << wsMessage;
-
-	std::wstring wsError = ss.str();
-	std::string sError = "";
-	using convert_type = std::codecvt_utf8<wchar_t>;
-	std::wstring_convert<convert_type, wchar_t> converter;
-
-	//use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
-	sError = converter.to_bytes(wsError);
-	
-	std::ofstream myfile;
-	myfile.open(sErrorFileName);
-	myfile << sError;
-	myfile.close();
-	
-	Sleep(1000);
-
-
-	system("\".\\CrashReporter.exe\"");
-	//std::terminate();
+	//IMPORTANT: Globallizing!
+	StartProgram(L".\\CrashReporter.exe");
 }
 
 void Exception_Manager::CloseOwnProcess()
 {
 	//Kill own handle
-	int retval = ::_tsystem(_T("taskkill /F /T /IM CabalMain.exe"));
+	exit(1);
+	//int retval = ::_tsystem(_T("taskkill /F /T /IM CabalMain.exe"));
 }
 
 DWORD Exception_Manager::GetMainThreadId() {
@@ -99,6 +75,34 @@ bool Exception_Manager::KillMainThread()
 	return true;
 }
 
+void Exception_Manager::StartProgram(LPCTSTR lpApplicationName)
+{
+	// additional information
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	// set the size of the structures
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+
+	// start the program up
+	CreateProcess(lpApplicationName,   // the path
+		NULL,        // Command line
+		NULL,           // Process handle not inheritable
+		NULL,           // Thread handle not inheritable
+		FALSE,          // Set handle inheritance to FALSE
+		0,              // No creation flags
+		NULL,           // Use parent's environment block
+		NULL,           // Use parent's starting directory 
+		&si,            // Pointer to STARTUPINFO structure
+		&pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
+	);
+	// Close process and thread handles. 
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+}
+
 //Public
 void Exception_Manager::HandleProtegaStandardError(int iErrorNumber, const char * sMessage)
 {
@@ -108,17 +112,6 @@ void Exception_Manager::HandleProtegaStandardError(int iErrorNumber, const char 
 		//What shall i do here?
 	}
 	ShowErrorA(iErrorNumber, sMessage);	
-	CloseOwnProcess();
-}
-
-void Exception_Manager::HandleProtegaStandardError(int iErrorNumber, std::wstring wsMessage)
-{
-	//Freeze Process
-	if (!FreezeMainThread())
-	{
-		//What shall i do here?
-	}
-	ShowErrorW(iErrorNumber, wsMessage);
 	CloseOwnProcess();
 }
 

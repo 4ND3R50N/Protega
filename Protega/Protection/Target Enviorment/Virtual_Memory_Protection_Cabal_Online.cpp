@@ -1,6 +1,7 @@
 #include "../../stdafx.h"
 #include "Virtual_Memory_Protection_Cabal_Online.h"
 
+
 Virtual_Memory_Protection_Cabal_Online::Virtual_Memory_Protection_Cabal_Online(unsigned int iProcessID,
 	std::function<void(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sStandartValue) > funcCallbackHandler)
 {
@@ -14,6 +15,56 @@ Virtual_Memory_Protection_Cabal_Online::~Virtual_Memory_Protection_Cabal_Online(
 {
 	CloseProcessInstance();
 }
+
+//Private
+//void Virtual_Memory_Protection_Cabal_Online::SumUpIndividualKeysInMap(std::map<int, unsigned int>* Map, unsigned int iValue)
+//{
+//	if (Map->find(iValue) == NctMap.end())
+//	{
+//		Sleep(1);
+//		NctMap.insert(std::make_pair(iValue, (unsigned int)1));
+//	}
+//	else
+//	{
+//		//Win7 Bug ->
+//		Sleep(1);
+//		std::map<int, unsigned int>::iterator it = Map->find(iValue);
+//		it->second = it->second++;
+//	}
+//}
+//
+//bool Virtual_Memory_Protection_Cabal_Online::ValuesInMapReachedUpperLimit(std::map<int, unsigned int>* Map, unsigned int iUpperLimit, unsigned int *iDetectedKey)
+//{
+//
+//	std::map<int, unsigned int>::iterator it;
+//	for (it = Map->begin(); it != Map->end(); it++)
+//	{
+//		if (it->second >= iUpperLimit)
+//		{
+//			return true;
+//		}
+//	}
+//	return false;
+//}
+
+//void Virtual_Memory_Protection_Cabal_Online::CleanUpMapIfSizeIsReached(std::map<int, unsigned int> *Map, unsigned int iSize)
+//{
+//	if (Map->size() >= iSize)
+//	{
+//		/*std::ofstream filestr;
+//
+//		filestr.open(".\\nctmap.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+//		for (it = NctMap.begin(); it != NctMap.end(); it++)
+//		{
+//		filestr << it->first << " || " << it->second << std::endl;
+//		}
+//		filestr << "-----------------------------" << std::endl;
+//		filestr.close();*/
+//
+//		std::map<int, unsigned int>::iterator it;
+//		NctMap.clear();
+//	}
+//}
 
 //Public
 bool Virtual_Memory_Protection_Cabal_Online::OpenProcessInstance()
@@ -31,10 +82,10 @@ bool Virtual_Memory_Protection_Cabal_Online::CloseProcessInstance()
 	return CloseHandle(hProcessHandle);
 }
 
-bool Virtual_Memory_Protection_Cabal_Online::DetectManipulatedMemory()
+bool Virtual_Memory_Protection_Cabal_Online::NoIterativeFunctions_DetectManipulatedMemory()
 {
-	if ((VMP_CheckGameSpeed() || VMP_CheckWallBorders() || VMP_CheckZoomState() || VMP_CheckNoSkillDelay()  || 
-		VMP_CheckNoCastTime() || VMP_CheckSkillRange() || VMP_CheckSkillCooldown() /*|| VMP_CheckNation()*/) == true)
+	if ((VMP_CheckGameSpeed() || VMP_CheckWallBorders() || VMP_CheckZoomState() || /*VMP_CheckNoSkillDelay()  || */
+		VMP_CheckSkillRange() || VMP_CheckSkillCooldown() /*|| VMP_CheckNation()*/) == true)
 	{
 		return true;
 	}
@@ -106,7 +157,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckWallBorders()
 		ss << dPercentOfZeros << "% Zeros";
 		std::string sDetectedValue = ss.str();
 		ss.str("");
-		ss << "NOT > " << iWallhackZeroTolerance << "%";
+		ss << "NOT < " << iWallhackZeroTolerance << "%";
 		std::string sDefaultValue = ss.str();
 		ss.str("");
 		funcCallbackHandler("CABAL WALL BASE ADDRESS", "WALL START OFFSET", sDetectedValue, sDefaultValue);
@@ -173,15 +224,77 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay()
 			std::stringstream ss;
 			ss << iCurrentSkillCastValue;
 			//Note: Information is unclear...
-			funcCallbackHandler("CABAL MODULE ADDRESS", "SKILL CAST OFFSET", ss.str(), ">3000000");
+			funcCallbackHandler("CABAL MODULE ADDRESS", "SKILL CAST OFFSET", ss.str(), ">2000000");
 			return true;
 		}
 	}
 	return false;
 }
 
-//NOTE: Set sleep vars global! Algorithm speed: 100ms! Gamestart + freeze NCT = 0 -> Makes some problems. Check it later!
-//NOTE: Map or animation check is necessary.... maybe...
+bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay_V2()
+{
+	//Skip algorithm if skill animation is default
+	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
+	{
+		return false;
+	}
+	
+	//Get the actual animation value
+	int iCurrentAnimationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
+
+	//Check of the animation value is currently showing a skill
+	if (iCurrentAnimationValue == iCabalAnimationSkill)
+	{
+		//Get the current skill cast value
+		int iCurrentSkillCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
+
+		//Push NSD var in the list
+		NsdVector.push_back(iCurrentSkillCastValue);
+
+		//Check if the NSD list contains > tolerance values
+		std::vector<unsigned int>::iterator iIt;
+		unsigned int iAnomalyApperances = 0;
+
+		for (iIt = NsdVector.begin(); iIt != NsdVector.end(); iIt++)
+		{
+			unsigned int& iItData(*iIt);
+			if (iItData < iCabalSkillValueLowerLimit)
+			{
+				iAnomalyApperances++;
+			}
+		}
+
+		//Check map, if anomalies are over tolerance
+		if (iAnomalyApperances >= iNsdDetectionTolerance)
+		{
+		/*	std::ofstream filestr;
+			filestr.open(".\\nsddetect.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+			std::vector<unsigned int>::iterator it;
+			for (it = NsdVector.begin(); it != NsdVector.end(); it++)
+			{
+				unsigned int& iItData(*iIt);
+				filestr << iItData << std::endl;
+			}
+			filestr << "-----------------------------" << std::endl;
+			filestr.close();*/
+
+			std::stringstream ss;
+			ss << ">= " << iNctDetectionTolerance;
+			funcCallbackHandler("CABAL MODULE ADDRESS", "No Skill Delay", "-", ss.str());
+			return true;
+		}
+
+		//Cleanup vector if too large
+		if (NsdVector.size() >= iNsdQueueSize)
+		{
+			NsdVector.clear();
+		}
+
+	}
+	return false;
+}
+
+//OUTDATED
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime()
 {
 	//Skip algorithm if animation var is default
@@ -191,53 +304,143 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime()
 	}
 
 	//Check if its the first run, collect NSD + NCT Value
-	if (iCabalLatestNoCastTimeValue == 0 && iCabalLatestCastValue == 0)
+	if (iCabalLatestNoCastTimeValue == 0 && iCabalLatestNSDValue == 0)
 	{
 		iCabalLatestNoCastTimeValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
-		iCabalLatestCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
+		iCabalLatestNSDValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
+		//BM Fix
+		iCabalLatestBattleModeStateValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
+	}
+
+	
+	//Get actual NSD value
+	int iCurrentNSDValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
+	//Collect the animation value
+	int iCurrentAnimationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
+	//Collect battle mode value
+	int iCurrentBattleModeValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
+
+	//Check, if there was a skill change after the last run of this algorithm
+	//Check, if we are currently performing an attack + check if the animation is also an attack + check if we havent changed the battle mode 
+	if (iCurrentNSDValue != iCabalLatestNSDValue && iCurrentAnimationValue == iCabalAnimationSkill && iCurrentNSDValue >= iCabalSkillValueLowerLimit && iCurrentBattleModeValue == iCabalLatestBattleModeStateValue)
+	{
+		//This sleep exist for the following reason:
+		//If you freeze the NCT var via hack, it rewrites the variable permanently. That means, the NCT is toggling between a random value + the value that is freezig.
+		//There must be a smart delay, after the algorithm detected a skill change + recognized, that there is a attack performing (IF1 and IF2) to catch the var that the hack is freezing.
+		//Since we store the latest NCT value, it will recognize -> a change, if there is no hack
+		//														 -> no change, if there is a hack
+		Sleep(200);
+
+		//Get the actual NCT value
+		int iCurrentNoCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
+			
+		//Check if the var did not change after a second attack skill
+		if (iCabalLatestNoCastTimeValue == iCurrentNoCastValue && iCurrentAnimationValue == iCabalAnimationSkill)
+		{
+			funcCallbackHandler("CABAL MODULE ADDRESS", "NO CAST TIME OFFSET", ">3000000", "");
+			return true;
+		}
+		else
+		{
+			iCabalLatestNoCastTimeValue = iCurrentNoCastValue;				
+		}
+		
+		iCabalLatestNSDValue = iCurrentNSDValue;
+		iCabalLatestBattleModeStateValue = iCabalLatestBattleModeStateValue;
+	}
+
+	return false;
+}
+
+//Note: Store fix vars to header later!
+bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime_V2()
+{
+	//Skip algorithm if animation var is default
+	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
+	{
+		return false;
+	}
+	
+	//Check if its the first run, collect NSD + NCT Value
+	if (iCabalLatestNoCastTimeValue == 0 && iCabalLatestNSDValue == 0)
+	{
+		iCabalLatestNoCastTimeValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
+		iCabalLatestNSDValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
 		//BM Fix
 		iCabalLatestBattleModeStateValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
 	}
 
 	//Get actual NSD value
-	int iCurrentSkillCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
+	int iCurrentNSDValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillCastOffset);
+	//Collect battle mode value
+	int iCurrentBattleModeValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
+	//Animation
+	int iCurrentAnimationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
 
-	//Check, if there was a skill change after the last run of this algorithm
-	if (iCurrentSkillCastValue != iCabalLatestCastValue)
+	//On attack - skill change
+	if (iCurrentNSDValue != iCabalLatestNSDValue && iCurrentAnimationValue == iCabalAnimationSkill && iCurrentNSDValue >= iCabalSkillValueLowerLimit && iCurrentBattleModeValue == iCabalLatestBattleModeStateValue)
 	{
-		//Collect the animation value
-		int iCurrentAnimationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
-		//Collect battle mode value
-		int iCurrentBattleModeValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
 
-		//Check, if we are currently performing an attack + check if the animation is also an attack + check if we havent changed the battle mode 
-		if (iCurrentAnimationValue == iCabalAnimationSkill && iCurrentSkillCastValue >= iCabalSkillValueLowerLimit && iCurrentBattleModeValue == iCabalLatestBattleModeStateValue)
+		Sleep(iNctWaitAfterSkillChange);
+
+		//Get the actual NCT value
+		int iCurrentNoCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
+
+		if (NctMap.find(iCurrentNoCastValue) == NctMap.end())
 		{
-			//This sleep exist for the following reason:
-			//If you freeze the NCT var via hack, it rewrites the variable permanently. That means, the NCT is toggling between a random value + the value that is freezig.
-			//There must be a smart delay, after the algorithm detected a skill change + recognized, that there is a attack performing (IF1 and IF2) to catch the var that the hack is freezing.
-			//Since we store the latest NCT value, it will recognize -> a change, if there is no hack
-			//														 -> no change, if there is a hack
-			Sleep(200);
+			Sleep(1);
+			NctMap.insert(std::make_pair(iCurrentNoCastValue, (unsigned int)1));
+		}
+		else
+		{
+			//Win7 Bug ->
+			Sleep(1);
+			std::map<int, unsigned int>::iterator it = NctMap.find(iCurrentNoCastValue);
+			it->second = it->second++;
+		}
+		iCabalLatestNSDValue = iCurrentNSDValue;
+		iCabalLatestBattleModeStateValue = iCurrentBattleModeValue;
 
-			//Get the actual NCT value
-			int iCurrentNoCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
-			
-			//Check if the var did not change after a second attack skill
-			if (iCabalLatestNoCastTimeValue == iCurrentNoCastValue)
+		//Check map
+		std::map<int, unsigned int>::iterator it;
+		for (it = NctMap.begin(); it != NctMap.end(); it++)
+		{
+			if (it->second >= iNctDetectionTolerance)
 			{
-				funcCallbackHandler("CABAL MODULE ADDRESS", "NO CAST TIME OFFSET", ">3000000", "");
+				std::ofstream filestr;
+
+				/*filestr.open(".\\nctmap.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+				for (it = NctMap.begin(); it != NctMap.end(); it++)
+				{
+				filestr << it->first << " || " << it->second << std::endl;
+				}
+				filestr << "-----------------------------" << std::endl;
+				filestr.close();*/
+
+				std::stringstream ss;
+				ss << ">= " << iNctDetectionTolerance;
+				funcCallbackHandler("CABAL MODULE ADDRESS", "NO CAST TIME OFFSET", std::to_string(it->first), ss.str());
 				return true;
 			}
-			else
-			{
-				iCabalLatestNoCastTimeValue = iCurrentNoCastValue;				
-			}
 		}
-		iCabalLatestCastValue = iCurrentSkillCastValue;
-		iCabalLatestBattleModeStateValue = iCabalLatestBattleModeStateValue;
-	}
 
+		//Cleanup
+		if (NctMap.size() > iNctQueueSize)
+		{
+			/*std::ofstream filestr;
+
+			filestr.open(".\\nctmap.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+			for (it = NctMap.begin(); it != NctMap.end(); it++)
+			{
+			filestr << it->first << " || " << it->second << std::endl;
+			}
+			filestr << "-----------------------------" << std::endl;
+			filestr.close();*/
+
+			std::map<int, unsigned int>::iterator it;
+			NctMap.clear();
+		}
+	}
 	return false;
 }
 

@@ -21,15 +21,14 @@ private:
 
 	//Functions
 	static void ShowErrorA(int iErrorNumber, const char* sMessage);
-	static void ShowErrorW(int iErrorNumber, std::wstring wsMessage);
 	static void CloseOwnProcess();
 	static DWORD GetMainThreadId();
 	static bool FreezeMainThread();
 	static bool KillMainThread();
+	static void StartProgram(LPCTSTR lpApplicationName);
 public:
 	//Functions
 	static void HandleProtegaStandardError(int iErrorNumber, const char* sMessage);
-	static void HandleProtegaStandardError(int iErrorNumber, std::wstring wsMessage);
 
 	//Setter
 	static void SetCrashReporterName(const char* _sTargetName);

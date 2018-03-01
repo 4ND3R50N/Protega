@@ -73,19 +73,6 @@ bool Heuristic_Scan_Engine::DetectBlacklistedProcessNames()
 
 		if (bEntryFound)
 		{
-			//Commented out due change of handling things
-			//Detection handling
-			//std::list<std::string> lOtherInformation;
-			
-			//std::list<std::string>::iterator sIt = std::next(lBlackListWindowNames.begin(), iForCounter);	
-		
-			////Get other data
-			//lOtherInformation.push_back(sIt->c_str());
-			//sIt = std::next(lBlackListClassNames.begin(), iForCounter);
-			//lOtherInformation.push_back(sIt->c_str());
-			//sIt = std::next(lBlackListMd5Values.begin(), iForCounter);
-			//lOtherInformation.push_back(sIt->c_str());
-			//Send them to the protection manager
 
 			std::string sItBlackListEntry = "";
 			using convert_type = std::codecvt_utf8<wchar_t>;

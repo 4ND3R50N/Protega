@@ -160,18 +160,6 @@ void ProtegaCore::ProtectionManagerAnswer(unsigned int iType, std::vector<std::s
 		break;
 	}
 
-	//std::stringstream ss;
-	//std::list<std::string>::iterator sIt;
-
-	//ss << "Hack Detect! Debug: ";
-	//for (sIt = sDetectionInformation.begin(); sIt != sDetectionInformation.end(); sIt++)
-	//{
-	//	std::string& sItData(*sIt);
-	//	ss << sItData << " || ";
-	//}
-
-	//Exception_Manager::HandleProtegaStandardError(Data_Manager::GetExceptionLocalFileErrorNumber(),
-	//	ss.str().c_str());
 }
 
 void ProtegaCore::Update()
@@ -184,9 +172,8 @@ void ProtegaCore::Update()
 		{
 			NetworkManager->Ping_600(Data_Manager::GetLocalHardwareSID());
 		}		
-		
 		ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
-		Sleep(1000);
+		Sleep(2000);
 	} while (ProtectionManager->ProtectionIsRunning());
 
 	//Temporary

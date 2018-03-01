@@ -54,20 +54,27 @@ Protection_Manager::~Protection_Manager()
 bool Protection_Manager::StartProtectionThreads()
 {
 	bProtectionIsRunning = true;
+
+	//VMP -> Connect to process
+	if (!VMP->OpenProcessInstance())
+	{
+		Exception_Manager::HandleProtegaStandardError(iVMErrorCode,
+			"Not able to get access to the target Process. Please restart the application as admin. If this problem accours more often, please contact the administrator! [2]");
+		return false;
+	}
+
 	//Create threads
 	tHeThread = new std::thread(&Protection_Manager::HE_Thread, this);
-	tVmpThread = new std::thread(&Protection_Manager::VMP_Thread, this);
+	tVmpIfThread = new std::thread(&Protection_Manager::VMP_IF_Thread, this);
+	tVmpNifThread = new std::thread(&Protection_Manager::VMP_NIF_Thread, this);
 	tFpThread = new std::thread(&Protection_Manager::FP_Thread, this);
 
 	//Set clocks
 	ctHeResponse = std::clock();
-	ctVmpResponse = std::clock();
+	ctVmpIfResponse = std::clock();
+	ctVmpNifResponse = std::clock();
 	ctFpResponse = std::clock();
-	
-	//Start threads
-	//tHeThread->join();
-	//tVmpThread->join();
-	//tFpThread->join();
+
 	return true;
 }
 
@@ -108,14 +115,25 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 			"Thread Error [HE]. Please restart the application!");
 		return false;
 	}
-	//	VMP
-	dCurrentDuration = (std::clock() - ctVmpResponse) / (double)CLOCKS_PER_SEC;
+	//	VMP 1&2
+
+	dCurrentDuration = (std::clock() - ctVmpIfResponse) / (double)CLOCKS_PER_SEC;
 
 	if (dCurrentDuration > dThreadResponseDelta)
 	{
 		bProtectionIsRunning = false;
 		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
-			"Thread Error [VM]. Please restart the application!");
+			"Thread Error [VM_IF]. Please restart the application!");
+		return false;
+	}
+
+	dCurrentDuration = (std::clock() - ctVmpNifResponse) / (double)CLOCKS_PER_SEC;
+
+	if (dCurrentDuration > dThreadResponseDelta)
+	{
+		bProtectionIsRunning = false;
+		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
+			"Thread Error [VM_NIF]. Please restart the application!");
 		return false;
 	}
 	//	FP
@@ -135,27 +153,6 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 //Private
 
 //	Threads
-void Protection_Manager::VMP_Thread()
-{
-	if (!VMP->OpenProcessInstance())
-	{
-		Exception_Manager::HandleProtegaStandardError(iVMErrorCode,
-			"Not able to get access to the target Process. Please restart the application as admin. If this problem accours more often, please contact the administrator! [2]");
-		return;
-	}
-
-	do
-	{
-		if (VMP->DetectManipulatedMemory() == true)
-		{
-			VMP->CloseProcessInstance();
-			bProtectionIsRunning = false;
-			return;
-		}
-		CheckClocks(&ctVmpResponse);
-		Sleep(500);
-	} while (bProtectionIsRunning);
-}
 
 void Protection_Manager::HE_Thread()
 {
@@ -175,6 +172,38 @@ void Protection_Manager::HE_Thread()
 		}
 		CheckClocks(&ctHeResponse);
 
+		Sleep(500);
+	} while (bProtectionIsRunning);
+}
+
+void Protection_Manager::VMP_IF_Thread()
+{
+	do
+	{
+		if (VMP->VMP_CheckNoCastTime_V2() == true || VMP->VMP_CheckNoSkillDelay_V2() == true)
+		{
+			VMP->CloseProcessInstance();
+			bProtectionIsRunning = false;
+			return;
+		}
+		CheckClocks(&ctVmpIfResponse);
+		Sleep(20);
+	} while (bProtectionIsRunning);
+}
+
+
+void Protection_Manager::VMP_NIF_Thread()
+{
+
+	do
+	{
+		if (VMP->NoIterativeFunctions_DetectManipulatedMemory() == true)
+		{
+			VMP->CloseProcessInstance();
+			bProtectionIsRunning = false;
+			return;
+		}
+		CheckClocks(&ctVmpNifResponse);
 		Sleep(500);
 	} while (bProtectionIsRunning);
 }
@@ -234,6 +263,18 @@ void Protection_Manager::HE_Callback(std::string sSection, std::string sDetectio
 void Protection_Manager::VMP_Callback(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sDefaultValue)
 {
 	bProtectionIsRunning = false;
+
+#pragma region DEBUG-OUTPUT
+	//std::ofstream filestr;
+	//filestr.open(".\\detect.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+
+	//clock_t start = std::clock();
+
+	//filestr << "OS: " << sDetectedOffset << " DV: " << sDetectedValue << " DEV: " << sDefaultValue << std::endl;
+	//filestr.close();
+#pragma endregion
+
+	
 
 	std::vector<std::string> lDetectionInformation;	
 	lDetectionInformation.push_back(sDetectedBaseAddress);

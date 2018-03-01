@@ -142,8 +142,8 @@ namespace ProtegaClientTestsuite
 			do
 			{
 				//VMP_S->VMP_CheckNoSkillDelay();
-				VMP_S->VMP_CheckNoCastTime();
-				Sleep(1000);
+				VMP_S->VMP_CheckNoSkillDelay_V2();
+				Sleep(20);
 			} while (!bDetect);
 		}	
 
@@ -238,14 +238,19 @@ namespace ProtegaClientTestsuite
 		TEST_METHOD(Protection_FP_LocalFileChange)
 		{
 			unsigned int processId = (int)FindProcessId(sProcessName);
-			vBlackListWindowNames.push_back("D:\\Games\\CABAL CODEZERO NEW\\Data\\Map\\world_01.mcl");
-			vBlackListMd5Values.push_back("B5865AAAFB570F68DCA4C6326587E939");
+			vBlackListWindowNames.push_back("C:\\Users\\lpickeli\\Documents\\CABAL CODEZERO\\Data\\Map\\world_01.mcl");
+			vBlackListWindowNames.push_back("C:\\Users\\lpickeli\\Documents\\CABAL CODEZERO\\Data\\Map\\world_02.mcl");
+			vBlackListMd5Values.push_back("250F0794AA6723271C53C28AD8E5B821");
+			vBlackListMd5Values.push_back("8A32A8F17FF1A44204286B6C7515340C");
 
 			File_Protection_Engine* FP = new File_Protection_Engine(processId, "", std::bind(&ProtectionTests::FP_Callback, this, std::placeholders::_1, std::placeholders::_2),
 				std::make_pair(vBlackListWindowNames, vBlackListMd5Values), 100);
 			
-			FP->DetectLocalFileChange();
-
+			do
+			{
+				FP->DetectLocalFileChange();
+			} while (true);
+			
 		}
 
 		TEST_METHOD(Protection_FP_DLL_Injection)

@@ -22,7 +22,8 @@ std::string Data_Manager::LOCAL_DATA_PROTECTION_TARGET = "CabalMain.exe";
 
 //Network data
 const char* Data_Manager::NETWORK_SERVER_IP = "62.138.6.50";
-int Data_Manager::NETWORK_SERVER_PORT = 13010;
+//13015
+int Data_Manager::NETWORK_SERVER_PORT = 13016;
 int Data_Manager::NETWORK_MAX_SEND_RETRIES = 3;
 std::string Data_Manager::NETWORK_PROTOCOL_DELIMITER = "~";
 const char* Data_Manager::NETWORK_DATA_DELIMITER = ";";
@@ -37,8 +38,8 @@ std::vector<std::wstring> Data_Manager::vHeuristicProcessNames;
 std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::pFilesToCheck;
 
 //Protection data
-double Data_Manager::PROTECTION_THREAD_RESPONSE_DELTA = 60.0;
-int Data_Manager::PROTECTION_FP_MAX_DLL = 126;
+double Data_Manager::PROTECTION_THREAD_RESPONSE_DELTA = 70.0;
+int Data_Manager::PROTECTION_FP_MAX_DLL = 200;
 
 //Exceptions
 const char* Data_Manager::EXCEPTION_ERROR_FILE_NAME = "latest_protega_error.err";

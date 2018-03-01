@@ -15,13 +15,15 @@ private:
 	int iThreadErrorCode = 0;
 
 	std::thread* tHeThread;
-	std::thread* tVmpThread;
+	std::thread* tVmpIfThread;
+	std::thread* tVmpNifThread;
 	std::thread* tFpThread;
 
 	double dThreadResponseDelta;
 	std::clock_t ctMainThreadResponse = 0;
 	std::clock_t ctHeResponse = 0;
-	std::clock_t ctVmpResponse = 0;
+	std::clock_t ctVmpIfResponse = 0;
+	std::clock_t ctVmpNifResponse = 0;
 	std::clock_t ctFpResponse = 0;
 
 	std::function<void(unsigned int iType, std::vector<std::string> lDetectionInformation)> funcCallbackHandler;
@@ -33,8 +35,9 @@ private:
 
 	//Functions
 	//	Threads
-	void VMP_Thread();
 	void HE_Thread();
+	void VMP_IF_Thread();
+	void VMP_NIF_Thread();
 	void FP_Thread();
 	//	Callbacks
 	void HE_Callback(std::string sSection, std::string sDetectionValue);
