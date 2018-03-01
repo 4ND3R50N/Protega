@@ -4,6 +4,8 @@
 #include "boost\lexical_cast.hpp"
 #include "Virtual_Memory_IO.h"
 #include <fstream>
+#include <map>
+
 class Virtual_Memory_Protection_Cabal_Online: Virtual_Memory_IO
 {
 private:
@@ -44,15 +46,25 @@ private:
 	//	Zoom
 	int iCabalDefaultZoom1 = 2;
 	int iCabalDefaultZoom2 = 1;
+
 	//	NSD + NCT
+	std::map<int, unsigned int> NctMap;
+	unsigned int iNctWaitAfterSkillChange = 200;
+	unsigned int iNctQueueSize = 30;
+	unsigned int iNctDetectionTolerance = 3;
+
+	std::vector<unsigned int> NsdVector;
+	unsigned int iNsdQueueSize = 10;
+	unsigned int iNsdDetectionTolerance = 3;
+
 	int iCabalSkillAnimationDefaultValue = 4294967295;
-	int iCabalSkillValueLowerLimit = 3000000;
-	int iCabalAnimationRun = 5;
+	int iCabalSkillValueLowerLimit = 2000000;
 	int iCabalAnimationSkill = 7;
 
 	int iCabalLatestNoCastTimeValue = 0;
-	int iCabalLatestCastValue = 0;
+	int iCabalLatestNSDValue = 0;
 	int iCabalLatestBattleModeStateValue = 0;
+
 	//	Speedcheck
 	float fCabalMaxPossibleSpeed = 1200.f;
 	//	Rangecheck
@@ -61,10 +73,12 @@ private:
 	int iCabalDefaultAOE = 0;
 	//	No Cooldown
 	int iCabalDefaultSkillCooldown = 69485707;
+
 	//	Wallhack
-	int iWallhackScanDelay = 5000; // <- Loading delay after player joins a map
+	int iWallhackScanDelay = 10000; // <- Loading delay after player joins a map
 	double iWallhackZeroTolerance = 80.0;
 	bool bFirstChannelJoin = true;
+
 	//	Monitoring
 	int iCabalGm = 2;
 	
@@ -75,7 +89,9 @@ private:
 	std::function<void(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sStandartValue) > funcCallbackHandler;
 
 	//Functions
-	//static void WriteMemoryValueAsync(void* Param);
+	//void SumUpIndividualKeysInMap(std::map<int, unsigned int> *Map, unsigned int iValue);
+	//bool ValuesInMapReachedUpperLimit(std::map<int, unsigned int> *Map, unsigned int iUpperLimit, unsigned int *iDetectedKey);
+	//void CleanUpMapIfSizeIsReached(std::map<int, unsigned int> *Map, unsigned int iSize);
 
 public:
 	Virtual_Memory_Protection_Cabal_Online(unsigned int iProcessID,
@@ -83,14 +99,19 @@ public:
 	
 	bool OpenProcessInstance();
 	bool CloseProcessInstance();
-	bool DetectManipulatedMemory();
+	bool NoIterativeFunctions_DetectManipulatedMemory();
 
 	//VMP Functions
 	bool VMP_CheckGameSpeed();
 	bool VMP_CheckWallBorders();
 	bool VMP_CheckZoomState();
+
 	bool VMP_CheckNoSkillDelay();
+	bool VMP_CheckNoSkillDelay_V2();
+
 	bool VMP_CheckNoCastTime();
+	bool VMP_CheckNoCastTime_V2();
+
 	bool VMP_CheckSkillRange();
 	bool VMP_CheckSkillCooldown();
 	bool VMP_CheckNation();
