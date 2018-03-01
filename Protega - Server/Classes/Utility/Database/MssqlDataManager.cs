@@ -21,23 +21,23 @@ namespace Protega___Server.Classes
 {
     class DBMssqlDataManager : DBEngine
     {
-
-        private SqlConnection sqlConnection = null;
+        private string SqlConnectionstring = null;
+        //private SqlConnection sqlConnection = null;
         public DBMssqlDataManager(string host_ip, string sql_user, string sql_pass, short sql_port, string sql_db_default)
              : base(host_ip, sql_user, sql_pass, sql_port, sql_db_default)
         {
-            sqlConnection = new SqlConnection("Server=" + host_ip + ";Database=" + sql_db_default + ";User Id=" + sql_user + ";Password=" + sql_pass + ";MultipleActiveResultSets=True;");
+            SqlConnectionstring = "Server=" + host_ip + ";Database=" + sql_db_default + ";User Id=" + sql_user + ";Password=" + sql_pass + ";MultipleActiveResultSets=True;";
         }
 
         public override void Dispose()
         {
-            if (sqlConnection.State != ConnectionState.Closed)
-                sqlConnection.Close();
-            sqlConnection.Dispose();
+            //if (sqlConnection.State != ConnectionState.Closed)
+            //    sqlConnection.Close();
+            //sqlConnection.Dispose();
         }
 
         #region Private functions
-        private void pPrepareCommand(SqlCommand sqlCommand, SqlTransaction sqlTransaction, CommandType p_cmdType, string cmdText, SqlParameter[] cmdParameters)
+        private void pPrepareCommand(SqlConnection sqlConnection, SqlCommand sqlCommand, SqlTransaction sqlTransaction, CommandType p_cmdType, string cmdText, SqlParameter[] cmdParameters)
         {
             if (sqlCommand == null) return;
             if (cmdText == null || cmdText.Length == 0) return;
@@ -137,18 +137,19 @@ namespace Protega___Server.Classes
 
         private SqlDataReader pExecuteReader(CommandType cmdType, string ProcedureName, SqlParameter[] Parameters)
         {
+            SqlConnection sqlConnection = new SqlConnection(SqlConnectionstring);
             SqlCommand sqlCommand = new SqlCommand();
             try
             {
                 //Put parameters to the procedure
-                pPrepareCommand(sqlCommand, null, cmdType, ProcedureName, Parameters);
+                pPrepareCommand(sqlConnection, sqlCommand, null, cmdType, ProcedureName, Parameters);
                 
                 if (sqlConnection.State != ConnectionState.Open)
                     sqlConnection.Open();
 
                 SqlDataReader dataReader;
                 dataReader = sqlCommand.ExecuteReader(CommandBehavior.CloseConnection);
-
+                
                 bool CanClear = true;
                 foreach (SqlParameter Param in sqlCommand.Parameters)
                 {
@@ -180,10 +181,10 @@ namespace Protega___Server.Classes
 
         public override int ExecuteNonQuery(CommandType cmdType, string ProcedureName, params SqlParameter[] Parameters)
         {
-            if (sqlConnection == null) throw new ArgumentNullException("sqlConnection", "DB Error 3: Object was null");
+            SqlConnection sqlConnection = new SqlConnection(SqlConnectionstring);
 
             SqlCommand sqlCommand = new SqlCommand();
-            pPrepareCommand(sqlCommand, null, cmdType, ProcedureName, Parameters);
+            pPrepareCommand(sqlConnection, sqlCommand, null, cmdType, ProcedureName, Parameters);
 
             try
             {
@@ -212,8 +213,6 @@ namespace Protega___Server.Classes
         /// <returns></returns>
         public override SqlDataReader ExecuteReader(CommandType cmdType, string ProcedureName, params SqlParameter[] Parameters)
         {
-            if (sqlConnection == null) return null;
-
             //if Parameters were given, assign them
             if(Parameters != null && Parameters.Length>0)
             {
@@ -236,6 +235,7 @@ namespace Protega___Server.Classes
 
         public override bool testDBConnection()
         {
+            SqlConnection sqlConnection = new SqlConnection(SqlConnectionstring);
             try
             {
                 sqlConnection.Open();

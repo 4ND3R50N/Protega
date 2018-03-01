@@ -134,8 +134,18 @@ namespace Protega___Server
                 {
                     Controller.Start();
                     AppsRunning.Add(Controller);
+
+                    //for (int i = 0; i < 10000; i++)
+                    //{
+                    //    string HardwareID = "123" + i.ToString();
+                    //    string ApplicationHash = "D6D4ABB30s";
+                    //    string lVersion = "102";
+                    //    string Architecture= "Win99";
+                    //    string Language = "Nothing";
+                    //    Controller.ProtocolController.ReceivedProtocol(null, String.Format("500;{0};{1};{2};{3};{4}", HardwareID, lVersion,ApplicationHash, Architecture,Language));
+                    //}
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     return false;
                 }

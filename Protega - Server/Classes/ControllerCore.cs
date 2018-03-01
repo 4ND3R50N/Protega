@@ -79,14 +79,13 @@ namespace Protega___Server.Classes.Core
             CCstData.GetInstance(Application.ID).SessionIDLength = SessionLength;
 
             //Block Linux Ports
-
-            SshClient unixSshConnectorAccept = new SshClient(LinuxIP, LinuxPort, LinuxLogin, LinuxPass);
+            //SshClient unixSshConnectorAccept = new SshClient(LinuxIP, LinuxPort, LinuxLogin, LinuxPass);
             try
             {
-                unixSshConnectorAccept.Connect();
-                if (!unixSshConnectorAccept.IsConnected)
-                    throw new Exception();
-                unixSshConnectorAccept.Disconnect();
+                //unixSshConnectorAccept.Connect();
+                //if (!unixSshConnectorAccept.IsConnected)
+                //    throw new Exception();
+                //unixSshConnectorAccept.Disconnect();
 
             }
             catch (Exception e)
@@ -182,7 +181,7 @@ namespace Protega___Server.Classes.Core
             Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "TCP Server ready for start!");
             Logger.Seperate();
             ProtocolController = new ProtocolController(ref ActiveConnections, Application.ID, LinuxPort, LinuxLogin, LinuxPass, LinuxIP);
-            
+
             /*//TESTCASE
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
             //Registration
@@ -252,7 +251,7 @@ namespace Protega___Server.Classes.Core
         #endregion
 
         #region Protocol
-        public void NetworkProtocol(networkServer.networkClientInterface NetworkClient, string message)
+        public void NetworkProtocol(ref networkServer.networkClientInterface NetworkClient, string message)
         {
             //Public for the Unit Tests
             CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received: " + message);

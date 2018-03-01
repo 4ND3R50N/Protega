@@ -22,7 +22,7 @@ namespace Protega___Server
     {
         //Variables
         //--Public
-        public delegate void protocolFunction(networkClientInterface NetworkClient, string prot);
+        public delegate void protocolFunction(ref networkClientInterface NetworkClient, string prot);
         public delegate void _AuthenticateClient(networkClientInterface Client);
         //--Private
         private IPEndPoint serverEndPoint;
@@ -76,7 +76,9 @@ namespace Protega___Server
 
         private void AcceptCallback(IAsyncResult result)
         {
+            //Wenns klappt, using drum!
             networkClientInterface connection = new networkClientInterface((Socket)result.AsyncState, result);
+            
             try
             {
                 // Start Receive
@@ -84,14 +86,14 @@ namespace Protega___Server
                     connection.buffer.Length, SocketFlags.None,
                     new AsyncCallback(ReceiveCallback), connection);
                 // Start new Accept
-                serverSocket.BeginAccept(new AsyncCallback(AcceptCallback),
-                    result.AsyncState);
+                //serverSocket.BeginAccept(new AsyncCallback(AcceptCallback),
+                //    result.AsyncState);
                 //for (int i = 0; i < 1000; i++)
                 serverSocket.BeginAccept(
                     new AsyncCallback(AcceptCallback), serverSocket);
 
             }
-            catch (SocketException)
+            catch (SocketException e)
             {
                 closeConnection(connection);
             }
@@ -111,7 +113,7 @@ namespace Protega___Server
                 int bytesRead = connection.networkSocket.EndReceive(result);
                 if (0 != bytesRead)
                 {
-                    protAnalyseFunction(connection, Encoding.Default.GetString(connection.buffer, 0, bytesRead));
+                    protAnalyseFunction(ref connection, Encoding.Default.GetString(connection.buffer, 0, bytesRead));
                     connection.networkSocket.BeginReceive(connection.buffer, 0,
                       connection.buffer.Length, SocketFlags.None,
                       new AsyncCallback(ReceiveCallback), connection);
@@ -121,10 +123,26 @@ namespace Protega___Server
             catch (SocketException)
             {
                 closeConnection(connection);
+                try
+                {
+                    connection.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Could not dispose connection! Error: " + e.Message);
+                }
             }
             catch (Exception e)
             {
                 closeConnection(connection);
+                try
+                {
+                    connection.Dispose();
+                }
+                catch (Exception f)
+                {
+                    Console.WriteLine("Could not dispose connection 2! Error: " + f.Message);
+                }
             }
         }
 
@@ -171,7 +189,28 @@ namespace Protega___Server
             public Classes.Entity.EPlayer User;
             public string SessionID;
             public DateTime ConnectedTime;
-            public IPAddress IP;
+
+            private IPAddress _IP;
+
+            public IPAddress IP
+            {
+                get
+                {
+                    if (_IP == null)
+                    {
+                        try
+                        {
+                            _IP = (networkSocket.RemoteEndPoint as IPEndPoint).Address;
+                        }
+                        catch (Exception)
+                        {
+                            Console.WriteLine("Could not get IP. User: " + User.ID + ", Session: " + SessionID);
+                        }
+                    }
+                    return _IP;
+                }
+                set { _IP = value; }
+            }
             public SshClient unixSshConnectorAccept;
             public int Counter = 0;
 
@@ -181,11 +220,25 @@ namespace Protega___Server
             
             public void Dispose()
             {
-                networkSocket.Close();
+                if (networkSocket != null)
+                {
+                    try
+                    {
+                        networkSocket.Shutdown(SocketShutdown.Both);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    networkSocket.Close();
+                    networkSocket.Dispose();
+                }
                 if (unixSshConnectorAccept != null)
                     unixSshConnectorAccept.Dispose();
                 if (tmrPing != null)
+                {
+                    tmrPing.Enabled = false;
                     tmrPing.Dispose();
+                }
             }
 
             public networkClientInterface()
@@ -194,7 +247,7 @@ namespace Protega___Server
             public void SetPingTimer(int Interval, string LinuxIP, string User, string Pass, int Port, KickUser _Kick, string _IP=null)
             {
                 //IPAddress.TryParse(_IP, out IP);
-                IP = (networkSocket.RemoteEndPoint as IPEndPoint).Address;
+
                 unixSshConnectorAccept = new SshClient(LinuxIP, Port, User, Pass);
                 this.Kick = _Kick;
 

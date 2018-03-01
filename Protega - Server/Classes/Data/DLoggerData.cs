@@ -23,15 +23,17 @@ namespace Protega___Server.Classes.Data
                 ELoggerData oData = new ELoggerData();
 
                 //ELoggerData
-                oData.ID = oReader.GetString( oReader.GetOrdinal("ID"));                
+                oData.ID=oReader.GetString(oReader.GetOrdinal("ID"));
                 return oData;
             }
             catch (SqlException e)
             {
+                Console.WriteLine("Reading failed! Error: " + e.Message);
                 throw e;
             }
             catch (System.Exception e)
             {
+                Console.WriteLine("Reading failed! Error: " + e.Message);
                 throw e;
             }
         }
@@ -75,13 +77,11 @@ namespace Protega___Server.Classes.Data
             SqlDataReader oReader = null;
             try
             {
-
                 //Fill the request's parameters
                 SqlParameter[] p_sqlParams = RegisterSqlParameter(iData);
-
+                
                 //Call the request
                 oReader = CCstData.GetInstance(iData.ApplicationID).DatabaseEngine.ExecuteReader(CommandType.StoredProcedure, CCstDatabase.SP_LoggerData_Insert, p_sqlParams);
-
                 //If there is a result (not null)
                 if (oReader != null)
                 {
@@ -90,12 +90,8 @@ namespace Protega___Server.Classes.Data
                     {
                         oData = ReadData(oReader);
                     }
-
-                    if (oData.ID == "-1")
-                        //If an error occurs, ID -1 is given
-                        return null;
+                    //If an error occurs, ID -1 is given
                     return oData;
-
                 }
                 return null;
             }

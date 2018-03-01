@@ -37,7 +37,7 @@ namespace Protega___Server.Classes.Protocol
             switch (protocol.GetKey())
             {
                 case 600:
-                    return CheckPing(NetworkClient, protocol); 
+                    return CheckPing(ref NetworkClient, protocol); 
                 case 500:
                     return AuthenticateUser(NetworkClient, protocol); 
                 case 701:
@@ -60,6 +60,8 @@ namespace Protega___Server.Classes.Protocol
             {
                 if (ActiveConnections[i].SessionID == SessionID)
                 {
+                    ActiveConnections[i].networkSocket.Close();
+                    ActiveConnections[i].networkSocket.Dispose();
                     ActiveConnections[i].networkSocket = ClientInterface.networkSocket;
                     ClientInterface = ActiveConnections[i];
                     return true;
@@ -95,10 +97,10 @@ namespace Protega___Server.Classes.Protocol
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authentification protocol correct. ApplicationHash={0}, Architecture={1}, Language={2}, Version={3}", ApplicationHash, architecture, language, version));
 
             //Check if user exists and add it to the list
-            return AddUserToActiveConnections(ClientInterface, ApplicationHash, prot.GetUserID(), architecture, language, version);
+            return AddUserToActiveConnections(ref ClientInterface, ApplicationHash, prot.GetUserID(), architecture, language, version);
         }
 
-        bool AddUserToActiveConnections(networkServer.networkClientInterface ClientInterface, string ApplicationHash, string ComputerID, string architecture, String language, double version)
+        bool AddUserToActiveConnections(ref networkServer.networkClientInterface ClientInterface, string ApplicationHash, string ComputerID, string architecture, String language, double version)
         {
             if (!CCstData.InstanceExists(ApplicationHash))
             {
@@ -126,9 +128,11 @@ namespace Protega___Server.Classes.Protocol
                     return false;
                 }
             }
-            
-            EPlayer dataClient = SPlayer.Authenticate(ComputerID, ApplicationHash, architecture, language, "");
-            
+
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.DATABASE, "Authentification: Checking user in the database");
+            EPlayer dataClient = SPlayer.Authenticate(ComputerID, ApplicationHash, architecture, language, ClientInterface.IP.ToString());
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.DATABASE, "Authentification: User found!");
+
             if (dataClient == null)
             {
                 //If a computer ID exists multiple times in the database, a null object is returned
@@ -167,22 +171,26 @@ namespace Protega___Server.Classes.Protocol
 
             //Add the new connection to the list of connected connections
             ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, LinuxIP, LinuxLogin, LinuxPass, LinuxPort, KickUser);
-
-
-            bool IpExistsAlready= ActiveConnections.Select(Client => Client.IP == ClientInterface.IP).ToList().Count > 0;
+            
+            bool IpExistsAlready = false;
+            foreach (var Client in ActiveConnections)
+            {
+                if (Client.IP == ClientInterface.IP)
+                    IpExistsAlready = true;
+            }
             
             if (!IpExistsAlready)
             {
                 //If there is already an IP exception, we dont need another
                 try
                 {
-                    ClientInterface.unixSshConnectorAccept.Connect();
+                    //ClientInterface.unixSshConnectorAccept.Connect();
                 }
                 catch (Exception)
                 {
                     
                 }
-                if (ClientInterface.unixSshConnectorAccept.IsConnected)
+                if (true) // ClientInterface.unixSshConnectorAccept.IsConnected)
                 {
                     List<int> Ports = new List<int>();
                     Ports.Add(50001);
@@ -217,7 +225,7 @@ namespace Protega___Server.Classes.Protocol
                         //ClientInterface.unixSshConnectorAccept.RunCommand(LinuxPorts);
                     }
 
-                    ClientInterface.unixSshConnectorAccept.Disconnect();
+                    //ClientInterface.unixSshConnectorAccept.Disconnect();
                 }
                 else
                 {
@@ -228,7 +236,12 @@ namespace Protega___Server.Classes.Protocol
             }
             else
             {
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "Authentication: IP already exists");
+                string AllIPs = "";
+                foreach (var item in ActiveConnections)
+                {
+                    AllIPs += String.Format(" User: {0}, IP: {1} -", item.User.ID, item.IP);
+                }
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authentication: IP already exists ({0})", AllIPs));
             }
 
             ActiveConnections.Add(ClientInterface);
@@ -252,7 +265,7 @@ namespace Protega___Server.Classes.Protocol
             if (!IpExistsAlready)
             {
                 //If there is another user with the same IP, we have to keep it in the IPTables
-                ClientInterface.unixSshConnectorAccept.Connect();
+                //ClientInterface.unixSshConnectorAccept.Connect();
                 if (!ClientInterface.unixSshConnectorAccept.IsConnected)
                 {
                     //Log error
@@ -291,8 +304,8 @@ namespace Protega___Server.Classes.Protocol
                     LinuxPorts=LinuxPorts.TrimEnd('&');
                     //ClientInterface.unixSshConnectorAccept.RunCommand(LinuxPorts);
                 }
-                ClientInterface.unixSshConnectorAccept.Disconnect();
-                ClientInterface.unixSshConnectorAccept.Dispose();
+                //ClientInterface.unixSshConnectorAccept.Disconnect();
+                //ClientInterface.unixSshConnectorAccept.Dispose();
             }
             CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, "User disconnected. Session ID: " + ClientInterface.SessionID);
             ActiveConnections.Remove(ClientInterface);
@@ -301,13 +314,12 @@ namespace Protega___Server.Classes.Protocol
 
         #endregion
 
-        private bool CheckPing(networkServer.networkClientInterface Client, Protocol prot)
+        private bool CheckPing(ref networkServer.networkClientInterface Client, Protocol prot)
         {
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Ping: Protocol received. User: " + prot.GetUserID());
 
-            networkServer.networkClientInterface ClientInterface = Client;
-            Client.Counter++;
-            if (CheckIfUserExists(prot.UserID, ref ClientInterface))
+            //networkServer.networkClientInterface ClientInterface = Client;
+            if (CheckIfUserExists(prot.UserID, ref Client))
             {
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Ping: User found in the list.");
 
@@ -323,19 +335,28 @@ namespace Protega___Server.Classes.Protocol
                 }
 
                 //Reset the Ping timer
-                ClientInterface.ResetPingTimer();
+                Client.ResetPingTimer();
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Ping resetted.");
 
                 //zhCCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Additional Infos: "+AdditionalInfo);
 
                 if (AdditionalInfo.Length == 0)
-                    SendProtocol("300", ClientInterface);
+                    SendProtocol("300", Client);
                 else
-                    SendProtocol(String.Format("301;{0}",AdditionalInfo), ClientInterface);
+                    SendProtocol(String.Format("301;{0}",AdditionalInfo), Client);
 
                 return true;
             }
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Ping: User does not exist in the active connections ({0})", prot.GetUserID()));
+
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Ping: User does not exist in the active connections ({0})", prot.GetUserID()));
+            try
+            {
+                Client.Dispose();
+            }
+            catch (Exception)
+            {
+
+            }
             return false;
         }
 
