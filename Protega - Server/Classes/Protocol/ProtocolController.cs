@@ -178,19 +178,26 @@ namespace Protega___Server.Classes.Protocol
                 if (Client.IP == ClientInterface.IP)
                     IpExistsAlready = true;
             }
-            
+
+            //Linux takes ages to connect. Therefore contact the client before it sends another request
+            ActiveConnections.Add(ClientInterface);
+
+            SendProtocol("200;" + ClientInterface.SessionID, ClientInterface);
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user. Computer ID: {0}, Session ID: {1}", ClientInterface.User.ID, ClientInterface.SessionID));
+
+
             if (!IpExistsAlready)
             {
                 //If there is already an IP exception, we dont need another
                 try
                 {
-                    //ClientInterface.unixSshConnectorAccept.Connect();
+                    ClientInterface.unixSshConnectorAccept.Connect();
                 }
                 catch (Exception)
                 {
                     
                 }
-                if (true) // ClientInterface.unixSshConnectorAccept.IsConnected)
+                if (ClientInterface.unixSshConnectorAccept.IsConnected)
                 {
                     List<int> Ports = new List<int>();
                     Ports.Add(50001);
@@ -222,10 +229,16 @@ namespace Protega___Server.Classes.Protocol
                     {
                         LinuxPorts = LinuxPorts.TrimEnd(' ');
                         LinuxPorts = LinuxPorts.TrimEnd('&');
-                        //ClientInterface.unixSshConnectorAccept.RunCommand(LinuxPorts);
+                        using (SshCommand Result = ClientInterface.unixSshConnectorAccept.RunCommand(LinuxPorts))
+                        {
+                            if (Result.Error.Length > 0)
+                                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "Linux exception failed! Session ID: " + ClientInterface.SessionID + ", Error: " + Result.Error);
+                            else
+                                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.GAMEDLL, "Linux exception successful. Session ID: " + ClientInterface.SessionID);
+                        }
                     }
 
-                    //ClientInterface.unixSshConnectorAccept.Disconnect();
+                    ClientInterface.unixSshConnectorAccept.Disconnect();
                 }
                 else
                 {
@@ -244,28 +257,36 @@ namespace Protega___Server.Classes.Protocol
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authentication: IP already exists ({0})", AllIPs));
             }
 
-            ActiveConnections.Add(ClientInterface);
-
-            SendProtocol("200;" + ClientInterface.SessionID, ClientInterface);
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user. Computer ID: {0}, Session ID: {1}", ClientInterface.User.ID, ClientInterface.SessionID));
             return true;
         }
 
         void KickUser(networkServer.networkClientInterface ClientInterface)
         {
-            System.Threading.Thread.Sleep(1000);
-            bool IpExistsAlready = false;// = ActiveConnections.Select(Client => Client.IP == ClientInterface.IP && Client.SessionID != ClientInterface.SessionID).ToList().Count > 0;
+            //System.Threading.Thread.Sleep(1000);
+            
+            bool IpExistsAlready = false;
             foreach (var item in ActiveConnections)
             {
                 if (item.IP == ClientInterface.IP)
                     if (item.SessionID != ClientInterface.SessionID)
                         IpExistsAlready = true;
             }
-            
+
+            string t1 = ClientInterface.User.ID;
+            string t2 = ClientInterface.SessionID;
+            CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("User disconnected. {0} - {1}", t1, t2));
+            ActiveConnections.Remove(ClientInterface);
+
             if (!IpExistsAlready)
             {
                 //If there is another user with the same IP, we have to keep it in the IPTables
-                //ClientInterface.unixSshConnectorAccept.Connect();
+                try
+                {
+                    ClientInterface.unixSshConnectorAccept.Connect();
+                }
+                catch (Exception e)
+                {
+                }
                 if (!ClientInterface.unixSshConnectorAccept.IsConnected)
                 {
                     //Log error
@@ -302,13 +323,16 @@ namespace Protega___Server.Classes.Protocol
                 {
                     LinuxPorts=LinuxPorts.TrimEnd(' ');
                     LinuxPorts=LinuxPorts.TrimEnd('&');
-                    //ClientInterface.unixSshConnectorAccept.RunCommand(LinuxPorts);
+                    using (SshCommand Result = ClientInterface.unixSshConnectorAccept.RunCommand(LinuxPorts))
+                    {
+                        if (Result.Error.Length > 0)
+                            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "Linux exception deny failed! Session ID: " + ClientInterface.SessionID + ", Error: " + Result.Error);
+                        else
+                            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.GAMEDLL, "Linux exception deny successful. Session ID: " + ClientInterface.SessionID);
+                    }
                 }
-                //ClientInterface.unixSshConnectorAccept.Disconnect();
-                //ClientInterface.unixSshConnectorAccept.Dispose();
+                ClientInterface.unixSshConnectorAccept.Disconnect();
             }
-            CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("User disconnected. {0} - {1]", ClientInterface.User.ID, ClientInterface.SessionID));
-            ActiveConnections.Remove(ClientInterface);
             ClientInterface.Dispose();
         }
 
@@ -335,11 +359,12 @@ namespace Protega___Server.Classes.Protocol
                 }
 
                 //Reset the Ping timer
+
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Ping: Resetting timer.");
                 Client.ResetPingTimer();
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Ping resetted.");
 
                 //zhCCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, "Additional Infos: "+AdditionalInfo);
-
                 if (AdditionalInfo.Length == 0)
                     SendProtocol("300", Client);
                 else

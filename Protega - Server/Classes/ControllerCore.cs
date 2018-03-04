@@ -80,18 +80,25 @@ namespace Protega___Server.Classes.Core
 
             //Block Linux Ports
             SshClient unixSshConnectorAccept = new SshClient(LinuxIP, LinuxPort, LinuxLogin, LinuxPass);
+            
             try
             {
                 unixSshConnectorAccept.Connect();
                 if (!unixSshConnectorAccept.IsConnected)
-                    throw new Exception();
-                unixSshConnectorAccept.Disconnect();
-
+                    return;
+                unixSshConnectorAccept.RunCommand("/root/.firewall.sh");
+                Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.GAMEDLL, "IP Table command executed!");
+                //if (Res.Error.Length != 0)
+                    //CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, LoggerType.GAMEDLL, "Cannot execute start command!");
             }
             catch (Exception e)
             {
                 Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "Cannot connect to Linux Server");
                 return;
+            }
+            finally
+            {
+                unixSshConnectorAccept.Disconnect();
             }
 
             string PuttyStringBuilder = "";
@@ -205,7 +212,7 @@ namespace Protega___Server.Classes.Core
             //Get all rooms
             //  networkProtocol("#201", ref dummy);
             //Get all rooms of a specific user
-            //  NetworkProtocol("#211;18", ref dummy);
+            //  NetworkProtocol("#218", ref dummy);
             //Add new or update room
             //NetworkProtocol("#203;5;1;Avelinas Test raum;Hallo Welt;1;http://www.AvelinaLerntArrays.net", ref dummy);
             //Get all workouts of room id 2

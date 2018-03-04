@@ -35,7 +35,8 @@
     <Reference Include="MySql.Data">
       <HintPath>libs\MySql.Data.dll</HintPath>
     </Reference>
-    <Reference Include="Renci.SshNet">
+    <Reference Include="Renci.SshNet, Version=2017.0.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>libs\Renci.SshNet.dll</HintPath>
     </Reference>
     <Reference Include="System" />

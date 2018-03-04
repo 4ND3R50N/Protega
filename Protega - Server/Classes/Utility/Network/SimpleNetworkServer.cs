@@ -110,7 +110,7 @@ namespace Protega___Server
 
         private void ReceiveCallback(IAsyncResult result)
         {
-            Protega___Server.Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.OK, Support.LoggerType.SERVER, "Protocol received");
+            Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.OK, Support.LoggerType.SERVER, "Protocol received");
             networkClientInterface connection = (networkClientInterface)result.AsyncState;
             try
             {
@@ -119,11 +119,14 @@ namespace Protega___Server
                 if (0 != bytesRead)
                 {
                     protAnalyseFunction(ref connection, Encoding.Default.GetString(connection.buffer, 0, bytesRead));
-                    connection.networkSocket.BeginReceive(connection.buffer, 0,
-                      connection.buffer.Length, SocketFlags.None,
-                      new AsyncCallback(ReceiveCallback), connection);
+                    //connection.networkSocket.BeginReceive(connection.buffer, 0,
+                    //  connection.buffer.Length, SocketFlags.None,
+                    //  new AsyncCallback(ReceiveCallback), connection);
                 }
-                else closeConnection(connection);
+                else
+                {
+                    closeConnection(connection);
+                }
             }
             catch (SocketException)
             {
@@ -131,6 +134,7 @@ namespace Protega___Server
                 try
                 {
                     connection.Dispose();
+
                 }
                 catch (Exception e)
                 {
@@ -159,7 +163,6 @@ namespace Protega___Server
                 client.networkSocket.Send(bytes, bytes.Length,
                                 SocketFlags.None);
                 Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, Support.LoggerType.SERVER, String.Format("Protocol sending succeeded. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
-                //Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, String.Format("Protocol sent. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
             }
             catch (Exception e)
             {
@@ -265,6 +268,7 @@ namespace Protega___Server
 
             private void TmrPing_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
             {
+                tmrPing.Stop();
                 //Kick - Timer elapsed
                 Kick(this);
 
