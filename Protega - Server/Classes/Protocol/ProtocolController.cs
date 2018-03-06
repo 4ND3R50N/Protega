@@ -234,7 +234,7 @@ namespace Protega___Server.Classes.Protocol
                             if (Result.Error.Length > 0)
                                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "Linux exception failed! Session ID: " + ClientInterface.SessionID + ", Error: " + Result.Error);
                             else
-                                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.GAMEDLL, "Linux exception successful. Session ID: " + ClientInterface.SessionID);
+                                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.GAMEDLL, "Linux exception successful. Session ID: " + ClientInterface.SessionID + ", Result: " + Result.Result);
                         }
                     }
 
@@ -328,7 +328,7 @@ namespace Protega___Server.Classes.Protocol
                         if (Result.Error.Length > 0)
                             CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "Linux exception deny failed! Session ID: " + ClientInterface.SessionID + ", Error: " + Result.Error);
                         else
-                            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.GAMEDLL, "Linux exception deny successful. Session ID: " + ClientInterface.SessionID);
+                            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.GAMEDLL, "Linux exception deny successful. Session ID: " + ClientInterface.SessionID+", Result: "+Result.Result);
                     }
                 }
                 ClientInterface.unixSshConnectorAccept.Disconnect();
