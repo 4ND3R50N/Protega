@@ -15,10 +15,15 @@ namespace Protega.ApplicationAdapter
     {
         logWriter.WriteLog LogFunction;
 
-        string IP, LoginName, LoginPass;
-        int Port;
 
-        List<int> BlockedPorts;
+        List<int> PortsToBlock = new List<int>();
+        string LinuxIP, LinuxLoginName, LinuxPassword;
+        short LinuxPort;
+        string DefaultCommand;
+        //string IP, LoginName, LoginPass;
+        //int Port;
+
+        //List<int> BlockedPorts;
 
         string LogPath;
         int LogLevel;
@@ -50,47 +55,63 @@ namespace Protega.ApplicationAdapter
         /// <param name="LogFunction">Function to Log errors. (int Importance, LogCategory Category, string Message)</param>
         /// <returns>Bool Successful</returns>
 //
-        public bool PrepareServer(string ServerIP, string LoginName, string LoginPass, int LoginPort, List<int> BlockedPorts, string DefaultCommand, Support.logWriter.WriteLog LogFunction)
+        public bool PrepareServer(string ConfigPath, string ConfigIniSection, string DefaultCommand, Support.logWriter.WriteLog LogFunction)
         {
-            IP = ServerIP;
-            this.LoginName = LoginName;
-            this.LoginPass = LoginPass;
-            Port = LoginPort;
-            this.BlockedPorts = BlockedPorts;
             this.LogFunction = LogFunction;
 
-            // SSH Login SHOULD be based on certificates, not username/password!
-            SshClient unixSshConnectorAccept = new SshClient(IP, LoginPort, LoginName, LoginPass);
+
+            if (!LoadConfig(ConfigPath, ConfigIniSection))
+            {
+                LogFunction(1, LogCategory.CRITICAL, LoggerType.GAMEDLL, String.Format("Could not load config! Stated path: {0}, Section {1}", ConfigPath, ConfigIniSection));
+                return false;
+            }
+
+            //IP = ServerIP;
+            //this.LoginName = LoginName;
+            //this.LoginPass = LoginPass;
+            //Port = LoginPort;
+            //this.BlockedPorts = BlockedPorts;
+
+            // SSH Login SHOULD be based on certificates, not username/password
+            LinuxInterface = new SshClient(LinuxIP, LinuxPort, LinuxLoginName, LinuxPassword);
 
             try
             {
-                unixSshConnectorAccept.Connect();
-                if (!unixSshConnectorAccept.IsConnected)
-                    throw new Exception();
+                LinuxInterface.Connect();
+                if (!LinuxInterface.IsConnected)
+                {
+                    LogFunction(1, LogCategory.CRITICAL, LoggerType.GAMEDLL, "Linux connection failed!");
+                    LinuxInterface.Dispose();
+                    return false;
+                }
             }
             catch (Exception e)
             {
 
                 LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Cannot connect to Linux Server! ({0})", e.ToString()));
+                LinuxInterface.Dispose();
                 return false;
             }
 
-            LogFunction(1, LogCategory.OK, LoggerType.GAMEDLL, "Linux Server connected successfully!");
+            LogFunction(2, LogCategory.OK, LoggerType.GAMEDLL, "Linux Server connected successfully!");
 
             if (DefaultCommand != null && DefaultCommand.Length > 0)
             {
-                bool Success = unixSshConnectorAccept.RunCommand(DefaultCommand).Error.Length == 0;
-                if (!Success)
+                using (SshCommand Result = LinuxInterface.RunCommand(DefaultCommand))
                 {
-                    LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, "Cannot execute starting Query!");
-                    return false;
-                }
-                else
-                {
-                    LogFunction(2, LogCategory.OK, LoggerType.GAMEDLL, "Starting Query executed successfully!");
+                    bool Success = Result.Error.Length == 0;
+                    if (!Success)
+                    {
+                        LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Cannot execute the starting Query! Error: {0}", Result.Error));
+                        return false;
+                    }
+                    else
+                    {
+                        LogFunction(2, LogCategory.OK, LoggerType.GAMEDLL, "Linux Default command executed successfully!");
+                    }
                 }
             }
-            else
+            /*else
             {
                 unixSshConnectorAccept.RunCommand("service iptables stop");
             }
@@ -129,16 +150,17 @@ namespace Protega.ApplicationAdapter
                 LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, "Could not start IPTables!");
                 return false;
             }
-            
             unixSshConnectorAccept.Disconnect();
+            */
             LogFunction(1, LogCategory.OK, LoggerType.GAMEDLL, "Linux interaction successful!");
 
             ServerPrepared = true;
             return true;
         }
 
+        SshClient LinuxInterface;
         #region User IPTable Management
-        public bool AllowUser(string IP, string UserName)
+        public bool AllowUser(string ClientIP, string UserName)
         {
             if(!ServerPrepared)
             {
@@ -147,29 +169,35 @@ namespace Protega.ApplicationAdapter
             }
 
             LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, "Adding User to IPTables initiated!");
-            SshClient unixSshConnectorAccept = new SshClient(IP, Port, LoginName, LoginPass);
-            unixSshConnectorAccept.Connect();
-
-            if (!unixSshConnectorAccept.IsConnected)
+            if(!LinuxInterface.IsConnected)
             {
-                LogFunction(2, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Could not connect to IPTables. Add IP: {0}", IP));
-                return false;
+                try
+                {
+                    LinuxInterface.Connect();
+                }
+                catch (Exception e)
+                {
+                    LogFunction(1, LogCategory.CRITICAL, LoggerType.GAMEDLL, "Cannot reconnect to Linux server!");
+                }
             }
 
+            string LinuxCommand = "";
             bool AddToPortsSuceeded = true;
-            foreach (int item in BlockedPorts)
+            foreach (int item in PortsToBlock)
             {
+                LinuxCommand += "iptables -I INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT && ";
+
                 //Bestimmte Ports blocken
                 if (AddToPortsSuceeded)
-                    AddToPortsSuceeded = unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp -s " + IP + " --dport " + item + " -j ACCEPT").Error.Length == 0;
+                    AddToPortsSuceeded = unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp -s " + ClientIP + " --dport " + item + " -j ACCEPT").Error.Length == 0;
                 else
                 {
-                    LogFunction(2, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Could not add IP to Port. Port: {0}, IP: {1}", item, IP));
+                    LogFunction(2, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Could not add IP to Port. Port: {0}, IP: {1}", item, ClientIP));
                     return false;
                 }
             }
             //if (AddToPortsSuceeded)
-                LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, String.Format("Successfully added IP {0} to Ports.", IP));
+                LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, String.Format("Successfully added IP {0} to Ports.", ClientIP));
 
             return true;
         }
@@ -207,9 +235,6 @@ namespace Protega.ApplicationAdapter
         public bool BanUser() { Console.WriteLine("Ban User"); return false; }
         #endregion
 
-        List<int> PortsToBlock = new List<int>();
-        string LinuxIP, LinuxLoginName, LinuxPassword;
-        short LinuxPort;
 
 
         bool LoadConfig(string Path, string Section)
@@ -223,6 +248,7 @@ namespace Protega.ApplicationAdapter
             {
                 return false;
             }
+            DefaultCommand = iniEngine.IniReadValue(Section, "PathDefaultCommand");
 
             bool bPortError = false;
             foreach (string Port in iniEngine.IniReadValue(Section, "Ports").Split(';'))
