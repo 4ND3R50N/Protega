@@ -25,6 +25,7 @@ namespace Protega___Server.Classes
         public Entity.EApplication Application;
         public DBEngine DatabaseEngine;
         public Support.logWriter Logger;
+        public Utility.ApplicationAdapter GameDLL;
         #endregion
 
         #region Constructor

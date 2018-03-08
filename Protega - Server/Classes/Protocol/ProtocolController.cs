@@ -15,17 +15,11 @@ namespace Protega___Server.Classes.Protocol
     {
         List<networkServer.networkClientInterface> ActiveConnections;
         int ApplicationID;
-        string LinuxIP, LinuxLogin, LinuxPass;
-        int LinuxPort;
 
-        public ProtocolController(ref List<networkServer.networkClientInterface> ActiveConnections, int _ApplicationID, int LinuxPort, string LinuxLogin, string LinuxPass, string LinuxIP)
+        public ProtocolController(ref List<networkServer.networkClientInterface> ActiveConnections, int _ApplicationID)
         {
             this.ActiveConnections = ActiveConnections;
             ApplicationID = _ApplicationID;
-            this.LinuxIP = LinuxIP;
-            this.LinuxLogin = LinuxLogin;
-            this.LinuxPass = LinuxPass;
-            this.LinuxPort = LinuxPort;
         }
         
         public delegate void SendProt(string Protocol, networkServer.networkClientInterface ClientInterface);
@@ -170,7 +164,7 @@ namespace Protega___Server.Classes.Protocol
             }
 
             //Add the new connection to the list of connected connections
-            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, LinuxIP, LinuxLogin, LinuxPass, LinuxPort, KickUser);
+            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, KickUser);
             
             bool IpExistsAlready = false;
             foreach (var Client in ActiveConnections)
@@ -179,14 +173,29 @@ namespace Protega___Server.Classes.Protocol
                     IpExistsAlready = true;
             }
 
+
             //Linux takes ages to connect. Therefore contact the client before it sends another request
+
+            if (!IpExistsAlready)
+            {
+                if (!CCstData.GetInstance(ApplicationID).GameDLL.AllowUser(ClientInterface.IP, ClientInterface.User.ID))
+                {
+                    //Do something and dont let him enter
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, String.Format("Linux exception failed. User: {0}", dataClient.ID));
+                    //Send protocol to client that user is banned
+                    SendProtocol("201;30;Access verification failed", ClientInterface);
+                    return false;
+                }
+            }
+            else
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authentication: IP already exists ({0})", ClientInterface.IP.ToString()));
+
             ActiveConnections.Add(ClientInterface);
 
             SendProtocol("200;" + ClientInterface.SessionID, ClientInterface);
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user. Computer ID: {0}, Session ID: {1}", ClientInterface.User.ID, ClientInterface.SessionID));
 
-
-            if (!IpExistsAlready)
+            /*if (!IpExistsAlready)
             {
                 //If there is already an IP exception, we dont need another
                 try
@@ -255,7 +264,7 @@ namespace Protega___Server.Classes.Protocol
                     AllIPs += String.Format(" User: {0}, IP: {1} -", item.User.ID, item.IP);
                 }
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authentication: IP already exists ({0})", AllIPs));
-            }
+            }*/
 
             return true;
         }
@@ -277,7 +286,15 @@ namespace Protega___Server.Classes.Protocol
             CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("User disconnected. {0} - {1}", t1, t2));
             ActiveConnections.Remove(ClientInterface);
 
-            if (!IpExistsAlready)
+            if(!IpExistsAlready)
+            {
+                if(!CCstData.GetInstance(ApplicationID).GameDLL.KickUser(ClientInterface.IP,ClientInterface.User.ID))
+                {
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, String.Format("Linux exception removal failed. IP {0}, User: {1}", ClientInterface.IP, ClientInterface.User.ID));
+                }
+            }
+
+            /*if (!IpExistsAlready)
             {
                 //If there is another user with the same IP, we have to keep it in the IPTables
                 try
@@ -332,7 +349,8 @@ namespace Protega___Server.Classes.Protocol
                     }
                 }
                 ClientInterface.unixSshConnectorAccept.Disconnect();
-            }
+            }*/
+
             ClientInterface.Dispose();
         }
 

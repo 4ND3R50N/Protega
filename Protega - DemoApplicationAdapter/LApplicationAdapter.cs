@@ -6,43 +6,47 @@ using System.Threading.Tasks;
 using Renci.SshNet;
 using Protega___Server.Classes;
 using Support;
+using System.Net;
 
 namespace Protega.ApplicationAdapter
 {
     // Klasse muss immer ApplicationAdapter heißen, da der Server nach dem Klassennamen sucht.
     // Oder der Server muss so umgebaut werden, dass der Klassenname per config file angegeben werden kann
-    public class ApplicationAdapter
+    public class ApplicationAdapter:IDisposable
     {
         logWriter.WriteLog LogFunction;
 
+        SshClient LinuxInterface;
+        static readonly object _lock = new object();
 
         List<int> PortsToBlock = new List<int>();
         string LinuxIP, LinuxLoginName, LinuxPassword;
         short LinuxPort;
         string DefaultCommand;
-        //string IP, LoginName, LoginPass;
-        //int Port;
-
-        //List<int> BlockedPorts;
-
-        string LogPath;
-        int LogLevel;
 
         bool ServerPrepared = false;
 
-        #region Constructor
+        #region Constructor & Destructor
         /// <summary>
         /// Create the object for the application adapter
         /// </summary>
         /// <param name="LogPath">The path where the logfile should be located</param>
         /// <param name="LogLevel">The level how detailled logs should be created. 1=Rarely, 2=Medium, 3=Debug</param>
-        public ApplicationAdapter(string LogPath, int LogLevel)
+        public ApplicationAdapter()
+        {  }
+
+        public void Dispose()
         {
-            this.LogPath = LogPath;
-            this.LogLevel = LogLevel;            
+            if (LinuxInterface != null)
+            {
+                if (LinuxInterface.IsConnected)
+                    LinuxInterface.Disconnect();
+                LinuxInterface.Dispose();
+            }
         }
         #endregion
-
+        
+        #region Startup Functions
         /// <summary>
         /// Connect to Linux Server, execute starting command and block given ports
         /// </summary>
@@ -54,8 +58,8 @@ namespace Protega.ApplicationAdapter
         /// <param name="DefaultCommand">A Linux command that should be executed in the beginning</param>
         /// <param name="LogFunction">Function to Log errors. (int Importance, LogCategory Category, string Message)</param>
         /// <returns>Bool Successful</returns>
-//
-        public bool PrepareServer(string ConfigPath, string ConfigIniSection, string DefaultCommand, Support.logWriter.WriteLog LogFunction)
+        ///
+        public bool PrepareServer(string ConfigPath, string ConfigIniSection, Support.logWriter.WriteLog LogFunction)
         {
             this.LogFunction = LogFunction;
 
@@ -65,12 +69,6 @@ namespace Protega.ApplicationAdapter
                 LogFunction(1, LogCategory.CRITICAL, LoggerType.GAMEDLL, String.Format("Could not load config! Stated path: {0}, Section {1}", ConfigPath, ConfigIniSection));
                 return false;
             }
-
-            //IP = ServerIP;
-            //this.LoginName = LoginName;
-            //this.LoginPass = LoginPass;
-            //Port = LoginPort;
-            //this.BlockedPorts = BlockedPorts;
 
             // SSH Login SHOULD be based on certificates, not username/password
             LinuxInterface = new SshClient(LinuxIP, LinuxPort, LinuxLoginName, LinuxPassword);
@@ -99,7 +97,7 @@ namespace Protega.ApplicationAdapter
             {
                 using (SshCommand Result = LinuxInterface.RunCommand(DefaultCommand))
                 {
-                    bool Success = Result.Error.Length == 0;
+                    bool Success = Result.Result.Length > 0;
                     if (!Success)
                     {
                         LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Cannot execute the starting Query! Error: {0}", Result.Error));
@@ -153,94 +151,13 @@ namespace Protega.ApplicationAdapter
             unixSshConnectorAccept.Disconnect();
             */
             LogFunction(1, LogCategory.OK, LoggerType.GAMEDLL, "Linux interaction successful!");
-
             ServerPrepared = true;
             return true;
         }
-
-        SshClient LinuxInterface;
-        #region User IPTable Management
-        public bool AllowUser(string ClientIP, string UserName)
-        {
-            if(!ServerPrepared)
-            {
-                LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, "Server must be prepared at first!");
-                return false;
-            }
-
-            LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, "Adding User to IPTables initiated!");
-            if(!LinuxInterface.IsConnected)
-            {
-                try
-                {
-                    LinuxInterface.Connect();
-                }
-                catch (Exception e)
-                {
-                    LogFunction(1, LogCategory.CRITICAL, LoggerType.GAMEDLL, "Cannot reconnect to Linux server!");
-                }
-            }
-
-            string LinuxCommand = "";
-            bool AddToPortsSuceeded = true;
-            foreach (int item in PortsToBlock)
-            {
-                LinuxCommand += "iptables -I INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT && ";
-
-                //Bestimmte Ports blocken
-                if (AddToPortsSuceeded)
-                    AddToPortsSuceeded = unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp -s " + ClientIP + " --dport " + item + " -j ACCEPT").Error.Length == 0;
-                else
-                {
-                    LogFunction(2, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Could not add IP to Port. Port: {0}, IP: {1}", item, ClientIP));
-                    return false;
-                }
-            }
-            //if (AddToPortsSuceeded)
-                LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, String.Format("Successfully added IP {0} to Ports.", ClientIP));
-
-            return true;
-        }
-
-        public bool KickUser(string IP, string UserName)
-        {
-            LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, "Kicking from IPTables initiated!");
-            SshClient unixSshConnectorAccept = new SshClient(IP, Port, LoginName, LoginPass);
-            unixSshConnectorAccept.Connect();
-
-            if(!unixSshConnectorAccept.IsConnected)
-            {
-                LogFunction(2, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Could not connect to IPTables. KickIP: {0}", IP));
-                return false;
-            }
-
-            bool KickFromPortsSuceeded = true;
-            foreach (int item in BlockedPorts)
-            {
-                //Bestimmte Ports blocken
-                if (KickFromPortsSuceeded)
-                    KickFromPortsSuceeded = unixSshConnectorAccept.RunCommand("iptables -D INPUT -p tcp -s " + IP + " --dport " + item + " -j ACCEPT").Error.Length == 0;
-                else
-                {
-                    LogFunction(2, LogCategory.ERROR, LoggerType.GAMEDLL, String.Format("Could not kick from Port. Port: {0}, IP: {1}", item, IP));
-                    return false;
-                }
-            }
-            //if (KickFromPortsSuceeded)
-                LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, String.Format("Successfully kicked IP {0} from Ports.", IP));
-
-            return true;
-        }
-
-        public bool BanUser() { Console.WriteLine("Ban User"); return false; }
-        #endregion
-
-
-
+        
         bool LoadConfig(string Path, string Section)
         {
             iniManager iniEngine = new iniManager(Path);
-
             LinuxIP = iniEngine.IniReadValue(Section, "LinuxIP");
             LinuxLoginName = iniEngine.IniReadValue(Section, "LinuxLoginName");
             LinuxPassword = iniEngine.IniReadValue(Section, "LinuxPassword");
@@ -266,5 +183,110 @@ namespace Protega.ApplicationAdapter
 
             return true;
         }
+
+        #endregion
+
+        #region User IPTable Management
+        public bool AllowUser(IPAddress ClientIP, string UserName = null)
+        {
+            if (!ServerPrepared)
+            {
+                LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, "Server must be prepared at first!");
+                return false;
+            }
+
+            lock (_lock)
+            {
+                LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, "Adding User to IPTables initiated!");
+                if (!LinuxInterface.IsConnected)
+                {
+                    try
+                    {
+                        LinuxInterface.Connect();
+                    }
+                    catch (Exception e)
+                    {
+                        LogFunction(1, LogCategory.CRITICAL, LoggerType.GAMEDLL, "Cannot reconnect to Linux server!");
+                    }
+                }
+
+                string LinuxCommand = "";
+                foreach (int item in PortsToBlock)
+                {
+                    LinuxCommand += "iptables -I INPUT -p tcp -s " + ClientIP.ToString() + " --dport " + item + " -j ACCEPT && ";
+                }
+
+                if (LinuxCommand.Length > 0)
+                {
+                    LinuxCommand = LinuxCommand.TrimEnd(' ').TrimEnd('&');
+                    using (SshCommand Result = LinuxInterface.RunCommand(LinuxCommand))
+                    {
+                        if (Result.Error.Length > 0)
+                        {
+                            LogFunction(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "Linux exception failed! Session ID: " + ClientIP + ", Error: " + Result.Error);
+                            return false;
+                        }
+                    }
+                }
+
+                //if (AddToPortsSuceeded)
+                LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, String.Format("IPTable exception successful for User {0}", (UserName == null ? ClientIP.ToString() : UserName)));
+
+                return true;
+            }
+        }
+
+        public bool KickUser(IPAddress ClientIP, string UserName = null)
+        {
+            if (!ServerPrepared)
+            {
+                LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, "Server must be prepared at first!");
+                return false;
+            }
+
+            lock (_lock)
+            {
+                LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, "Kicking User from IPTables initiated!");
+                if (!LinuxInterface.IsConnected)
+                {
+                    try
+                    {
+                        LinuxInterface.Connect();
+                    }
+                    catch (Exception e)
+                    {
+                        LogFunction(1, LogCategory.CRITICAL, LoggerType.GAMEDLL, "Cannot reconnect to Linux server!");
+                    }
+                }
+
+                string LinuxCommand = "";
+                foreach (int item in PortsToBlock)
+                {
+                    LinuxCommand += "iptables -D INPUT -p tcp -s " + ClientIP.ToString() + " --dport " + item + " -j ACCEPT && ";
+                }
+
+                if (LinuxCommand.Length > 0)
+                {
+                    LinuxCommand = LinuxCommand.TrimEnd(' ').TrimEnd('&');
+                    using (SshCommand Result = LinuxInterface.RunCommand(LinuxCommand))
+                    {
+                        if (Result.Error.Length > 0)
+                        {
+                            LogFunction(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "IPTable kick failed! Session ID: " + ClientIP + ", Error: " + Result.Error);
+                            return false;
+                        }
+                    }
+                }
+
+                //if (AddToPortsSuceeded)
+                LogFunction(3, LogCategory.OK, LoggerType.GAMEDLL, String.Format("IPTable kick successful for User {0}", (UserName == null ? ClientIP.ToString() : UserName)));
+
+                return true;
+            }
+        }
+        #endregion
+        
+        public bool BanUser() { Console.WriteLine("Ban User"); return false; }
+
     }
 }

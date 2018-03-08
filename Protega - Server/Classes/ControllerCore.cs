@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using Protega___Server.Classes.Protocol;
 using Renci.SshNet;
+using System.IO;
 
 namespace Protega___Server.Classes.Core
 {
@@ -24,7 +25,7 @@ namespace Protega___Server.Classes.Core
         public Classes.Entity.EApplication Application;
         //Konstruktor
         public ControllerCore(string _ApplicationName, int LatestClientVersion, short _iPort, char _cProtocolDelimiter, string _EncryptionKey, string _EncryptionIV, int _PingTimer, int SessionLength, string _sDatabaseDriver,
-            string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath, int LogLevel, string LinuxIP, short LinuxPort, string LinuxLogin, string LinuxPass, List<int> LinuxPorts, bool DeactivatePortBlocking)
+            string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath, int LogLevel, string PathGameDll)
         {
             //Logging initialisations
             Support.logWriter Logger = new logWriter(_sLogPath, LogLevel);
@@ -78,105 +79,125 @@ namespace Protega___Server.Classes.Core
             CCstData.GetInstance(Application.ID).PingTimer = _PingTimer;
             CCstData.GetInstance(Application.ID).SessionIDLength = SessionLength;
 
-            //Block Linux Ports
-            SshClient unixSshConnectorAccept = new SshClient(LinuxIP, LinuxPort, LinuxLogin, LinuxPass);
-            
-            try
+
+            if(!File.Exists(PathGameDll))
             {
-                unixSshConnectorAccept.Connect();
-                if (!unixSshConnectorAccept.IsConnected)
+                Logger.writeInLog(1, LogCategory.CRITICAL, LoggerType.SERVER, String.Format("Game Dll not found! Path: {0}", PathGameDll));
+                return;
+            }
+            string ConfigPath = Path.Combine(Path.GetDirectoryName(PathGameDll), "config.ini");
+            if (!File.Exists(ConfigPath))
+            {
+                Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Game Config file not found! Path: ", ConfigPath));
+                return;
+            }
+            CCstData.GetInstance(Application).GameDLL = new Utility.ApplicationAdapter(Path.GetFullPath(PathGameDll), Application);
+            if (!CCstData.GetInstance(Application).GameDLL.ConstructorSuccessful)
+                return;
+
+            CCstData.GetInstance(Application).GameDLL.PrepareServer(ConfigPath);
+            
+
+
+                //Block Linux Ports
+                /*SshClient unixSshConnectorAccept = new SshClient(LinuxIP, LinuxPort, LinuxLogin, LinuxPass);
+
+                try
+                {
+                    unixSshConnectorAccept.Connect();
+                    if (!unixSshConnectorAccept.IsConnected)
+                        return;
+                    unixSshConnectorAccept.RunCommand("/root/.firewall.sh");
+                    Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.GAMEDLL, "IP Table command executed!");
+                    //if (Res.Error.Length != 0)
+                        //CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, LoggerType.GAMEDLL, "Cannot execute start command!");
+                }
+                catch (Exception e)
+                {
+                    Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "Cannot connect to Linux Server");
                     return;
-                unixSshConnectorAccept.RunCommand("/root/.firewall.sh");
-                Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.GAMEDLL, "IP Table command executed!");
-                //if (Res.Error.Length != 0)
-                    //CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, LoggerType.GAMEDLL, "Cannot execute start command!");
-            }
-            catch (Exception e)
-            {
-                Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "Cannot connect to Linux Server");
-                return;
-            }
-            finally
-            {
-                unixSshConnectorAccept.Disconnect();
-            }
+                }
+                finally
+                {
+                    unixSshConnectorAccept.Disconnect();
+                }
 
-            string PuttyStringBuilder = "";
-            //PuttyStringBuilder += " service iptables stop";
-            //PuttyStringBuilder += " && iptables -F";
-            //PuttyStringBuilder += " && iptables -Z";
-            //PuttyStringBuilder += " && iptables -X";
-            //PuttyStringBuilder += " && iptables -A INPUT -p tcp --destination-port 80 -j DROP";
-            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 112.211.180.233 -j ACCEPT";
-            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 62.138.6.50 -j ACCEPT";
-            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.104 -j ACCEPT";
-            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 142.44.136.74 -j ACCEPT";
-            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.234 -j ACCEPT";
-            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.206 -j ACCEPT";
-            //PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.102 -j ACCEPT";
-            //PuttyStringBuilder += " && service iptables save";
-            //PuttyStringBuilder += " && service iptables start";
+                string PuttyStringBuilder = "";
+                //PuttyStringBuilder += " service iptables stop";
+                //PuttyStringBuilder += " && iptables -F";
+                //PuttyStringBuilder += " && iptables -Z";
+                //PuttyStringBuilder += " && iptables -X";
+                //PuttyStringBuilder += " && iptables -A INPUT -p tcp --destination-port 80 -j DROP";
+                //PuttyStringBuilder += " && iptables -I INPUT -p all -s 112.211.180.233 -j ACCEPT";
+                //PuttyStringBuilder += " && iptables -I INPUT -p all -s 62.138.6.50 -j ACCEPT";
+                //PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.104 -j ACCEPT";
+                //PuttyStringBuilder += " && iptables -I INPUT -p all -s 142.44.136.74 -j ACCEPT";
+                //PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.234 -j ACCEPT";
+                //PuttyStringBuilder += " && iptables -I INPUT -p all -s 169.255.124.206 -j ACCEPT";
+                //PuttyStringBuilder += " && iptables -I INPUT -p all -s 167.88.15.102 -j ACCEPT";
+                //PuttyStringBuilder += " && service iptables save";
+                //PuttyStringBuilder += " && service iptables start";
 
-            //SshCommand testing = unixSshConnectorAccept.RunCommand(PuttyStringBuilder);
-            //string Result1 = testing.Result;
-            //string Err = testing.Error;
-            //SshCommand test = unixSshConnectorAccept.RunCommand("service iptables stop");
+                //SshCommand testing = unixSshConnectorAccept.RunCommand(PuttyStringBuilder);
+                //string Result1 = testing.Result;
+                //string Err = testing.Error;
+                //SshCommand test = unixSshConnectorAccept.RunCommand("service iptables stop");
 
-            //SshCommand Test4 = unixSshConnectorAccept.RunCommand("cd ../etc/ppp/");
-            //SshCommand Test3 = unixSshConnectorAccept.RunCommand("ls -l");
-            //string Res = Test3.Result;
-            //string Res2 = Test2.Result;
+                //SshCommand Test4 = unixSshConnectorAccept.RunCommand("cd ../etc/ppp/");
+                //SshCommand Test3 = unixSshConnectorAccept.RunCommand("ls -l");
+                //string Res = Test3.Result;
+                //string Res2 = Test2.Result;
 
-            //SshCommand Test1=unixSshConnectorAccept.RunCommand("./PX2000.sh");
-            //string Error = Test1.Error;
-            //string Error2 = Test2.Error;
+                //SshCommand Test1=unixSshConnectorAccept.RunCommand("./PX2000.sh");
+                //string Error = Test1.Error;
+                //string Error2 = Test2.Error;
 
 
 
-            //Clear IPTables
-            //unixSshConnectorAccept.RunCommand("iptables -F");
-            //unixSshConnectorAccept.RunCommand("iptables -Z");
-            //unixSshConnectorAccept.RunCommand("iptables -X");
-            //unixSshConnectorAccept.RunCommand("iptables -F FORWARD");
+                //Clear IPTables
+                //unixSshConnectorAccept.RunCommand("iptables -F");
+                //unixSshConnectorAccept.RunCommand("iptables -Z");
+                //unixSshConnectorAccept.RunCommand("iptables -X");
+                //unixSshConnectorAccept.RunCommand("iptables -F FORWARD");
 
-            //unixSshConnectorAccept.RunCommand("iptables -F OUTPUT");
-            //Block World-Ports
-            if (DeactivatePortBlocking)
-                return;
+                //unixSshConnectorAccept.RunCommand("iptables -F OUTPUT");
+                //Block World-Ports
+                if (DeactivatePortBlocking)
+                    return;
 
-            List<string> Ports = new List<string>();
-            Ports.Add("12001");
-            Ports.Add("12002");
-            Ports.Add("12003");
-            Ports.Add("12003");
-            Ports.Add("12003");
-            Ports.Add("12003");
-            Ports.Add("12003");
-            Ports.Add("12003");
-            Ports.Add("12003");
-            Ports.Add("12003");
-            Ports.Add("12003");
-            Ports.Add("12003");
-            Ports.Add("12003");
-            Ports.Add("12003");
-            Ports.Add("12003");
-            Ports.Add("12003");
-            //Ports.Add("entextnetwk");
+                List<string> Ports = new List<string>();
+                Ports.Add("12001");
+                Ports.Add("12002");
+                Ports.Add("12003");
+                Ports.Add("12003");
+                Ports.Add("12003");
+                Ports.Add("12003");
+                Ports.Add("12003");
+                Ports.Add("12003");
+                Ports.Add("12003");
+                Ports.Add("12003");
+                Ports.Add("12003");
+                Ports.Add("12003");
+                Ports.Add("12003");
+                Ports.Add("12003");
+                Ports.Add("12003");
+                Ports.Add("12003");
+                //Ports.Add("entextnetwk");
 
 
-            foreach (string item in Ports)
-            {
-                //Bestimmte Ports blocken
-                //unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp --dport " + item + " -j DROP");
-                //unixSshConnectorAccept.RunCommand("iptables -A INPUT -p tcp --destination-port " + item + " -j DROP");
-            }
+                foreach (string item in Ports)
+                {
+                    //Bestimmte Ports blocken
+                    //unixSshConnectorAccept.RunCommand("iptables -I INPUT -p tcp --dport " + item + " -j DROP");
+                    //unixSshConnectorAccept.RunCommand("iptables -A INPUT -p tcp --destination-port " + item + " -j DROP");
+                }
 
-            //unixSshConnectorAccept.RunCommand("service iptables save");
-            //unixSshConnectorAccept.RunCommand("service iptables start");
+                //unixSshConnectorAccept.RunCommand("service iptables save");
+                //unixSshConnectorAccept.RunCommand("service iptables start");
 
-            //unixSshConnectorAccept.Disconnect();
+                //unixSshConnectorAccept.Disconnect();
+                */
 
-            
                 //Network Initialisations
                 ActiveConnections = new List<networkServer.networkClientInterface>();
             sAesKey = "";
@@ -187,7 +208,8 @@ namespace Protega___Server.Classes.Core
             ProtocolController.SendProtocol += this.SendProtocol;
             Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "TCP Server ready for start!");
             Logger.Seperate();
-            ProtocolController = new ProtocolController(ref ActiveConnections, Application.ID, LinuxPort, LinuxLogin, LinuxPass, LinuxIP);
+            ProtocolController = new ProtocolController(ref ActiveConnections, Application.ID);
+            
 
             /*//TESTCASE
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();

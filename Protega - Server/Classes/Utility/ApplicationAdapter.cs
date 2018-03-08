@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.IO;
 using Support;
+using System.Net;
 
-namespace Protega___Server.Classes.Utility.Support
+namespace Protega___Server.Classes.Utility
 {
     public class ApplicationAdapter
     {
@@ -19,7 +20,8 @@ namespace Protega___Server.Classes.Utility.Support
         MethodInfo _BanUser;
         MethodInfo _AllowUser;
         MethodInfo _PrepareServer;
-        
+
+        public bool ConstructorSuccessful = false;
 
         public ApplicationAdapter(string DllPath, Entity.EApplication Application)
         {
@@ -27,29 +29,30 @@ namespace Protega___Server.Classes.Utility.Support
             Assembly lib = Assembly.LoadFile(DllPath);
             // maybe change this so that the class name can be loaded dyamically, e.g. from config file?
             Type type = lib.GetType("Protega.ApplicationAdapter.ApplicationAdapter");
-            _adapter = Activator.CreateInstance(type, new object[2] {"", 1});
+            _adapter = Activator.CreateInstance(type, new object[0]);
             _KickUser = type.GetMethod("KickUser");
             _BanUser = type.GetMethod("BanUser");
             _AllowUser = type.GetMethod("AllowUser");
             _PrepareServer = type.GetMethod("PrepareServer");
+            ConstructorSuccessful = true;
         }
 
-        public bool PrepareServer(string ServerIP, string LoginName, string LoginPass, int LoginPort, List<int> BlockedPorts, string DefaultCommand)
+        public bool PrepareServer(string ConfigPath)
         {
-            return (bool)_PrepareServer.Invoke(_adapter, new object[7] { ServerIP, LoginName, LoginPass, LoginPort, BlockedPorts, DefaultCommand, CCstData.GetInstance(Application).Logger.writeLog });
+            return (bool)_PrepareServer.Invoke(_adapter, new object[3] {ConfigPath, Application.Name, CCstData.GetInstance(Application).Logger.writeLog });
         }
 
-        public bool AllowUser(string IP, string UserName)
+        public bool AllowUser(IPAddress IP, string UserName)
         {
-            return (bool)_AllowUser.Invoke(_adapter, new string[2] { IP, UserName });
+            return (bool)_AllowUser.Invoke(_adapter, new object[2] { IP, UserName });
         }
 
-        public bool KickUser(string IP, string UserName)
+        public bool KickUser(IPAddress IP, string UserName)
         {
-           return (bool) _KickUser.Invoke(_adapter, new string[2] { IP, UserName } );
+           return (bool) _KickUser.Invoke(_adapter, new object[2] { IP, UserName } );
         }
 
-        public bool BanUser(string IP, string UserName, DateTime BanTime)
+        public bool BanUser(IPAddress IP, string UserName, DateTime BanTime)
         {
             return (bool)_BanUser.Invoke(_adapter, new object[3] { IP, UserName, BanTime });
         }

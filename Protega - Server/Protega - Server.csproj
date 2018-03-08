@@ -73,7 +73,6 @@
     <Compile Include="Classes\Protocol\Protocol.cs" />
     <Compile Include="Classes\Protocol\ProtocolController.cs" />
     <Compile Include="Classes\Service\SPlayer.cs" />
-    <Compile Include="Classes\Utility\clsIODataManager.cs" />
     <Compile Include="Classes\Utility\Database\DBInterface.cs" />
     <Compile Include="Classes\Utility\Database\MssqlDataManager.cs" />
     <Compile Include="Classes\Utility\Database\MysqlDataManager.cs" />
@@ -81,7 +80,7 @@
     <Compile Include="Classes\Utility\Support\AdditionalFunctions.cs" />
     <Compile Include="Classes\Utility\Support\AESEncoding.cs" />
     <Compile Include="Classes\Utility\Support\AES_Converter.cs" />
-    <Compile Include="Classes\Utility\Support\ApplicationAdapter.cs" />
+    <Compile Include="Classes\Utility\ApplicationAdapter.cs" />
     <Compile Include="Classes\Utility\Support\IniEngine.cs" />
     <Compile Include="Classes\Utility\Support\logWriter.cs" />
     <Compile Include="Program.cs" />

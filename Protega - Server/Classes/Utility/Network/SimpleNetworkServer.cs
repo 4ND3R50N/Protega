@@ -219,8 +219,6 @@ namespace Protega___Server
                 }
                 set { _IP = value; }
             }
-            public SshClient unixSshConnectorAccept;
-            public int Counter = 0;
 
             public delegate void KickUser(networkClientInterface Client);
             event KickUser Kick;
@@ -240,8 +238,7 @@ namespace Protega___Server
                     networkSocket.Close();
                     networkSocket.Dispose();
                 }
-                if (unixSshConnectorAccept != null)
-                    unixSshConnectorAccept.Dispose();
+
                 if (tmrPing != null)
                 {
                     tmrPing.Enabled = false;
@@ -252,11 +249,8 @@ namespace Protega___Server
             public networkClientInterface()
             {
             }
-            public void SetPingTimer(int Interval, string LinuxIP, string User, string Pass, int Port, KickUser _Kick, string _IP=null)
+            public void SetPingTimer(int Interval, KickUser _Kick)
             {
-                //IPAddress.TryParse(_IP, out IP);
-
-                unixSshConnectorAccept = new SshClient(LinuxIP, Port, User, Pass);
                 this.Kick = _Kick;
 
                 tmrPing = new System.Timers.Timer();
@@ -264,6 +258,7 @@ namespace Protega___Server
                 ConnectedTime = DateTime.Now;
                 tmrPing.Interval = Interval;
                 tmrPing.Start();
+                
             }
 
             private void TmrPing_Elapsed(object sender, System.Timers.ElapsedEventArgs e)

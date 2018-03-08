@@ -100,50 +100,16 @@ namespace Protega___Server
                     continue;
                 }
 
-                //CABAL DEFAULT!
-                string LinuxIP = iniEngine.IniReadValue(item, "LinuxIP");
-                string LinuxLoginName = iniEngine.IniReadValue(item, "LinuxLoginName");
-                string LinuxPassword = iniEngine.IniReadValue(item, "LinuxPassword");
-                short LinuxPort;
-                if (!short.TryParse(iniEngine.IniReadValue(item, "LinuxPort"), out LinuxPort))
-                {
-                    continue;
-                }
+                string PathGameDll = iniEngine.IniReadValue(item, "PathGameDll");
 
-                bool bPortError = false;
-                List<int> Ports = new List<int>();
-                foreach (string Port in iniEngine.IniReadValue(item, "Ports").Split(';'))
-                {
-                    int tmpPort;
-                    if (!Int32.TryParse(Port, out tmpPort))
-                    {
-                        bPortError = true;
-                        continue;
-                    }
-                    Ports.Add(tmpPort);
-                }
-                if (bPortError)
-                    continue;
-
-
-                bool DeactivatePortBlocking = iniEngine.IniReadValue(item, "DeactivatePortBlocking") == "1";
-
-                ControllerCore Controller = new ControllerCore(ApplicationName, Version, InputPort, ProtocolDelimiter, EncryptionKey, EncryptionIV, PingTimer, SessionLength, DatabaseDriver, DatabaseIP, DatabasePort, DatabaseLoginName, DatabasePassword, DatabaseDefault, LogFile, LogLevel, LinuxIP, LinuxPort, LinuxLoginName, LinuxPassword, Ports, DeactivatePortBlocking);
+                
+                ControllerCore Controller = new ControllerCore(ApplicationName, Version, InputPort, ProtocolDelimiter, EncryptionKey, EncryptionIV, PingTimer, SessionLength, DatabaseDriver, DatabaseIP, DatabasePort, DatabaseLoginName, DatabasePassword, DatabaseDefault, LogFile, LogLevel, PathGameDll);
 
                 try
                 {
                     Controller.Start();
                     AppsRunning.Add(Controller);
-
-                    //for (int i = 0; i < 10000; i++)
-                    //{
-                    //    string HardwareID = "123" + i.ToString();
-                    //    string ApplicationHash = "D6D4ABB30s";
-                    //    string lVersion = "102";
-                    //    string Architecture= "Win99";
-                    //    string Language = "Nothing";
-                    //    Controller.ProtocolController.ReceivedProtocol(null, String.Format("500;{0};{1};{2};{3};{4}", HardwareID, lVersion,ApplicationHash, Architecture,Language));
-                    //}
+                    
                 }
                 catch (Exception e)
                 {
