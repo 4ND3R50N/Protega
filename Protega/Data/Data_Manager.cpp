@@ -3,7 +3,7 @@
 
 #pragma region PROTES_STATIC_DATA_CONFIG
 
-int Data_Manager::SOFTWARE_VERSION = 100;
+int Data_Manager::SOFTWARE_VERSION = 105;
 
 //Web data
 
@@ -38,7 +38,7 @@ std::vector<std::wstring> Data_Manager::vHeuristicProcessNames;
 std::pair<std::vector<std::string>, std::vector<std::string>> Data_Manager::pFilesToCheck;
 
 //Protection data
-double Data_Manager::PROTECTION_THREAD_RESPONSE_DELTA = 70.0;
+double Data_Manager::PROTECTION_THREAD_RESPONSE_DELTA = 40.0;
 int Data_Manager::PROTECTION_FP_MAX_DLL = 200;
 
 //Exceptions

@@ -97,9 +97,7 @@ void ProtegaCore::StartAntihack()
 	Splash.CloseSplash();
 	Splash.~SplashDisplayer();
 
-
 	Update();
-
 }
 
 //Private
@@ -173,7 +171,7 @@ void ProtegaCore::Update()
 			NetworkManager->Ping_600(Data_Manager::GetLocalHardwareSID());
 		}		
 		ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
-		Sleep(2000);
+		Sleep(3000);
 	} while (ProtectionManager->ProtectionIsRunning());
 
 	//Temporary
