@@ -63,7 +63,7 @@ void Network_Manager::HackDetection_HE_701(std::string sSessionID, unsigned int 
 	std::stringstream ss;
 	ss << iHackDetectionHeID << sDataDelimiter << sSessionID << sDataDelimiter << iHeSection << sDataDelimiter << sContent;
 
-	std::thread* th = new std::thread(&Network_Manager::SendAndGet, this, &bAuthenticationSuccess, &iHackDetectionTries, ss.str());
+	std::thread* th = new std::thread(&Network_Manager::SendAndGet, this, &bHackDetectionSuccess, &iHackDetectionTries, ss.str());
 	//th.join();
 }
 
@@ -74,7 +74,7 @@ void Network_Manager::HackDetection_VMP_702(std::string sSessionID, std::string 
 	ss << iHackDetectionVmpID << sDataDelimiter << sSessionID << sDataDelimiter << sBaseAddress << sDataDelimiter << sOffset << sDataDelimiter
 		<< sDetectedValue << sDataDelimiter << sDefaultValue;
 
-	std::thread* th = new std::thread(&Network_Manager::SendAndGet, this, &bAuthenticationSuccess, &iHackDetectionTries, ss.str());
+	std::thread* th = new std::thread(&Network_Manager::SendAndGet, this, &bHackDetectionSuccess, &iHackDetectionTries, ss.str());
 	//th.join();
 }
 
@@ -84,7 +84,7 @@ void Network_Manager::HackDetection_FP_703(std::string sSessionID, unsigned int 
 	std::stringstream ss;
 	ss << iHackDetectionFpID << sDataDelimiter << sSessionID << sDataDelimiter << iFpSection << sDataDelimiter << sContent;
 
-	std::thread* th = new std::thread(&Network_Manager::SendAndGet, this, &bAuthenticationSuccess, &iHackDetectionTries, ss.str());
+	std::thread* th = new std::thread(&Network_Manager::SendAndGet, this, &bHackDetectionSuccess, &iHackDetectionTries, ss.str());
 	//th.join();
 }
 
@@ -114,14 +114,14 @@ bool Network_Manager::SendAndGet(bool * bActualProtocolSuccessVar, int * iActual
 		Tcp_C.Connect();
 		if (!Tcp_C.SendAndReceive(sMessage))
 		{
-			throw;
+			throw std::exception();
 		}
 		Tcp_C.Close();
 		Tcp_C.~Tcp_Connector();
 		*bActualProtocolSuccessVar = true;
 
 	}
-	catch (const std::exception&)
+	catch (std::exception)
 	{
 		//if the send/get was not successfull, retry the process. Use the current iActualTryVar address of the specific int value of the protocol to compare it with the max tries.
 		//if its lower, then retry, if not, error

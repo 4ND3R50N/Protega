@@ -31,6 +31,7 @@ private:
 
 	const int iAuthenticationProtocolID = 500;
 	const int iPingProtocolID = 600;
+
 	const int iHackDetectionHeID = 701;
 	const int iHackDetectionVmpID = 702;
 	const int iHackDetectionFpID = 703;
