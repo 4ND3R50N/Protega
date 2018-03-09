@@ -31,7 +31,7 @@ private:
 	LPCVOID lpcvCabalZoomOffset1 = (LPCVOID)0x78D01C;
 	LPCVOID lpcvCabalZoomOffset2 = (LPCVOID)0x791DD0;
 
-	LPCVOID lpcvCabalSkillCastOffset = (LPCVOID)0x72D4;
+	LPCVOID lpcvCabalSkillDelayOffset = (LPCVOID)0x72D4;
 	LPCVOID lpcvCabalAnimationSkillOffset = (LPCVOID)0x74;
 	LPCVOID lpcvCabalAnimationOffset = (LPCVOID)0x1F4;
 	LPCVOID lpcvCabalNoCastTimeOffset = (LPCVOID)0x3578;
@@ -39,6 +39,15 @@ private:
 	LPCVOID lpcvCabalNationOffset = (LPCVOID)0x35C;
 
 	LPCVOID lpcvCabalBattleModeStateOffset = (LPCVOID)0x41B0;
+
+	LPCVOID lpcvCabalComboOffset1 = (LPCVOID)0x73A1;
+	LPCVOID lpcvCabalComboOffset2 = (LPCVOID)0x7399;
+	LPCVOID lpcvCabalComboOffset3 = (LPCVOID)0x73A0;
+	LPCVOID lpcvCabalComboOffset4 = (LPCVOID)0x738C;
+	LPCVOID lpcvCabalComboOffset5 = (LPCVOID)0x73A8;
+	LPCVOID lpcvCabalComboOffset6 = (LPCVOID)0x7397;
+
+
 
 	//Cabal Values
 	//	Map
@@ -54,23 +63,39 @@ private:
 	unsigned int iNctDetectionTolerance = 3;
 
 	std::vector<unsigned int> NsdVector;
+	unsigned int iNsdAnormalyWaitTime = 1000;
 	unsigned int iNsdQueueSize = 10;
 	unsigned int iNsdDetectionTolerance = 3;
+	unsigned int iCabalLatestNSDValueForNSDAlgorithm = 0;
 
 	int iCabalSkillAnimationDefaultValue = 4294967295;
 	int iCabalSkillValueLowerLimit = 2000000;
 	int iCabalAnimationSkill = 7;
 
 	int iCabalLatestNoCastTimeValue = 0;
-	int iCabalLatestNSDValue = 0;
+	int iCabalLatestNSDValueForNCTAlgorithm = 0;
 	int iCabalLatestBattleModeStateValue = 0;
+
+	// Perfect Combo
+	std::map<int, unsigned int> PerfectComboMap;
+	unsigned int iPerfectComboQueueSize = 30;
+	unsigned int iPerfectComboDetectionTolerance = 13;
+
+	int iCabalLatestComboValue1 = 0;
+	int iCabalLatestComboValue2 = 0;
+	int iCabalLatestComboValue3 = 0;
+	int iCabalLatestComboValue4 = 0;
+	int iCabalLatestComboValue5 = 0;
+	int iCabalLatestComboValue6 = 0;
 
 	//	Speedcheck
 	float fCabalMaxPossibleSpeed = 1200.f;
+
 	//	Rangecheck
 	int iCabalDefaultGM = 0;
 	int iCabalDefaultRange = 0;
 	int iCabalDefaultAOE = 0;
+
 	//	No Cooldown
 	int iCabalDefaultSkillCooldown = 69485707;
 
@@ -78,7 +103,7 @@ private:
 	int iWallhackScanDelay = 10000; // <- Loading delay after player joins a map
 	double iWallhackZeroTolerance = 80.0;
 	bool bFirstChannelJoin = true;
-
+	 
 	//	Monitoring
 	int iCabalGm = 2;
 	
@@ -89,9 +114,9 @@ private:
 	std::function<void(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sStandartValue) > funcCallbackHandler;
 
 	//Functions
-	//void SumUpIndividualKeysInMap(std::map<int, unsigned int> *Map, unsigned int iValue);
-	//bool ValuesInMapReachedUpperLimit(std::map<int, unsigned int> *Map, unsigned int iUpperLimit, unsigned int *iDetectedKey);
-	//void CleanUpMapIfSizeIsReached(std::map<int, unsigned int> *Map, unsigned int iSize);
+	void SumUpIndividualKeysInMap(std::map<int, unsigned int> *Map, unsigned int iValue);
+	bool ValuesInMapReachedUpperLimit(std::map<int, unsigned int> *Map, unsigned int iUpperLimit, unsigned int *iDetectedKey);
+	void CleanUpMapIfSizeIsReached(std::map<int, unsigned int> *Map, unsigned int iSize);
 
 public:
 	Virtual_Memory_Protection_Cabal_Online(unsigned int iProcessID,
@@ -115,6 +140,7 @@ public:
 	bool VMP_CheckSkillRange();
 	bool VMP_CheckSkillCooldown();
 	bool VMP_CheckNation();
+	bool VMP_CheckPerfectCombo();
 
 	//VMP Tests
 	bool VMP_EnableWallHack();
