@@ -29,7 +29,6 @@ void Exception_Manager::CloseOwnProcess()
 {
 	//Kill own handle
 	exit(1);
-	//int retval = ::_tsystem(_T("taskkill /F /T /IM CabalMain.exe"));
 }
 
 DWORD Exception_Manager::GetMainThreadId() {
