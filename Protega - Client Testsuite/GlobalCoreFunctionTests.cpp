@@ -47,21 +47,6 @@ namespace ProtegaClientTestsuite
 			
 		}
 
-		//tests the 
-		TEST_METHOD(Core_CompleteStartUpShell)
-		{
-			HINSTANCE hInstLibrary = LoadLibrary(L"ShellX64.dll");
-			MainCallFunctionShell MainEntry;
-
-			MainEntry = (MainCallFunctionShell)GetProcAddress(hInstLibrary, "Test");
-			//stopTrigger = (getStopTrigger)GetProcAddress(hInstLibrary, "stopTrigger");
-
-			MainEntry();
-			//stopTrigger();
-			Sleep(10000);
-
-		}
-
 		TEST_METHOD(Core_AntihackRunTest)
 		{
 			ProtegaCore CoreTest;
@@ -131,6 +116,23 @@ namespace ProtegaClientTestsuite
 			//Safe encode to file			
 			file.close();
 			isReader.clear();
+		}
+		
+		TEST_METHOD(Task_ConvertEncToFile)
+		{
+			//Read enc file
+			std::string sEncodedString = "";
+			std::string sCurrentLine;
+			std::string sPathToEnc = "C:\\Users\\lpickeli\\Documents\\GitHub\\Protega\\docs\\Files_To_Check.csv_TEST.enc";
+			std::ifstream ifEncFile(sPathToEnc);
+
+			while (getline(ifEncFile, sCurrentLine))  // same as: while (getline( myfile, line ).good())
+			{
+				sEncodedString += ((char)atoi(sCurrentLine.c_str()));
+			}
+			ifEncFile.close();
+
+			MessageBoxA(NULL, CryptoPP_Converter::AESDecrypt(Data_Manager::GetNetworkAesKey(), Data_Manager::GetNetworkAesIV(), sEncodedString).c_str(),"Debug",0);
 		}
 
 
