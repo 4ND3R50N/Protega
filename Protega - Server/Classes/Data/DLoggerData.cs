@@ -5,7 +5,7 @@ using System.Data;
 
 namespace Protega___Server.Classes.Data
 {
-    public static class DLoggerData
+    static class DLoggerData
     {
         #region Static private method
 
