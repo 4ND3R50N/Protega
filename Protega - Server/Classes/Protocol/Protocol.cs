@@ -16,11 +16,15 @@ namespace Protega___Server.Classes.Protocol
             ReceivedString = protocol;
             Object[] elements = null;
             // split the protocol at the delimiter ; to get the parts of the protocol
+            // we do need some check if the protocol has the right syntax, what happens if we get traffic and we can decrypt it and there is no ;?
+            // we can't split it so we will get errors by trying to get the second element
             if (protocol.Contains(";"))
             {
                 elements = protocol.Split(';');
             }
             // the key is always saved at the first entry
+            // QUESTION: What happens if this is not an integer? does the whole server crash?
+            // I know that the possibility is very low that this happens but if someone is sending us traffic, we decrypt it and give it to the protocol controler, this protocol will be broken
             key =  Convert.ToInt32(elements[0]);
             UserID = elements[1].ToString();
             
