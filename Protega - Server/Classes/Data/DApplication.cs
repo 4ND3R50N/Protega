@@ -5,7 +5,7 @@ using System.Data;
 
 namespace Protega___Server.Classes.Data
 {
-    public class DApplication
+    static class DApplication
     {
         #region Static private method
 

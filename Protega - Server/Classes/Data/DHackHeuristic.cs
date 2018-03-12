@@ -5,7 +5,7 @@ using System.Data;
 
 namespace Protega___Server.Classes.Data
 {
-    class DHackHeuristic
+    static class DHackHeuristic
     {
         #region Static private method
 

@@ -5,7 +5,7 @@ using System.Data;
 
 namespace Protega___Server.Classes.Data
 {
-    class DHackVirtual
+    static class DHackVirtual
     {
         #region Static private method
 

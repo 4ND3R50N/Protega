@@ -1,0 +1,307 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Protega___Server.Classes.CCstData" Collapsed="true">
+    <Position X="9.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAEAQAAAJIBAAEAAAAgAAAAJAAAAAIAQAAAQAQACAA=</HashCode>
+      <FileName>Classes\Constant\CCstConfig.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="Application" />
+      <Field Name="DatabaseEngine" />
+      <Field Name="GameDLL" />
+      <Field Name="Logger" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Protega___Server.Classes.CCstDatabase" Collapsed="true">
+    <Position X="9.25" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAEAAAAAAAgCAAAAAAAAAAAAAAAAAAAAAAAgAQAAAA=</HashCode>
+      <FileName>Classes\Constant\CCstDatabase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.SHackFile" Collapsed="true">
+    <Position X="12.75" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Entity\SHackFile.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.SApplication" Collapsed="true">
+    <Position X="12.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Classes\Service\SApplication.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.SHackHeuristic" Collapsed="true">
+    <Position X="12.75" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Service\SHackHeuristic.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.SHackVirtual" Collapsed="true">
+    <Position X="12.75" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Service\SHackVirtual.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.SLoggerData" Collapsed="true">
+    <Position X="12.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Service\SLoggerData.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.SPlayer" Collapsed="true">
+    <Position X="12.75" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Service\SPlayer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.DBEngine" Collapsed="true">
+    <Position X="13.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAABAACAAACAAQCgAAEIAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Utility\Database\DBInterface.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Protega___Server.Classes.DBMssqlDataManager" Collapsed="true">
+    <Position X="13.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAACAAACAAQAgAAGAAAAAAQAAAAAAAAAAAIAA=</HashCode>
+      <FileName>Classes\Utility\Database\MssqlDataManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.AdditionalFunctions" Collapsed="true">
+    <Position X="9.25" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Utility\Support\AdditionalFunctions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.AES_Converter" Collapsed="true">
+    <Position X="9.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAQAA=</HashCode>
+      <FileName>Classes\Utility\Support\AES_Converter.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.Core.ControllerCore" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="7.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAADAAAAAABAAGAIAAAAAAAAAEAIAgAAAAAAA=</HashCode>
+      <FileName>Classes\ControllerCore.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="Application" />
+      <Field Name="ProtocolController" />
+      <Field Name="TcpServer" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Protega___Server.Classes.Data.DApplication" Collapsed="true">
+    <Position X="11" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAABAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Classes\Data\DApplication.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.Data.DHackFile" Collapsed="true">
+    <Position X="11" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Data\DHackFile.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.Data.DHackHeuristic" Collapsed="true">
+    <Position X="11" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Data\DHackHeuristic.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.Data.DHackVirtual" Collapsed="true">
+    <Position X="11" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Data\DHackVirtual.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.Data.DLoggerData" Collapsed="true">
+    <Position X="11" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAABAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Data\DLoggerData.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.Data.DPlayer" Collapsed="true">
+    <Position X="11" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAABAAAAAAAAAAIAIAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Data\DPlayer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.Entity.EApplication" Collapsed="true">
+    <Position X="7.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAIggABAAAAAIAQAAAAAAAAEAAAAAAAEAAA=</HashCode>
+      <FileName>Classes\Entity\EApplication.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.Entity.EHackFile" Collapsed="true">
+    <Position X="6" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEBEAAAAgABAIgAAAAAAAAAAAAAAAAAAAAAABAAAAA=</HashCode>
+      <FileName>Classes\Entity\EHackFile.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_User" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Protega___Server.Classes.Entity.EHackHeuristic" Collapsed="true">
+    <Position X="2.5" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>MAABAEAQAACBAIgAgAAAgAAAAAAAAAIAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Entity\EHackHeuristic.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_User" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Protega___Server.Classes.Entity.EHackVirtual" Collapsed="true">
+    <Position X="4.25" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAgBgIgAAAAAAAACEBBAAAAAAEAAAAAAgAA=</HashCode>
+      <FileName>Classes\Entity\EHackVirtual.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_User" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Protega___Server.Classes.Entity.ELoggerData" Collapsed="true">
+    <Position X="16.5" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAABgAgAAAAAAAAIABAABAAAAQAAIAAEDAA=</HashCode>
+      <FileName>Classes\Entity\ELoggerData.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_Category" />
+      <Field Name="_Type" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Protega___Server.Classes.Entity.EPlayer" Collapsed="true">
+    <Position X="4" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAGBABgABABAAAIAQAIBAAEAAAAAAAAAQEAAA=</HashCode>
+      <FileName>Classes\Entity\EPlayer.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_Application" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Protega___Server.Classes.Protocol.Protocol" Collapsed="true">
+    <Position X="3" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIAAAAAAAIAAEAAwABACAACAAAAAACAAAAAA=</HashCode>
+      <FileName>Classes\Protocol\Protocol.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.Protocol.ProtocolController" Collapsed="true">
+    <Position X="3" Y="2.75" Width="1.5" />
+    <NestedTypes>
+      <Delegate Name="Protega___Server.Classes.Protocol.ProtocolController.SendProt" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Classes\Protocol\ProtocolController.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAACACAIAABABAAAAIACAAAAAAAAAAEEAogAAAAAAA=</HashCode>
+      <FileName>Classes\Protocol\ProtocolController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Protega___Server.Classes.Utility.ApplicationAdapter" Collapsed="true">
+    <Position X="7.5" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAABAAACCAAAIAAAAAAAAAIIAAAAACAAAASBA=</HashCode>
+      <FileName>Classes\Utility\ApplicationAdapter.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="Application" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Protega___Server.networkServer" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="3" Y="1.75" Width="1.5" />
+    <NestedTypes>
+      <Delegate Name="Protega___Server.networkServer.protocolFunction" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Classes\Utility\Network\SimpleNetworkServer.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+      <Delegate Name="Protega___Server.networkServer._AuthenticateClient" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Classes\Utility\Network\SimpleNetworkServer.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+      <Class Name="Protega___Server.networkServer.networkClientInterface" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Classes\Utility\Network\SimpleNetworkServer.cs</NewMemberFileName>
+        </TypeIdentifier>
+        <Lollipop Position="0.2" />
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAACABAAAAABABAAAgAiAQAAAIAAAgAAAgAAA=</HashCode>
+      <FileName>Classes\Utility\Network\SimpleNetworkServer.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Protega___Server.Program" Collapsed="true">
+    <Position X="7.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAABAAAAAAAAAAgAAAAAAAAAAAAAAAgAAABBAAAAAA=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Support.Cryptography" Collapsed="true">
+    <Position X="9.25" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AUAAAAAAAAAAAAASAACAAAEAAAEAgABAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Utility\Support\AESEncoding.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Support.iniManager" Collapsed="true">
+    <Position X="3" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAAAAAAgAAAAAAACAAACAACAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Utility\Support\IniEngine.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Support.logWriter" Collapsed="true">
+    <Position X="11.75" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAQAAAAABAAAAAAACAABAAAAgAAIIAAAABBAAIAA=</HashCode>
+      <FileName>Classes\Utility\Support\logWriter.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="Support.LogCategory" Collapsed="true">
+    <Position X="14.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAAAAAAAAAAIAAAAAAAAAAAAAAABAAAAAAA=</HashCode>
+      <FileName>Classes\Utility\Support\logWriter.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Support.LoggerType" Collapsed="true">
+    <Position X="14.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAAAAAACAABAAAAAAAAAAAAAAAAAAAAEAAAAA=</HashCode>
+      <FileName>Classes\Utility\Support\logWriter.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

@@ -5,7 +5,7 @@ using System.Data;
 
 namespace Protega___Server.Classes.Data
 {
-    public static class DPlayer
+    static class DPlayer
     {
         #region Static private method
 
