@@ -21,6 +21,8 @@ private:
 
 	LPCVOID lpcvCabalSkillCooldownAddress = (LPCVOID)0x876FB4;
 
+	LPCVOID lpcvCabalFbDameAddress = (LPCVOID)0x010CDF44;
+
 	//Cabal Offsets
 	LPCVOID lpcvCabalMapOffset =   (LPCVOID)0x000072E4;
 	LPCVOID lpcvCabalSpeedOffset = (LPCVOID)0x204;
@@ -39,6 +41,7 @@ private:
 	LPCVOID lpcvCabalNationOffset = (LPCVOID)0x35C;
 
 	LPCVOID lpcvCabalBattleModeStateOffset = (LPCVOID)0x41B0;
+	LPCVOID lpcvCabalBattelModeStateBOffset = (LPCVOID)0x344;
 
 	LPCVOID lpcvCabalComboOffset1 = (LPCVOID)0x73A1;
 	LPCVOID lpcvCabalComboOffset2 = (LPCVOID)0x7399;
@@ -69,7 +72,7 @@ private:
 	unsigned int iCabalLatestNSDValueForNSDAlgorithm = 0;
 
 	int iCabalSkillAnimationDefaultValue = 4294967295;
-	int iCabalSkillValueLowerLimit = 2000000;
+	unsigned int iCabalSkillValueLowerLimit = 2000000;
 	int iCabalAnimationSkill = 7;
 
 	int iCabalLatestNoCastTimeValue = 0;
@@ -77,9 +80,15 @@ private:
 	int iCabalLatestBattleModeStateValue = 0;
 
 	// Perfect Combo
-	std::map<int, unsigned int> PerfectComboMap;
-	unsigned int iPerfectComboQueueSize = 30;
-	unsigned int iPerfectComboDetectionTolerance = 13;
+	std::map<int, unsigned int> PerfectComboMap1;
+	std::map<int, unsigned int> PerfectComboMap2;
+	std::map<int, unsigned int> PerfectComboMap3;
+	std::map<int, unsigned int> PerfectComboMap4;
+	std::map<int, unsigned int> PerfectComboMap5;
+	std::map<int, unsigned int> PerfectComboMap6;
+
+	unsigned int iPerfectComboQueueSize = 3;
+	unsigned int iPerfectComboDetectionTolerance = 3;
 
 	int iCabalLatestComboValue1 = 0;
 	int iCabalLatestComboValue2 = 0;
@@ -141,6 +150,7 @@ public:
 	bool VMP_CheckSkillCooldown();
 	bool VMP_CheckNation();
 	bool VMP_CheckPerfectCombo();
+	bool VMP_CheckFbBm1Freeze();
 
 	//VMP Tests
 	bool VMP_EnableWallHack();
