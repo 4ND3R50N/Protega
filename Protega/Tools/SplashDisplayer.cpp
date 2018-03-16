@@ -175,8 +175,8 @@ HWND SplashDisplayer::RegAndCreateWindow()
 	DWORD nScrWidth = ::GetSystemMetrics(SM_CXFULLSCREEN);
 	DWORD nScrHeight = ::GetSystemMetrics(SM_CYFULLSCREEN);
 
-	int x = (nScrWidth - m_dwWidth) / 2;
-	int y = (nScrHeight - m_dwHeight) / 2;
+	int x = (nScrWidth - m_dwWidth);
+	int y = (nScrHeight - m_dwHeight);
 	m_hwnd = ::CreateWindowEx(WS_EX_TOPMOST | WS_EX_TOOLWINDOW, m_lpszClassName,
 		TEXT("Banner"), WS_POPUP, x, y,
 		m_dwWidth, m_dwHeight, NULL, NULL, NULL, this);
