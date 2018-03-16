@@ -74,7 +74,7 @@ bool Virtual_Memory_Protection_Cabal_Online::CloseProcessInstance()
 bool Virtual_Memory_Protection_Cabal_Online::NoIterativeFunctions_DetectManipulatedMemory()
 {
 	if ((VMP_CheckGameSpeed() || VMP_CheckWallBorders() || VMP_CheckZoomState() || /*VMP_CheckNoSkillDelay()  || */
-		VMP_CheckSkillRange() || VMP_CheckSkillCooldown() /*|| VMP_CheckNation()*/) == true)
+		VMP_CheckSkillRange() || VMP_CheckSkillCooldown() /*|| VMP_CheckFbBm1Freeze() || VMP_CheckNation()*/) == true)
 	{
 		return true;
 	}
@@ -366,7 +366,6 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime()
 	return false;
 }
 
-//Note: Store fix vars to header later!
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime_V2()
 {
 	//Skip algorithm if animation var is default
@@ -411,9 +410,9 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime_V2()
 		unsigned int iDetectedKey = 0;
 		if (ValuesInMapReachedUpperLimit(&NctMap, iNctDetectionTolerance, &iDetectedKey))
 		{
-			std::ofstream filestr;
+			/*std::ofstream filestr;
 
-			/*std::map<int, unsigned int>::iterator it;
+			std::map<int, unsigned int>::iterator it;
 			filestr.open(".\\nctmap.txt", std::fstream::in | std::fstream::out | std::fstream::app);
 			for (it = NctMap.begin(); it != NctMap.end(); it++)
 			{
@@ -424,7 +423,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime_V2()
 
 			std::stringstream ss;
 			ss << ">= " << iNctDetectionTolerance;
-			funcCallbackHandler("CABAL MODULE ADDRESS", "NO CAST TIME OFFSET", std::to_string(iDetectedKey), ss.str());
+			funcCallbackHandler("CABAL MODULE ADDRESS", "NSD", std::to_string(iDetectedKey), ss.str());
 			return true;
 		}
 
@@ -518,7 +517,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckPerfectCombo()
 		iCabalLatestComboValue6 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset6);
 	}
 
-	//Collect current combo values
+	//Collect current combo values to check, if there is a combo started
 	int iCurrentComboValue1 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset1);
 	int iCurrentComboValue2 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset2);
 	int iCurrentComboValue3 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset3);
@@ -529,8 +528,10 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckPerfectCombo()
 	if (iCurrentComboValue1 != iCabalLatestComboValue1 && iCurrentComboValue2 != iCabalLatestComboValue2 && iCurrentComboValue3 != iCabalLatestComboValue3 &&
 		iCurrentComboValue4 != iCabalLatestComboValue4 && iCurrentComboValue5 != iCabalLatestComboValue5 && iCurrentComboValue6 != iCabalLatestComboValue6)
 	{
+		//Wait for hack to reset data, if applied
 		Sleep(iNctWaitAfterSkillChange);
 
+		//Collect data again
 		int iCurrentComboValue1 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset1);
 		int iCurrentComboValue2 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset2);
 		int iCurrentComboValue3 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset3);
@@ -538,16 +539,15 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckPerfectCombo()
 		int iCurrentComboValue5 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset5);
 		int iCurrentComboValue6 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset6);
 
-
-
 		//Write vars to map
-		SumUpIndividualKeysInMap(&PerfectComboMap, iCurrentComboValue1);
-		SumUpIndividualKeysInMap(&PerfectComboMap, iCurrentComboValue2);
-		SumUpIndividualKeysInMap(&PerfectComboMap, iCurrentComboValue3);
-		SumUpIndividualKeysInMap(&PerfectComboMap, iCurrentComboValue4);
-		SumUpIndividualKeysInMap(&PerfectComboMap, iCurrentComboValue5);
-		SumUpIndividualKeysInMap(&PerfectComboMap, iCurrentComboValue6);
+		SumUpIndividualKeysInMap(&PerfectComboMap1, iCurrentComboValue1);
+		SumUpIndividualKeysInMap(&PerfectComboMap2, iCurrentComboValue2);
+		SumUpIndividualKeysInMap(&PerfectComboMap3, iCurrentComboValue3);
+		SumUpIndividualKeysInMap(&PerfectComboMap4, iCurrentComboValue4);
+		SumUpIndividualKeysInMap(&PerfectComboMap5, iCurrentComboValue5);
+		SumUpIndividualKeysInMap(&PerfectComboMap6, iCurrentComboValue6);
 
+		//Patch latest vars
 		iCabalLatestComboValue1 = iCurrentComboValue1;
 		iCabalLatestComboValue2 = iCurrentComboValue2;
 		iCabalLatestComboValue3 = iCurrentComboValue3;
@@ -557,23 +557,48 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckPerfectCombo()
 
 		//Check map
 		unsigned int iDetectedKey = 0;
-		if (ValuesInMapReachedUpperLimit(&PerfectComboMap, iPerfectComboDetectionTolerance, &iDetectedKey))
+		if (ValuesInMapReachedUpperLimit(&PerfectComboMap1, iPerfectComboDetectionTolerance, &iDetectedKey) ||
+			ValuesInMapReachedUpperLimit(&PerfectComboMap2, iPerfectComboDetectionTolerance, &iDetectedKey) ||
+			ValuesInMapReachedUpperLimit(&PerfectComboMap3, iPerfectComboDetectionTolerance, &iDetectedKey) ||
+			ValuesInMapReachedUpperLimit(&PerfectComboMap4, iPerfectComboDetectionTolerance, &iDetectedKey) ||
+			ValuesInMapReachedUpperLimit(&PerfectComboMap5, iPerfectComboDetectionTolerance, &iDetectedKey) ||
+			ValuesInMapReachedUpperLimit(&PerfectComboMap6, iPerfectComboDetectionTolerance, &iDetectedKey))
 		{
 			std::stringstream ss;
 			ss << ">= " << iPerfectComboDetectionTolerance;
-			funcCallbackHandler("CABAL MODULE ADDRESS", "PERFECT COMBO OFFSET", std::to_string(iDetectedKey), ss.str());
+			funcCallbackHandler("CABAL MODULE ADDRESS", "PCO", std::to_string(iDetectedKey), ss.str());
 		}
 
 		//Cleanup
-		CleanUpMapIfSizeIsReached(&PerfectComboMap, iPerfectComboQueueSize);
+		CleanUpMapIfSizeIsReached(&PerfectComboMap1, iPerfectComboQueueSize);
+		CleanUpMapIfSizeIsReached(&PerfectComboMap2, iPerfectComboQueueSize);
+		CleanUpMapIfSizeIsReached(&PerfectComboMap3, iPerfectComboQueueSize);
+		CleanUpMapIfSizeIsReached(&PerfectComboMap4, iPerfectComboQueueSize);
+		CleanUpMapIfSizeIsReached(&PerfectComboMap5, iPerfectComboQueueSize);
+		CleanUpMapIfSizeIsReached(&PerfectComboMap6, iPerfectComboQueueSize);
 	}
+	return false;
+}
 
+bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckFbBm1Freeze()
+{
 
+	int iCurrentBattleModeState = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
+	Sleep(20);
+	int iCurrentBattlemodeStateB = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattelModeStateBOffset);;
+
+	if (iCurrentBattleModeState != 16 && iCurrentBattlemodeStateB == 3)
+	{
+		std::stringstream ss;
+		ss << "State B: " << iCurrentBattlemodeStateB;
+		funcCallbackHandler("CABAL MODULE ADDRESS", "FBBM1F", "<> 3", ss.str());
+	}
 
 	return false;
 }
 
 //VMP Tests
+
 bool Virtual_Memory_Protection_Cabal_Online::VMP_EnableWallHack()
 {
 	//Iterate through the Wall adresses
