@@ -282,7 +282,15 @@ namespace Protega___Server
             public networkClientInterface(Socket connection, IAsyncResult result)
             {
                 AddressFamily test= connection.AddressFamily;
-                networkSocket = connection.EndAccept(result);
+                try
+                {
+                    networkSocket = connection.EndAccept(result);
+                }
+                catch (Exception)
+                {
+                    Protega___Server.Classes.CCstData.GetInstance(User.Application != null ? User.Application.ID : 1).Logger.writeInLog(2, Support.LogCategory.CRITICAL, Support.LoggerType.SERVER, "Endaccept error 1");
+                    return;
+                }
                 
                 networkSocket.Blocking = false;
                 buffer = new byte[1024];
