@@ -110,18 +110,18 @@ namespace Protega___Server.Classes.Protocol
                 return false;
             }
 
-            //Check if user is already connected
-            foreach (networkServer.networkClientInterface item in ActiveConnections)
-            {
-                if(item.User.ID==ComputerID
-                    && item.User.Application.Hash==ApplicationHash)
-                {
-                    //User is already registered
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.CLIENT, "Authentification: User is already added to list!");
-                    SendProtocol("201;2;Still logged in. Please try again", ClientInterface);
-                    return false;
-                }
-            }
+            ////Check if user is already connected
+            //foreach (networkServer.networkClientInterface item in ActiveConnections)
+            //{
+            //    if(item.User.ID==ComputerID
+            //        && item.User.Application.Hash==ApplicationHash)
+            //    {
+            //        //User is already registered
+            //        CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.CLIENT, "Authentification: User is already added to list!");
+            //        SendProtocol("201;2;Still logged in. Please try again", ClientInterface);
+            //        return false;
+            //    }
+            //}
 
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.DATABASE, "Authentification: Checking user in the database");
             EPlayer dataClient = SPlayer.Authenticate(ComputerID, ApplicationHash, architecture, language, ClientInterface.IP.ToString());
