@@ -180,14 +180,15 @@ void Protection_Manager::VMP_IF_Thread()
 {
 	do
 	{
-		if (VMP->VMP_CheckNoCastTime_V2() == true || VMP->VMP_CheckNoSkillDelay_V2() == true || VMP->VMP_CheckPerfectCombo() == true)
+		if (VMP->VMP_CheckNoCastTime_V2() == true || VMP->VMP_CheckNoSkillDelay_V2() == true 
+			|| VMP->VMP_CheckPerfectCombo() == true)
 		{
 			VMP->CloseProcessInstance();
 			bProtectionIsRunning = false;
 			return;
 		}
 		CheckClocks(&ctVmpIfResponse);
-		Sleep(20);
+		Sleep(10);
 	} while (bProtectionIsRunning);
 }
 

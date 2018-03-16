@@ -73,7 +73,7 @@ bool Virtual_Memory_Protection_Cabal_Online::CloseProcessInstance()
 
 bool Virtual_Memory_Protection_Cabal_Online::NoIterativeFunctions_DetectManipulatedMemory()
 {
-	if ((VMP_CheckGameSpeed() || VMP_CheckWallBorders() || VMP_CheckZoomState() || /*VMP_CheckNoSkillDelay()  || */
+	if ((VMP_CheckGameSpeed() || VMP_CheckWallBorders() || VMP_CheckZoomState() || 
 		VMP_CheckSkillRange() || VMP_CheckSkillCooldown() /*|| VMP_CheckFbBm1Freeze() || VMP_CheckNation()*/) == true)
 	{
 		return true;
@@ -236,6 +236,8 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay_V2()
 	int iCurrentAnimationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
 	//Get the current skill cast value
 	int iCurrentSkillDelayValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
+	//Get battle mode
+	int iCurrentBattleMode = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
 
 	//Check if there is currently an attack animation, AND
 	//1. an NSD that starts with 1 -> This value causes an Anomaly
@@ -256,30 +258,30 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay_V2()
 			if (iItData < iCabalSkillValueLowerLimit)
 			{
 				iAnomalyApperances++;
-				//This wait time is necessary to avoid crashes. The 1x numbers can pass every ms. 
-				//So it has to be stopped.
+				//Slow down for fail detection (BM2 WI Mana refill)
 				Sleep(iNsdAnormalyWaitTime);
 			}
 		}
 
-		//Check map, if anomalies are over tolerance
-		if (iAnomalyApperances >= iNsdDetectionTolerance)
+		//Check, if user is in BM2 (then the apperances needs to be X or higer
+		//		 if user is not in BM2 (then the apperances needs to be Y or higher
+		if (((iCurrentBattleMode == iCabalBm2Value1 || iCurrentBattleMode == iCabalBm2Value2) && iAnomalyApperances >= iNsdDetectionToleranceForBm2) ||
+			((iCurrentBattleMode != iCabalBm2Value1 && iCurrentBattleMode != iCabalBm2Value2) && iAnomalyApperances >= iNsdDetectionTolerance))
 		{
-		/*	std::ofstream filestr;
-			filestr.open(".\\nsddetect.txt", std::fstream::in | std::fstream::out | std::fstream::app);
-			std::vector<unsigned int>::iterator iIt;
-			for (iIt = NsdVector.begin(); iIt != NsdVector.end(); iIt++)
-			{
-				unsigned int& iItData(*iIt);
-				filestr << iItData << std::endl;
-			}
-			filestr << "-----------------------------" << std::endl;
-			filestr.close();*/
+			//std::ofstream filestr;
+			//filestr.open(".\\nsddetect.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+			//std::vector<unsigned int>::iterator iIt;
+			//for (iIt = NsdVector.begin(); iIt != NsdVector.end(); iIt++)
+			//{
+			//	unsigned int& iItData(*iIt);
+			//	filestr << iItData << std::endl;
+			//}
+			//filestr << "-----------------------------1 " << iCurrentBattleMode << std::endl;
+			//filestr.close();
 
 			std::stringstream ss;
 			ss << ">= " << iNctDetectionTolerance;
-			funcCallbackHandler("CABAL MODULE ADDRESS", "No Skill Delay", "-", ss.str());
-			return true;
+			funcCallbackHandler("CABAL MODULE ADDRESS", "NSD", "-", ss.str());
 		}
 
 		//Cleanup vector if too large
@@ -293,7 +295,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay_V2()
 			//	unsigned int& iItData(*iIt);
 			//	filestr << iItData << std::endl;
 			//}
-			//filestr << "-----------------------------" << std::endl;
+			//filestr << "-----------------------------" << iCurrentBattleMode << std::endl;
 			//filestr.close();
 			NsdVector.clear();
 		}
@@ -441,16 +443,23 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckSkillRange()
 	int iCabalCurrentRangeValue = ReadMemoryInt(hProcessHandle, lpcvCabalRangeAddress);
 	int iCabalCurrentAoeValue = ReadMemoryInt(hProcessHandle, lpcvCabalAoeAddress);
 
-	if (iCabalCurrentGmValue != iCabalDefaultGM || iCabalCurrentRangeValue != iCabalDefaultRange || iCabalCurrentAoeValue != iCabalDefaultAOE)
+	int iCabalCurrentRangeValue1 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalRangeOffset1);
+	int iCabalCurrentRangeValue2 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalRangeOffset2);
+
+	if (iCabalCurrentGmValue != iCabalDefaultGM || iCabalCurrentRangeValue != iCabalDefaultRange || iCabalCurrentAoeValue != iCabalDefaultAOE
+		|| (iCabalCurrentRangeValue1 < iCabalDefaultRange || iCabalCurrentRangeValue1 > iCabalFgAndFaException)
+		|| (iCabalCurrentRangeValue2 < iCabalDefaultRange || iCabalCurrentRangeValue2 > iCabalFgAndFaException))
 	{
 		std::stringstream ss;
-		ss << "GM: " << iCabalCurrentGmValue << " | Range: " << iCabalCurrentRangeValue << " | Aoe: " << iCabalCurrentAoeValue;
+		ss << "GM: " << iCabalCurrentGmValue << " | Range: " << iCabalCurrentRangeValue << " | Aoe: " << iCabalCurrentAoeValue << " | RangeA: "
+			<< iCabalCurrentRangeValue1 << " | RangeB: " << iCabalCurrentRangeValue2;
 		std::string sDetectedValues = ss.str();
 		ss.str("");
-		ss << "GM: " << iCabalDefaultGM << " | Range: " << iCabalDefaultRange << " | Aoe: " << iCabalDefaultAOE;
+		ss << "GM: " << iCabalDefaultGM << " | Range: " << iCabalDefaultRange << " | Aoe: " << iCabalDefaultAOE << "RangeA: " << iCabalDefaultRange
+			<< " | RangeB: " << iCabalDefaultRange;
 		std::string sDefaultValues = ss.str();
 		ss.str("");
-		funcCallbackHandler("GM | RANGE | AOE", "X", sDetectedValues, sDefaultValues);
+		funcCallbackHandler("GM | RANGE | AOE | RangeA | RangeB", "RNG", sDetectedValues, sDefaultValues);
 	}
 
 	return false;

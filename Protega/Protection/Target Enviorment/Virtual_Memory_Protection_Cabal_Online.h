@@ -24,6 +24,9 @@ private:
 	LPCVOID lpcvCabalFbDameAddress = (LPCVOID)0x010CDF44;
 
 	//Cabal Offsets
+	LPCVOID lpcvCabalRangeOffset1 = (LPCVOID)0x6E70;
+	LPCVOID lpcvCabalRangeOffset2 = (LPCVOID)0x4E8;
+
 	LPCVOID lpcvCabalMapOffset =   (LPCVOID)0x000072E4;
 	LPCVOID lpcvCabalSpeedOffset = (LPCVOID)0x204;
 
@@ -69,7 +72,10 @@ private:
 	unsigned int iNsdAnormalyWaitTime = 1000;
 	unsigned int iNsdQueueSize = 10;
 	unsigned int iNsdDetectionTolerance = 3;
+	unsigned int iNsdDetectionToleranceForBm2 = 5;
 	unsigned int iCabalLatestNSDValueForNSDAlgorithm = 0;
+	unsigned int iCabalBm2Value1 = 32;
+	unsigned int iCabalBm2Value2 = 40;
 
 	int iCabalSkillAnimationDefaultValue = 4294967295;
 	unsigned int iCabalSkillValueLowerLimit = 2000000;
@@ -104,6 +110,7 @@ private:
 	int iCabalDefaultGM = 0;
 	int iCabalDefaultRange = 0;
 	int iCabalDefaultAOE = 0;
+	int iCabalFgAndFaException = 1;
 
 	//	No Cooldown
 	int iCabalDefaultSkillCooldown = 69485707;
