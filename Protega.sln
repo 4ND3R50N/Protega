@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Protega - Server Testsuite"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Protega - Crash Reporter", "Protega - Crash Reporter\Protega - Crash Reporter.csproj", "{3CA48D14-652F-470F-9131-AF04B766219E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cabal", "Protega - DemoApplicationAdapter\Cabal.csproj", "{580B6CFD-2360-4238-814C-A2D36F9941E6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cabal", "Protega - Server - Cabal Module\Cabal.csproj", "{580B6CFD-2360-4238-814C-A2D36F9941E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
