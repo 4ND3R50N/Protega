@@ -11,23 +11,25 @@ namespace Protega___Server.Classes.Protocol
         private string ReceivedString;
         private ArrayList values = new ArrayList();
         
-        public Protocol(String protocol)
+        public Protocol(string protocol)
         {
             ReceivedString = protocol;
+        }
+        
+        public bool Split()
+        {
             Object[] elements = null;
-            // split the protocol at the delimiter ; to get the parts of the protocol
-            // we do need some check if the protocol has the right syntax, what happens if we get traffic and we can decrypt it and there is no ;?
-            // we can't split it so we will get errors by trying to get the second element
-            if (protocol.Contains(";"))
-            {
-                elements = protocol.Split(';');
-            }
-            // the key is always saved at the first entry
-            // QUESTION: What happens if this is not an integer? does the whole server crash?
-            // I know that the possibility is very low that this happens but if someone is sending us traffic, we decrypt it and give it to the protocol controler, this protocol will be broken
-            key =  Convert.ToInt32(elements[0]);
+
+            //Every protocol must have at least 2 parameters (Protocol ID & Session ID), seperated by the delimiter
+            //If this is not the case, the protocol is not sent by one of our clients
+            if (!ReceivedString.Contains(";") || (elements = ReceivedString.Split(';')).Length < 2)
+                return false;
+
+            //Make sure that Index 0 is an Integer
+            if (!Int32.TryParse(elements[0].ToString(), out key))
+                return false;
             UserID = elements[1].ToString();
-            
+
 
             // if the protocol has not only the key, save the values.
             if (elements.Length > 1)
@@ -38,7 +40,10 @@ namespace Protega___Server.Classes.Protocol
                 }
             }
             // otherwise values stays an empty arraylist
+
+            return true;
         }
+
         public int GetKey()
         {
             return key;

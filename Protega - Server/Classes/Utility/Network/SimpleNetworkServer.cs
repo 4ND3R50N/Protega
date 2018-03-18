@@ -110,7 +110,7 @@ namespace Protega___Server
 
         private void ReceiveCallback(IAsyncResult result)
         {
-            Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.OK, Support.LoggerType.SERVER, "Protocol received");
+            Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, Support.LogCategory.OK, Support.LoggerType.SERVER, "Protocol received");
             networkClientInterface connection = (networkClientInterface)result.AsyncState;
             try
             {
@@ -210,9 +210,9 @@ namespace Protega___Server
                         {
                             _IP = (networkSocket.RemoteEndPoint as IPEndPoint).Address;
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
-                            Console.WriteLine("Could not get IP. User: " + User.ID + ", Session: " + SessionID);
+                            Console.WriteLine("Could not get IP. User: " + User.ID + ", Session: " + SessionID+", Error: "+e.Message);
                         }
                     }
                     return _IP;

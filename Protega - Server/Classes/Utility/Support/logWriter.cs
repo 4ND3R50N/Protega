@@ -36,9 +36,8 @@ namespace Support
                 return;
 
             string OutMessage = string.Format("[{0} {1}:{2}:{3} ({4})]: ({5}) - {6}", DateTime.Now.ToShortDateString(), DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second, DateTime.Now.Millisecond, Category, Message);
-    
-            if(!Message.Contains("Protocol received"))
-                conOut(OutMessage);
+
+            conOut(OutMessage);
             logFile(OutMessage);
         }
 

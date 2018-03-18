@@ -60,8 +60,7 @@ namespace Protega___Server.Classes.Data
                 {
                     while (oReader.Read())
                     {
-                        //Read the data and convert the SqlDataReader in the waiting object
-                        object Test = oReader.GetOrdinal("ID");
+                        //Read the data and convert the SqlDataReader in the waiting object#
                         return oReader.GetString(oReader.GetOrdinal("ID")) == "0";
                     }
                 }

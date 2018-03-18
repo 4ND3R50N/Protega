@@ -28,6 +28,9 @@ namespace Protega___Server.Classes.Protocol
         public bool ReceivedProtocol(networkServer.networkClientInterface NetworkClient, string protocolString)
         {
             Protocol protocol = new Protocol(protocolString);
+            if (!protocol.Split())
+                return false;
+
             switch (protocol.GetKey())
             {
                 case 600:
@@ -68,7 +71,7 @@ namespace Protega___Server.Classes.Protocol
         #region Authenticate User
         private bool AuthenticateUser(networkServer.networkClientInterface ClientInterface, Protocol prot)
         {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticating new user ({0})", prot.GetUserID()));
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticating new user ({0}), IP: ", prot.GetUserID(), ClientInterface.IP.ToString()));
             ArrayList Objects = prot.GetValues();
             if(Objects.Count!=4)
             {
@@ -193,7 +196,7 @@ namespace Protega___Server.Classes.Protocol
             ActiveConnections.Add(ClientInterface);
 
             SendProtocol("200;" + ClientInterface.SessionID, ClientInterface);
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user. Computer ID: {0}, Session ID: {1}", ClientInterface.User.ID, ClientInterface.SessionID));
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user. Computer ID: {0}, Session ID: {1}, IP: {2}", ClientInterface.User.ID, ClientInterface.SessionID, ClientInterface.IP.ToString()));
 
             /*if (!IpExistsAlready)
             {
@@ -409,7 +412,7 @@ namespace Protega___Server.Classes.Protocol
         {
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Heuristic-Detection received. User: " + prot.GetUserID());
             networkServer.networkClientInterface ClientInterface = Client;
-            if (CheckIfUserExists(prot.UserID, ref ClientInterface))
+            if (true)//CheckIfUserExists(prot.UserID, ref ClientInterface))
             {
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "H-Detection: User found in the active connections");
                 ArrayList Objects = prot.GetValues();

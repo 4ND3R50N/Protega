@@ -68,7 +68,7 @@ namespace Protega___Server.Classes.Data
             }
             catch (Exception e)
             {
-                throw e;
+                return false;
             }
             finally
             {
