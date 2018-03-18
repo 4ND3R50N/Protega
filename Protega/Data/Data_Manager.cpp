@@ -3,7 +3,7 @@
 
 #pragma region PROTES_STATIC_DATA_CONFIG
 
-int Data_Manager::SOFTWARE_VERSION = 105;
+int Data_Manager::SOFTWARE_VERSION = 107;
 
 //Web data
 

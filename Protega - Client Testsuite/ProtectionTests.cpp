@@ -94,7 +94,7 @@ namespace ProtegaClientTestsuite
 			do
 			{
 				//VMP_S->VMP_CheckNoSkillDelay();
-				VMP_S->VMP_CheckPerfectCombo();
+				VMP_S->VMP_CheckNoSkillDelay_V2();
 				Sleep(20);
 			} while (!bDetect);
 		}	
