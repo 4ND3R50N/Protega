@@ -18,7 +18,7 @@ namespace Protega___Server.Classes.Protocol
         
         public bool Split()
         {
-            Object[] elements = null;
+            string[] elements = null;
 
             //Every protocol must have at least 2 parameters (Protocol ID & Session ID), seperated by the delimiter
             //If this is not the case, the protocol is not sent by one of our clients
@@ -32,14 +32,10 @@ namespace Protega___Server.Classes.Protocol
 
 
             // if the protocol has not only the key, save the values.
-            if (elements.Length > 1)
+            for (int i = 2; i < elements.Length; i++)
             {
-                for (int i = 2; i < elements.Length; i++)
-                {
-                    values.Add(elements[i]);
-                }
+                values.Add(elements[i]);
             }
-            // otherwise values stays an empty arraylist
 
             return true;
         }

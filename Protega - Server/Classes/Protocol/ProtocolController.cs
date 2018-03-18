@@ -29,7 +29,10 @@ namespace Protega___Server.Classes.Protocol
         {
             Protocol protocol = new Protocol(protocolString);
             if (!protocol.Split())
+            {
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.CLIENT, "Received invalid protocol synthax: " + protocolString);
                 return false;
+            }
 
             switch (protocol.GetKey())
             {
