@@ -268,17 +268,17 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay_V2()
 		if (((iCurrentBattleMode == iCabalBm2Value1 || iCurrentBattleMode == iCabalBm2Value2) && iAnomalyApperances >= iNsdDetectionToleranceForBm2) ||
 			((iCurrentBattleMode != iCabalBm2Value1 && iCurrentBattleMode != iCabalBm2Value2) && iAnomalyApperances >= iNsdDetectionTolerance))
 		{
-			//std::ofstream filestr;
-			//filestr.open(".\\nsddetect.txt", std::fstream::in | std::fstream::out | std::fstream::app);
-			//std::vector<unsigned int>::iterator iIt;
-			//for (iIt = NsdVector.begin(); iIt != NsdVector.end(); iIt++)
-			//{
-			//	unsigned int& iItData(*iIt);
-			//	filestr << iItData << std::endl;
-			//}
-			//filestr << "-----------------------------1 " << iCurrentBattleMode << std::endl;
-			//filestr.close();
-
+		/*	std::ofstream filestr;
+			filestr.open(".\\nsddetect.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+			std::vector<unsigned int>::iterator iIt;
+			for (iIt = NsdVector.begin(); iIt != NsdVector.end(); iIt++)
+			{
+				unsigned int& iItData(*iIt);
+				filestr << iItData << std::endl;
+			}
+			filestr << "-----------------------------1 " << iCurrentBattleMode << std::endl;
+			filestr.close();
+*/
 			std::stringstream ss;
 			ss << ">= " << iNctDetectionTolerance;
 			funcCallbackHandler("CABAL MODULE ADDRESS", "NSD", "-", ss.str());

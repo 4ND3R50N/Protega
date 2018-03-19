@@ -93,8 +93,8 @@ private:
 	std::map<int, unsigned int> PerfectComboMap5;
 	std::map<int, unsigned int> PerfectComboMap6;
 
-	unsigned int iPerfectComboQueueSize = 3;
-	unsigned int iPerfectComboDetectionTolerance = 3;
+	unsigned int iPerfectComboQueueSize = 5;
+	unsigned int iPerfectComboDetectionTolerance = 5;
 
 	int iCabalLatestComboValue1 = 0;
 	int iCabalLatestComboValue2 = 0;

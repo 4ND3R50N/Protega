@@ -93,9 +93,8 @@ namespace ProtegaClientTestsuite
 			//Loop "scan all addresses" function
 			do
 			{
-				//VMP_S->VMP_CheckNoSkillDelay();
-				VMP_S->VMP_CheckNoSkillDelay_V2();
-				Sleep(20);
+				VMP_S->VMP_CheckPerfectCombo();
+				Sleep(10);
 			} while (!bDetect);
 		}	
 
