@@ -89,7 +89,7 @@ namespace ProtegaClientTestsuite
 
 		TEST_METHOD(Task_ConvertFileToEnc)
 		{
-			std::string sFileToConvert = ".\\..\\docs\\client\\Heuristic_MD5.csv";
+			std::string sFileToConvert = ".\\..\\docs\\client\\Heuristic_Process_Names.csv";
 			const char* sAESKey = "1234567890123456";
 			const char* sIV = "bbbbbbbbbbbbbbbb";
 			std::ifstream isReader;

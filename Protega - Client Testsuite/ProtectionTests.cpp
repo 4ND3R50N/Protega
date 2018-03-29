@@ -90,10 +90,10 @@ namespace ProtegaClientTestsuite
 
 			VMP_S->OpenProcessInstance();
 
-			//Loop "scan all addresses" function
+
 			do
 			{
-				VMP_S->VMP_CheckPerfectCombo();
+				VMP_S->VMP_CheckNoCastTime_V2();
 				Sleep(10);
 			} while (!bDetect);
 		}	
