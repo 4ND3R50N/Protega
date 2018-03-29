@@ -181,14 +181,15 @@ void Protection_Manager::VMP_IF_Thread()
 	do
 	{
 		if (VMP->VMP_CheckNoCastTime_V2() == true || VMP->VMP_CheckNoSkillDelay_V2() == true 
-			|| VMP->VMP_CheckPerfectCombo() == true)
+			|| VMP->VMP_CheckPerfectCombo() == true  /*|| VMP->VMP_CheckBmCooldownReset() == true*/
+			/*|| VMP->VMP_CheckKillGate() == true*/)
 		{
 			VMP->CloseProcessInstance();
 			bProtectionIsRunning = false;
 			return;
 		}
 		CheckClocks(&ctVmpIfResponse);
-		Sleep(10);
+		Sleep(5);
 	} while (bProtectionIsRunning);
 }
 
@@ -274,8 +275,6 @@ void Protection_Manager::VMP_Callback(std::string sDetectedBaseAddress, std::str
 	//filestr << "OS: " << sDetectedOffset << " DV: " << sDetectedValue << " DEV: " << sDefaultValue << std::endl;
 	//filestr.close();
 #pragma endregion
-
-	
 
 	std::vector<std::string> lDetectionInformation;	
 	lDetectionInformation.push_back(sDetectedBaseAddress);
