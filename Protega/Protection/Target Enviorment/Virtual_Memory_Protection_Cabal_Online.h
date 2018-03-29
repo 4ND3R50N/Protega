@@ -6,7 +6,7 @@
 #include <fstream>
 #include <map>
 
-class Virtual_Memory_Protection_Cabal_Online: Virtual_Memory_IO
+class Virtual_Memory_Protection_Cabal_Online : Virtual_Memory_IO
 {
 private:
 	
@@ -15,37 +15,49 @@ private:
 	LPCVOID lpcvCabalWallBaseAddress = (LPCVOID)0x010838D8;
 	LPCVOID lpcvCabalModuleAddress = (LPCVOID)0x400000;
 
+	//GM range adresses
 	LPCVOID lpcvCabalGmAddress = (LPCVOID)0x0107D588;
 	LPCVOID lpcvCabalRangeAddress = (LPCVOID)0x010CDC40;
 	LPCVOID lpcvCabalAoeAddress = (LPCVOID)0x010CDC44;
 
+	//Channel address
+	LPCVOID lpcvCabalChannelAddress = (LPCVOID)0x0107B1A4;
+
+	// Skill cooldown
 	LPCVOID lpcvCabalSkillCooldownAddress = (LPCVOID)0x876FB4;
 
-	LPCVOID lpcvCabalFbDameAddress = (LPCVOID)0x010CDF44;
-
-	//Cabal Offsets
+	//Range Offsets
 	LPCVOID lpcvCabalRangeOffset1 = (LPCVOID)0x6E70;
 	LPCVOID lpcvCabalRangeOffset2 = (LPCVOID)0x4E8;
 
+	//Map 
 	LPCVOID lpcvCabalMapOffset =   (LPCVOID)0x000072E4;
+	
+	//Speed
 	LPCVOID lpcvCabalSpeedOffset = (LPCVOID)0x204;
-
+	
+	//Wall offsets
 	LPCVOID lpcvCabalWallStartOffset = (LPCVOID)0x40814;
 	LPCVOID lpcvCabalWallStopOffset = (LPCVOID)0x3ffff;
-
+	
+	//Zoom offsets
 	LPCVOID lpcvCabalZoomOffset1 = (LPCVOID)0x78D01C;
 	LPCVOID lpcvCabalZoomOffset2 = (LPCVOID)0x791DD0;
 
+	//Animation offsets
 	LPCVOID lpcvCabalSkillDelayOffset = (LPCVOID)0x72D4;
 	LPCVOID lpcvCabalAnimationSkillOffset = (LPCVOID)0x74;
 	LPCVOID lpcvCabalAnimationOffset = (LPCVOID)0x1F4;
 	LPCVOID lpcvCabalNoCastTimeOffset = (LPCVOID)0x3578;
 
+	//Nation
 	LPCVOID lpcvCabalNationOffset = (LPCVOID)0x35C;
 
+	//Battle mode state offsets
 	LPCVOID lpcvCabalBattleModeStateOffset = (LPCVOID)0x41B0;
 	LPCVOID lpcvCabalBattelModeStateBOffset = (LPCVOID)0x344;
 
+	//Combo offsets
 	LPCVOID lpcvCabalComboOffset1 = (LPCVOID)0x73A1;
 	LPCVOID lpcvCabalComboOffset2 = (LPCVOID)0x7399;
 	LPCVOID lpcvCabalComboOffset3 = (LPCVOID)0x73A0;
@@ -53,9 +65,21 @@ private:
 	LPCVOID lpcvCabalComboOffset5 = (LPCVOID)0x73A8;
 	LPCVOID lpcvCabalComboOffset6 = (LPCVOID)0x7397;
 
+	//BM Offsets
+	//	BM1
+	LPCVOID lpcvCabalBM1Offset1 = (LPCVOID)0x4A1C;
+	LPCVOID lpcvCabalBM1Offset2 = (LPCVOID)0x120;
+	LPCVOID lpcvCabalBM1Offset3 = (LPCVOID)0x20;
 
+	//	BM2 (Offset 1 + 3 are the same as bm1
+	LPCVOID lpcvCabalBM2Offset2 = (LPCVOID)0x124;
+
+	//	Aura
+	LPCVOID lpcvCabalAuraOffset2 = (LPCVOID)0x118;
 
 	//Cabal Values
+	//	Central Value
+	int iCurrentSelectedChannel = -1;
 	//	Map
 	int iCabalMapDefaultValue = 4294967295;
 	//	Zoom
@@ -64,9 +88,10 @@ private:
 
 	//	NSD + NCT
 	std::map<int, unsigned int> NctMap;
-	unsigned int iNctWaitAfterSkillChange = 200;
-	unsigned int iNctQueueSize = 30;
+	unsigned int iNctWaitAfterSkillChange = 250;
+	unsigned int iNctQueueSize = 20;
 	unsigned int iNctDetectionTolerance = 3;
+
 
 	std::vector<unsigned int> NsdVector;
 	unsigned int iNsdAnormalyWaitTime = 1000;
@@ -74,16 +99,17 @@ private:
 	unsigned int iNsdDetectionTolerance = 3;
 	unsigned int iNsdDetectionToleranceForBm2 = 5;
 	unsigned int iCabalLatestNSDValueForNSDAlgorithm = 0;
+
 	unsigned int iCabalBm2Value1 = 32;
 	unsigned int iCabalBm2Value2 = 40;
 
 	int iCabalSkillAnimationDefaultValue = 4294967295;
 	unsigned int iCabalSkillValueLowerLimit = 2000000;
 	int iCabalAnimationSkill = 7;
+	int iCabalAnimationDeath = 2;
 
-	int iCabalLatestNoCastTimeValue = 0;
 	int iCabalLatestNSDValueForNCTAlgorithm = 0;
-	int iCabalLatestBattleModeStateValue = 0;
+	int iCabalLatestSkillAnimationValueForNCTAlgorithm = 0;
 
 	// Perfect Combo
 	std::map<int, unsigned int> PerfectComboMap1;
@@ -110,7 +136,8 @@ private:
 	int iCabalDefaultGM = 0;
 	int iCabalDefaultRange = 0;
 	int iCabalDefaultAOE = 0;
-	int iCabalFgAndFaException = 1;
+	int iCabalRangeUpperLimit = 1;
+	int iCabalRangeLowerLimit = -2;
 
 	//	No Cooldown
 	int iCabalDefaultSkillCooldown = 69485707;
@@ -119,10 +146,44 @@ private:
 	int iWallhackScanDelay = 10000; // <- Loading delay after player joins a map
 	double iWallhackZeroTolerance = 80.0;
 	bool bFirstChannelJoin = true;
-	 
+	
+	//	BM Cooldown reset
+	int iCabalLatestBattleMode1CdValue = -1;
+	int iCabalLatestBattleMode2CdValue = -1;
+	int iCabalLatestAuraCdValue = -1;
+
+	bool bBm1IsRunning = false;
+	bool bBm2IsRunning = false;
+	bool bAuraIsRunning = false;
+	bool bBm1RecastException = true;
+	bool bBm2RecastException = true;
+	bool bAuraRecastException = true;
+
+	clock_t ctCabalBM1Timer;
+	clock_t ctCabalBM2Timer;
+	clock_t ctCabalAuraTimer;
+
+	unsigned int iLatestAnimationValueForBM1 = 0;
+	unsigned int iLatestAnimationValueForBM2 = 0;
+	unsigned int iLatestAnimationValueForAura = 0;
+
+	//		Static vars, they get used by the abstract algorithm for all BMs
+	unsigned int iBmRecastExceptionWaitTime = 1000;
+	double dBmSkillCooldown = 27.0;
+	
+	//	KillGate
+	int iCabalLatestMapValue = -1;
+
 	//	Monitoring
 	int iCabalGm = 2;
 	
+	//	FB Dame
+	std::vector<unsigned int> FbDameVector;
+	int iFbDameBattleModeStateBAnormaly = 2;
+	int iFbDameDetectionTolerance = 3;
+	int iFbDameAnormalyWaitTime = 1000;
+	int iFbDameVectorQueueSize = 10;
+
 	//Vars
 	unsigned int iProcessID;	
 	
@@ -130,6 +191,11 @@ private:
 	std::function<void(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sStandartValue) > funcCallbackHandler;
 
 	//Functions
+
+	bool VMP_Private_Abstract_CheckBmCooldownReset(int* iCabalLatestBattleModeCdValue, LPCVOID CabalBaseAddress,
+		LPCVOID CabalBMOffset1, LPCVOID CabalBMOffset2, LPCVOID CabalBMOffset3,
+		clock_t* CabalBMTimer, bool* BmIsRunning, bool* BmRecastException, unsigned int* iLatestAnimationValueForBMCD);
+
 	void SumUpIndividualKeysInMap(std::map<int, unsigned int> *Map, unsigned int iValue);
 	bool ValuesInMapReachedUpperLimit(std::map<int, unsigned int> *Map, unsigned int iUpperLimit, unsigned int *iDetectedKey);
 	void CleanUpMapIfSizeIsReached(std::map<int, unsigned int> *Map, unsigned int iSize);
@@ -150,7 +216,6 @@ public:
 	bool VMP_CheckNoSkillDelay();
 	bool VMP_CheckNoSkillDelay_V2();
 
-	bool VMP_CheckNoCastTime();
 	bool VMP_CheckNoCastTime_V2();
 
 	bool VMP_CheckSkillRange();
@@ -158,6 +223,10 @@ public:
 	bool VMP_CheckNation();
 	bool VMP_CheckPerfectCombo();
 	bool VMP_CheckFbBm1Freeze();
+	bool VMP_CheckBmCooldownReset();
+	bool VMP_CheckKillGate();
+
+	bool VMP_CheckFbDame();
 
 	//VMP Tests
 	bool VMP_EnableWallHack();

@@ -16,6 +16,99 @@ Virtual_Memory_Protection_Cabal_Online::~Virtual_Memory_Protection_Cabal_Online(
 	CloseProcessInstance();
 }
 
+bool Virtual_Memory_Protection_Cabal_Online::VMP_Private_Abstract_CheckBmCooldownReset(int* iCabalLatestBattleModeCdValue, LPCVOID CabalBaseAddress, 
+	LPCVOID CabalBMOffset1, LPCVOID CabalBMOffset2, LPCVOID CabalBMOffset3, 
+	clock_t* CabalBMTimer, bool* BmIsRunning, bool* BmRecastException, unsigned int* iLatestAnimationValueForBMCD)
+{
+	//This triggers if its the first run
+	if (*iCabalLatestBattleModeCdValue == -1)
+	{
+		*iCabalLatestBattleModeCdValue = GetIntViaLevel3Pointer(CabalBaseAddress,
+			CabalBMOffset1, CabalBMOffset2, CabalBMOffset3);
+	}
+
+	//Collect current BM + Aura value
+	int iCurrentBattleModeCdValue = GetIntViaLevel3Pointer(lpcvCabalBaseAddress,
+										CabalBMOffset1, CabalBMOffset2, CabalBMOffset3);
+
+	//Check if there was a state change
+	if (iCurrentBattleModeCdValue != *iCabalLatestBattleModeCdValue && !*BmIsRunning)
+	{
+		*BmIsRunning = true;
+		//Trigger Bm1 ticker
+		*CabalBMTimer = std::clock();
+		//Safe the value change (Bm gets triggered first)
+		*iCabalLatestBattleModeCdValue = iCurrentBattleModeCdValue;
+	}
+
+	//While counter is running -> While BM1 CD is running
+	if (*BmIsRunning)
+	{
+		//Get the current passed time
+		double dCurrentDuration = (std::clock() - *CabalBMTimer) / (double)CLOCKS_PER_SEC;
+
+		//Check if the bm skill cooldown is nearly over || dBmSkillCooldown -> Global var
+		if (dCurrentDuration < dBmSkillCooldown)
+		{
+			//If the var toggles to 0 after bm1 gets triggered again (which is normal), do an exception for that
+			if (*BmRecastException)
+			{
+				//iBmRecastExceptionWaitTime -> Global var
+				Sleep(iBmRecastExceptionWaitTime);
+				//REFACTOR (Create new IO)
+				*iCabalLatestBattleModeCdValue = GetIntViaLevel3Pointer(lpcvCabalBaseAddress,
+					CabalBMOffset1, CabalBMOffset2, CabalBMOffset3);
+
+				*BmRecastException = false;
+				return false;
+			}
+
+			//Happens if u cancel BM
+			if (iCurrentBattleModeCdValue > *iCabalLatestBattleModeCdValue)
+			{
+				*BmRecastException = true;
+				return false;
+			}
+
+			//Check if Animation = 2 (Death)
+			int iCurrentAnimationValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
+
+			//Check, if we are in death mode
+			if (*iLatestAnimationValueForBMCD == 2)
+			{
+				//Check, if death mode ended in this iteration
+				if (iCurrentAnimationValue != 2)
+				{
+					//Unset the death mode, update latest CD battle mode value to not cause a hack detect in the next run
+					*iLatestAnimationValueForBMCD = iCurrentAnimationValue;
+					*iCabalLatestBattleModeCdValue = 0;
+				}
+			}
+
+			//Check, if we are in death mode
+			if (iCurrentAnimationValue == 2)
+			{
+				//Set death mode for next iteration
+				//This will also trigger each time we are in death mode
+				*iLatestAnimationValueForBMCD = 2;
+				return false;
+			}
+
+			if (iCurrentBattleModeCdValue < *iCabalLatestBattleModeCdValue)
+			{
+				return true;
+			}
+		}
+		else
+		{
+			*BmIsRunning = false;
+			*BmRecastException = true;
+		}
+	}
+
+	return false;
+}
+
 //Private
 void Virtual_Memory_Protection_Cabal_Online::SumUpIndividualKeysInMap(std::map<int, unsigned int>* Map, unsigned int iValue)
 {
@@ -51,6 +144,15 @@ void Virtual_Memory_Protection_Cabal_Online::CleanUpMapIfSizeIsReached(std::map<
 {
 	if (Map->size() >= iSize)
 	{
+		//std::ofstream filestr;
+		//std::map<int, unsigned int>::iterator it;
+		//filestr.open(".\\nctmap.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+		//for (it = NctMap.begin(); it != NctMap.end(); it++)
+		//{
+		//	filestr << it->first << " || " << it->second << std::endl;
+		//}
+		//filestr << "-----------------------------" << std::endl;
+		//filestr.close();
 		Map->clear();
 	}
 }
@@ -74,7 +176,7 @@ bool Virtual_Memory_Protection_Cabal_Online::CloseProcessInstance()
 bool Virtual_Memory_Protection_Cabal_Online::NoIterativeFunctions_DetectManipulatedMemory()
 {
 	if ((VMP_CheckGameSpeed() || VMP_CheckWallBorders() || VMP_CheckZoomState() || 
-		VMP_CheckSkillRange() || VMP_CheckSkillCooldown() /*|| VMP_CheckFbBm1Freeze() || VMP_CheckNation()*/) == true)
+		VMP_CheckSkillRange() || VMP_CheckSkillCooldown()  /*|| VMP_CheckFbDame()|| VMP_CheckNation()*/) == true)
 	{
 		return true;
 	}
@@ -88,10 +190,10 @@ bool Virtual_Memory_Protection_Cabal_Online::NoIterativeFunctions_DetectManipula
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckGameSpeed()
 {
 	//Check if we are currently on a map
-	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalMapOffset) != iCabalMapDefaultValue)
+	if (GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalMapOffset) != iCabalMapDefaultValue)
 	{
 		//Check if the speed is normal (450)
-		float fCurrentSpeed = GetFloatViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSpeedOffset);
+		float fCurrentSpeed = GetFloatViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalSpeedOffset);
 		if (fCurrentSpeed > fCabalMaxPossibleSpeed)
 		{
 			//Function callback triggern
@@ -105,7 +207,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckGameSpeed()
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckWallBorders()
 {
 	//Skip algorithm, if MapValue is on default
-	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalMapOffset) == iCabalMapDefaultValue)
+	if (GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalMapOffset) == iCabalMapDefaultValue)
 	{
 		return false;
 	}
@@ -188,18 +290,18 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckZoomState()
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay()
 {
 	//Skip algorithm if skill animation is default
-	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
+	if (GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
 	{
 		return false;
 	}
 
 	//Get Skill Cast address to write them later
-	LPCVOID SkillCastAddress = GetAddressOfLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
+	LPCVOID SkillCastAddress = GetAddressOfLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
 
 	//CreateThread(NULL, NULL, LPTHREAD_START_ROUTINE(WriteMemoryValueAsync), (void*)this, 0, 0);
 	
 	//Get the actual animation value
-	int iCurrentAnimationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
+	int iCurrentAnimationValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
 
 	//Check of the animation value is currently showing a skill
 	if (iCurrentAnimationValue == iCabalAnimationSkill)
@@ -222,22 +324,22 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay()
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay_V2()
 {
 	//Skip algorithm if skill animation is default
-	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
+	if (GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
 	{
 		return false;
 	}	
 
 	if (iCabalLatestNSDValueForNSDAlgorithm == 0)
 	{
-		iCabalLatestNSDValueForNSDAlgorithm = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
+		iCabalLatestNSDValueForNSDAlgorithm = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
 	}
 
 	//Get the actual animation value
-	int iCurrentAnimationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
+	int iCurrentAnimationValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
 	//Get the current skill cast value
-	int iCurrentSkillDelayValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
+	int iCurrentSkillDelayValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
 	//Get battle mode
-	int iCurrentBattleMode = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
+	int iCurrentBattleModeState = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
 
 	//Check if there is currently an attack animation, AND
 	//1. an NSD that starts with 1 -> This value causes an Anomaly
@@ -265,10 +367,10 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay_V2()
 
 		//Check, if user is in BM2 (then the apperances needs to be X or higer
 		//		 if user is not in BM2 (then the apperances needs to be Y or higher
-		if (((iCurrentBattleMode == iCabalBm2Value1 || iCurrentBattleMode == iCabalBm2Value2) && iAnomalyApperances >= iNsdDetectionToleranceForBm2) ||
-			((iCurrentBattleMode != iCabalBm2Value1 && iCurrentBattleMode != iCabalBm2Value2) && iAnomalyApperances >= iNsdDetectionTolerance))
+		if (((iCurrentBattleModeState == iCabalBm2Value1 || iCurrentBattleModeState == iCabalBm2Value2) && iAnomalyApperances >= iNsdDetectionToleranceForBm2) ||
+			((iCurrentBattleModeState != iCabalBm2Value1 && iCurrentBattleModeState != iCabalBm2Value2) && iAnomalyApperances >= iNsdDetectionTolerance))
 		{
-		/*	std::ofstream filestr;
+	/*		std::ofstream filestr;
 			filestr.open(".\\nsddetect.txt", std::fstream::in | std::fstream::out | std::fstream::app);
 			std::vector<unsigned int>::iterator iIt;
 			for (iIt = NsdVector.begin(); iIt != NsdVector.end(); iIt++)
@@ -276,9 +378,9 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay_V2()
 				unsigned int& iItData(*iIt);
 				filestr << iItData << std::endl;
 			}
-			filestr << "-----------------------------1 " << iCurrentBattleMode << std::endl;
-			filestr.close();
-*/
+			filestr << "-----------------------------1 " << iCurrentBattleModeState << std::endl;
+			filestr.close();*/
+
 			std::stringstream ss;
 			ss << ">= " << iNctDetectionTolerance;
 			funcCallbackHandler("CABAL MODULE ADDRESS", "NSD", "-", ss.str());
@@ -287,16 +389,16 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay_V2()
 		//Cleanup vector if too large
 		if (NsdVector.size() >= iNsdQueueSize)
 		{
-			//std::ofstream filestr;
-			//filestr.open(".\\nsdmap.txt", std::fstream::in | std::fstream::out | std::fstream::app);
-			//std::vector<unsigned int>::iterator iIt;
-			//for (iIt = NsdVector.begin(); iIt != NsdVector.end(); iIt++)
-			//{
-			//	unsigned int& iItData(*iIt);
-			//	filestr << iItData << std::endl;
-			//}
-			//filestr << "-----------------------------" << iCurrentBattleMode << std::endl;
-			//filestr.close();
+			/*std::ofstream filestr;
+			filestr.open(".\\nsdmap.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+			std::vector<unsigned int>::iterator iIt;
+			for (iIt = NsdVector.begin(); iIt != NsdVector.end(); iIt++)
+			{
+				unsigned int& iItData(*iIt);
+				filestr << iItData << std::endl;
+			}
+			filestr << "-----------------------------" << iCurrentBattleModeState << std::endl;
+			filestr.close();*/
 			NsdVector.clear();
 		}
 
@@ -310,103 +412,84 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay_V2()
 	return false;
 }
 
-//OUTDATED
-bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime()
-{
-	//Skip algorithm if animation var is default
-	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
-	{
-		return false;
-	}
-
-	//Check if its the first run, collect NSD + NCT Value
-	if (iCabalLatestNoCastTimeValue == 0 && iCabalLatestNSDValueForNCTAlgorithm == 0)
-	{
-		iCabalLatestNoCastTimeValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
-		iCabalLatestNSDValueForNCTAlgorithm = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
-		//BM Fix
-		iCabalLatestBattleModeStateValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
-	}
-
-	
-	//Get actual NSD value
-	int iCurrentNSDValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
-	//Collect the animation value
-	int iCurrentAnimationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
-	//Collect battle mode value
-	int iCurrentBattleModeValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
-
-	//Check, if there was a skill change after the last run of this algorithm
-	//Check, if we are currently performing an attack + check if the animation is also an attack + check if we havent changed the battle mode 
-	if (iCurrentNSDValue != iCabalLatestNSDValueForNCTAlgorithm && iCurrentAnimationValue == iCabalAnimationSkill && iCurrentNSDValue >= iCabalSkillValueLowerLimit && iCurrentBattleModeValue == iCabalLatestBattleModeStateValue)
-	{
-		//This sleep exist for the following reason:
-		//If you freeze the NCT var via hack, it rewrites the variable permanently. That means, the NCT is toggling between a random value + the value that is freezig.
-		//There must be a smart delay, after the algorithm detected a skill change + recognized, that there is a attack performing (IF1 and IF2) to catch the var that the hack is freezing.
-		//Since we store the latest NCT value, it will recognize -> a change, if there is no hack
-		//														 -> no change, if there is a hack
-		Sleep(200);
-
-		//Get the actual NCT value
-		int iCurrentNoCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
-			
-		//Check if the var did not change after a second attack skill
-		if (iCabalLatestNoCastTimeValue == iCurrentNoCastValue && iCurrentAnimationValue == iCabalAnimationSkill)
-		{
-			funcCallbackHandler("CABAL MODULE ADDRESS", "NO CAST TIME OFFSET", ">3000000", "");
-			return true;
-		}
-		else
-		{
-			iCabalLatestNoCastTimeValue = iCurrentNoCastValue;				
-		}
-		
-		iCabalLatestNSDValueForNCTAlgorithm = iCurrentNSDValue;
-		iCabalLatestBattleModeStateValue = iCabalLatestBattleModeStateValue;
-	}
-
-	return false;
-}
-
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime_V2()
 {
 	//Skip algorithm if animation var is default
-	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
+	if (GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
 	{
 		return false;
 	}
 	
 	//Check if its the first run, collect NSD + NCT Value
-	if (iCabalLatestNoCastTimeValue == 0 && iCabalLatestNSDValueForNCTAlgorithm == 0)
+	if (iCabalLatestNSDValueForNCTAlgorithm == 0)
 	{
-		iCabalLatestNoCastTimeValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
-		iCabalLatestNSDValueForNCTAlgorithm = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
-		//BM Fix
-		iCabalLatestBattleModeStateValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
+		iCabalLatestSkillAnimationValueForNCTAlgorithm = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset);
+		iCabalLatestNSDValueForNCTAlgorithm = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
+		iCurrentSelectedChannel = ReadMemoryInt(hProcessHandle, lpcvCabalChannelAddress);
 	}
 
-	//Get actual NSD value
-	int iCurrentNSDValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
-	//Collect battle mode value
-	int iCurrentBattleModeValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
+	//Get current NSD value
+	int iCurrentNSDValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
+	
+	//Get current animation ´value
+	int iCurrentAnimationValue1 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset);
+
 	//Animation
-	int iCurrentAnimationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
+	int iCurrentAnimationValue2 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
+
+	//Battle mode state
+	int iCurrentBattleModeState = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
+
+	//Channel
+	int iCurrentChannelInMemory = ReadMemoryInt(hProcessHandle, lpcvCabalChannelAddress);
+
+	//If character dies, or map switched
+	if (iCurrentAnimationValue2 == iCabalAnimationDeath && iCurrentChannelInMemory != iCurrentSelectedChannel)
+	{
+		iCurrentSelectedChannel = iCurrentChannelInMemory;
+		CleanUpMapIfSizeIsReached(&NctMap, 0);
+		return false;
+	}
 
 	//On attack - skill change
-	if (iCurrentNSDValue != iCabalLatestNSDValueForNCTAlgorithm && iCurrentAnimationValue == iCabalAnimationSkill && iCurrentNSDValue >= iCabalSkillValueLowerLimit && 
-		iCurrentBattleModeValue == iCabalLatestBattleModeStateValue)
+	if( //Normal Mode. Waits for animation change + requires to be in an attack 
+		iCurrentAnimationValue1 != iCabalLatestSkillAnimationValueForNCTAlgorithm && /*iCurrentAnimationValue2 == iCabalAnimationSkill ||*/
+		//Wizzard exception: Check if in Bm + Skill change + Skill = Attack + requires to be in an attack
+		/*iCurrentBattleModeState > 2 &&*/ iCurrentNSDValue != iCabalLatestNSDValueForNCTAlgorithm && iCurrentNSDValue > iCabalSkillValueLowerLimit && iCurrentAnimationValue2 == iCabalAnimationSkill ||
+		//Normal Attack spammer BMs: Check if normal attack spam
+		//	GL + WA
+		iCurrentAnimationValue1 == 96 ||
+		//  BL
+		iCurrentAnimationValue1 == 100 ||
+		//	FA
+		iCurrentAnimationValue1 == 104 ||
+		iCurrentAnimationValue1 == 106 ||
+		//  FS
+		iCurrentAnimationValue1 == 108 ||
+		//  FB
+		iCurrentAnimationValue1 == 111)
 	{
-
 		Sleep(iNctWaitAfterSkillChange);
 
+		//If triggered because of BM2 spam: wait X second to slow down iteration (Can be added to canon)
+		if (iCurrentAnimationValue1 == 96 ||
+			iCurrentAnimationValue1 == 100 ||
+			iCurrentAnimationValue1 == 104 ||
+			iCurrentAnimationValue1 == 106 ||
+			iCurrentAnimationValue1 == 108 ||
+			iCurrentAnimationValue1 == 111)
+		{
+			Sleep(600);
+		}
+
 		//Get the actual NCT value
-		int iCurrentNoCastValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
+		int iCurrentNoCastValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalNoCastTimeOffset);
 
 		//Add value to map
 		SumUpIndividualKeysInMap(&NctMap, iCurrentNoCastValue);
 
 		iCabalLatestNSDValueForNCTAlgorithm = iCurrentNSDValue;
-		iCabalLatestBattleModeStateValue = iCurrentBattleModeValue;
+		iCabalLatestSkillAnimationValueForNCTAlgorithm = iCurrentAnimationValue1;
 
 		//Check map
 		unsigned int iDetectedKey = 0;
@@ -415,17 +498,17 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime_V2()
 			/*std::ofstream filestr;
 
 			std::map<int, unsigned int>::iterator it;
-			filestr.open(".\\nctmap.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+			filestr.open(".\\nctdetect.txt", std::fstream::in | std::fstream::out | std::fstream::app);
 			for (it = NctMap.begin(); it != NctMap.end(); it++)
 			{
-			filestr << it->first << " || " << it->second << std::endl;
+				filestr << it->first << " || " << it->second << std::endl;
 			}
-			filestr << "-----------------------------" << std::endl;
+			filestr << "-----------------------------" << " B: " << iCurrentBattleModeState << " A1: " << iCurrentAnimationValue1 << " A2: " << iCurrentAnimationValue2 << " ND: " << iCurrentNSDValue << "LND: " << iCabalLatestNSDValueForNCTAlgorithm << std::endl;
 			filestr.close();*/
 
 			std::stringstream ss;
 			ss << ">= " << iNctDetectionTolerance;
-			funcCallbackHandler("CABAL MODULE ADDRESS", "NSD", std::to_string(iDetectedKey), ss.str());
+			funcCallbackHandler("CABAL MODULE ADDRESS", "NCT", std::to_string(iDetectedKey), ss.str());
 			return true;
 		}
 
@@ -443,12 +526,12 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckSkillRange()
 	int iCabalCurrentRangeValue = ReadMemoryInt(hProcessHandle, lpcvCabalRangeAddress);
 	int iCabalCurrentAoeValue = ReadMemoryInt(hProcessHandle, lpcvCabalAoeAddress);
 
-	int iCabalCurrentRangeValue1 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalRangeOffset1);
-	int iCabalCurrentRangeValue2 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalRangeOffset2);
+	int iCabalCurrentRangeValue1 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalRangeOffset1);
+	int iCabalCurrentRangeValue2 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalRangeOffset2);
 
 	if (iCabalCurrentGmValue != iCabalDefaultGM || iCabalCurrentRangeValue != iCabalDefaultRange || iCabalCurrentAoeValue != iCabalDefaultAOE
-		|| (iCabalCurrentRangeValue1 < iCabalDefaultRange || iCabalCurrentRangeValue1 > iCabalFgAndFaException)
-		|| (iCabalCurrentRangeValue2 < iCabalDefaultRange || iCabalCurrentRangeValue2 > iCabalFgAndFaException))
+		|| (iCabalCurrentRangeValue1 < iCabalRangeLowerLimit || iCabalCurrentRangeValue1 > iCabalRangeUpperLimit)
+		|| (iCabalCurrentRangeValue2 < iCabalRangeLowerLimit || iCabalCurrentRangeValue2 > iCabalRangeUpperLimit))
 	{
 		std::stringstream ss;
 		ss << "GM: " << iCabalCurrentGmValue << " | Range: " << iCabalCurrentRangeValue << " | Aoe: " << iCabalCurrentAoeValue << " | RangeA: "
@@ -489,7 +572,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckSkillCooldown()
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNation()
 {
 	//Get nation value
-	int iCurrentNationValue = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalNationOffset);
+	int iCurrentNationValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalNationOffset);
 
 	//Check if its the GM nation
 	if (iCurrentNationValue == iCabalGm)
@@ -509,7 +592,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNation()
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckPerfectCombo()
 {
 	//Skip algorithm if animation var is default
-	if (GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
+	if (GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset) == iCabalSkillAnimationDefaultValue)
 	{
 		return false;
 	}
@@ -518,21 +601,21 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckPerfectCombo()
 	if (iCabalLatestComboValue1 == 0 && iCabalLatestComboValue2 == 0 && iCabalLatestComboValue3 == 0 &&
 		iCabalLatestComboValue4 == 0 && iCabalLatestComboValue5 == 0)
 	{
-		iCabalLatestComboValue1 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset1);
-		iCabalLatestComboValue2 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset2);
-		iCabalLatestComboValue3 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset3);
-		iCabalLatestComboValue4 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset4);
-		iCabalLatestComboValue5 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset5);
-		iCabalLatestComboValue6 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset6);
+		iCabalLatestComboValue1 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset1);
+		iCabalLatestComboValue2 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset2);
+		iCabalLatestComboValue3 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset3);
+		iCabalLatestComboValue4 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset4);
+		iCabalLatestComboValue5 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset5);
+		iCabalLatestComboValue6 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset6);
 	}
 
 	//Collect current combo values to check, if there is a combo started
-	int iCurrentComboValue1 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset1);
-	int iCurrentComboValue2 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset2);
-	int iCurrentComboValue3 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset3);
-	int iCurrentComboValue4 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset4);
-	int iCurrentComboValue5 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset5);
-	int iCurrentComboValue6 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset6);
+	int iCurrentComboValue1 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset1);
+	int iCurrentComboValue2 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset2);
+	int iCurrentComboValue3 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset3);
+	int iCurrentComboValue4 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset4);
+	int iCurrentComboValue5 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset5);
+	int iCurrentComboValue6 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset6);
 
 	if (iCurrentComboValue1 != iCabalLatestComboValue1 && iCurrentComboValue2 != iCabalLatestComboValue2 && iCurrentComboValue3 != iCabalLatestComboValue3 &&
 		iCurrentComboValue4 != iCabalLatestComboValue4 && iCurrentComboValue5 != iCabalLatestComboValue5 && iCurrentComboValue6 != iCabalLatestComboValue6)
@@ -541,12 +624,12 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckPerfectCombo()
 		Sleep(iNctWaitAfterSkillChange);
 
 		//Collect data again
-		int iCurrentComboValue1 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset1);
-		int iCurrentComboValue2 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset2);
-		int iCurrentComboValue3 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset3);
-		int iCurrentComboValue4 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset4);
-		int iCurrentComboValue5 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset5);
-		int iCurrentComboValue6 = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset6);
+		int iCurrentComboValue1 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset1);
+		int iCurrentComboValue2 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset2);
+		int iCurrentComboValue3 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset3);
+		int iCurrentComboValue4 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset4);
+		int iCurrentComboValue5 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset5);
+		int iCurrentComboValue6 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalComboOffset6);
 
 		//Write vars to map
 		SumUpIndividualKeysInMap(&PerfectComboMap1, iCurrentComboValue1);
@@ -592,9 +675,9 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckPerfectCombo()
 bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckFbBm1Freeze()
 {
 
-	int iCurrentBattleModeState = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
+	int iCurrentBattleModeState = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
 	Sleep(20);
-	int iCurrentBattlemodeStateB = GetIntViaLevel2Pointer(lpcvCabalBaseAddress, lpcvCabalBattelModeStateBOffset);;
+	int iCurrentBattlemodeStateB = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalBattelModeStateBOffset);;
 
 	if (iCurrentBattleModeState != 16 && iCurrentBattlemodeStateB == 3)
 	{
@@ -602,6 +685,138 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckFbBm1Freeze()
 		ss << "State B: " << iCurrentBattlemodeStateB;
 		funcCallbackHandler("CABAL MODULE ADDRESS", "FBBM1F", "<> 3", ss.str());
 	}
+
+	return false;
+}
+
+bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckBmCooldownReset()
+{
+	//BM1
+	if (VMP_Private_Abstract_CheckBmCooldownReset(&iCabalLatestBattleMode1CdValue,
+		lpcvCabalBaseAddress, lpcvCabalBM1Offset1, lpcvCabalBM1Offset2, lpcvCabalBM1Offset3,
+		&ctCabalBM1Timer, &bBm1IsRunning, &bBm1RecastException, &iLatestAnimationValueForBM1))
+	{
+
+		funcCallbackHandler("CABAL BASE ADDRESS", "BMCD1", "", "");
+		return true;
+	}
+	//BM2
+	if (VMP_Private_Abstract_CheckBmCooldownReset(&iCabalLatestBattleMode2CdValue,
+		lpcvCabalBaseAddress, lpcvCabalBM1Offset1, lpcvCabalBM2Offset2, lpcvCabalBM1Offset3,
+		&ctCabalBM2Timer, &bBm2IsRunning, &bBm2RecastException, &iLatestAnimationValueForBM2))
+	{
+
+		funcCallbackHandler("CABAL BASE ADDRESS", "BMCD2", "", "");
+		return true;
+	}
+	//AURA
+	if (VMP_Private_Abstract_CheckBmCooldownReset(&iCabalLatestAuraCdValue,
+		lpcvCabalBaseAddress, lpcvCabalBM1Offset1, lpcvCabalAuraOffset2, lpcvCabalBM1Offset3,
+		&ctCabalAuraTimer, &bAuraIsRunning, &bAuraRecastException, &iLatestAnimationValueForAura))
+	{
+
+		funcCallbackHandler("CABAL BASE ADDRESS", "ACD", "", "");
+		return true;
+	}
+	
+	return false;
+}
+
+bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckKillGate()
+{
+	//Skip algorithm, if MapValue is on default
+	if (GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalMapOffset) == iCabalMapDefaultValue)
+	{
+		return false;
+	}
+
+	if (iCabalLatestMapValue == -1)
+	{
+		iCabalLatestMapValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalMapOffset);
+	}
+
+	int iCurrentMapValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalMapOffset);
+	int iCurrentNoSkillDelayValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
+
+	LPCVOID TestAdress = (LPCVOID)((unsigned int)0x400000 + (unsigned int)0x793530);
+
+	const char* test = ReadMemoryString(hProcessHandle, lpcvCabalBaseAddress);
+	if (iCurrentMapValue != iCabalLatestMapValue)
+	{
+		if (iCurrentNoSkillDelayValue < iCabalSkillValueLowerLimit)
+		{
+			funcCallbackHandler("CABAL BASE ADDRESS", "KG", std::to_string(iCurrentMapValue), std::to_string(iCabalLatestMapValue));
+			return true;
+		}
+		else
+		{
+			iCabalLatestMapValue = iCurrentMapValue;
+		}
+	}
+
+	return false;
+}
+
+bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckFbDame()
+{
+	int iCurrentBattleModeState = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
+	int iCurrentSkillDelayValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
+
+	if (iCurrentBattleModeState != 16 && iCurrentBattleModeState != 32 && iCurrentBattleModeState != 8 && iCurrentBattleModeState != 24 && iCurrentBattleModeState != 40 && iCurrentSkillDelayValue < iCabalSkillValueLowerLimit)
+	{
+		int iCurrentBattleModeStateB = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalBattelModeStateBOffset);
+		
+		if (iCurrentBattleModeStateB >= iFbDameBattleModeStateBAnormaly)
+		{
+			
+			FbDameVector.push_back(iCurrentBattleModeStateB);
+
+			//Collect anormalies in map
+			std::vector<unsigned int>::iterator iIt;
+			unsigned int iAnomalyApperances = 0;
+
+			for (iIt = FbDameVector.begin(); iIt != FbDameVector.end(); iIt++)
+			{
+				unsigned int& iItData(*iIt);
+				if (iItData > iFbDameBattleModeStateBAnormaly)
+				{
+					iAnomalyApperances++;
+					Sleep(iFbDameAnormalyWaitTime);
+				}
+			}
+
+			//Check if anormalies are too high
+			if (iAnomalyApperances > iFbDameDetectionTolerance)
+			{
+				std::stringstream ss;
+				ss << ">= " << iFbDameDetectionTolerance;
+				std::string sDefault = ss.str();
+				ss.str("");
+				ss << FbDameVector.back();
+				std::string sDetected = ss.str();
+				funcCallbackHandler("CABAL MODULE ADDRESS", "FBDAME", sDetected, sDefault);
+			}
+
+			//Cleanup vector if too large
+			if (FbDameVector.size() >= iFbDameVectorQueueSize)
+			{
+				/*std::ofstream filestr;
+				filestr.open(".\\FbDameMap.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+				std::vector<unsigned int>::iterator iIt;
+				for (iIt = NsdVector.begin(); iIt != NsdVector.end(); iIt++)
+				{
+					unsigned int& iItData(*iIt);
+					filestr << iItData << std::endl;
+				}
+				filestr << "-----------------------------" << iCurrentBattleModeState << std::endl;
+				filestr.close();*/
+				FbDameVector.clear();
+			}
+
+		}
+	}
+
+
 
 	return false;
 }
