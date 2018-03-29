@@ -10,16 +10,20 @@ protected:
 	HANDLE hProcessHandle;
 
 	//Pointer Getter
-	int GetIntViaLevel2Pointer(LPCVOID BaseAddress, LPCVOID Offset);
-	float GetFloatViaLevel2Pointer(LPCVOID BaseAddress, LPCVOID Offset);
-	const char* GetStringViaLevel2Pointer(LPCVOID BaseAddress, LPCVOID Offset);
+	int GetIntViaLevel1Pointer(LPCVOID BaseAddress, LPCVOID Offset);
+	float GetFloatViaLevel1Pointer(LPCVOID BaseAddress, LPCVOID Offset);
+	const char* GetStringViaLevel1Pointer(LPCVOID BaseAddress, LPCVOID Offset);
+
+	int GetIntViaLevel3Pointer(LPCVOID BaseAddress, LPCVOID Offset1, LPCVOID Offset2, LPCVOID Offset3);
+
 
 	//Address Getter
-	LPCVOID GetAddressOfLevel2Pointer(LPCVOID BaseAddress, LPCVOID Offset);
+	LPCVOID GetAddressOfLevel1Pointer(LPCVOID BaseAddress, LPCVOID Offset);
 
 	//Value Getter
 	int ReadMemoryInt(HANDLE processHandle, LPCVOID address);
 	float ReadMemoryFloat(HANDLE processHandle, LPCVOID address);
+	const char* ReadMemoryString(HANDLE processHandle, LPCVOID address);
 
 	//Value writer
 	bool WriteIntToMemory(HANDLE processHandle, LPCVOID address, int iValue);
