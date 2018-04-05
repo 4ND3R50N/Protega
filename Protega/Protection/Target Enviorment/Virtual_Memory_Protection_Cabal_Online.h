@@ -90,7 +90,7 @@ private:
 	std::map<int, unsigned int> NctMap;
 	unsigned int iNctWaitAfterSkillChange = 250;
 	unsigned int iNctQueueSize = 20;
-	unsigned int iNctDetectionTolerance = 3;
+	unsigned int iNctDetectionTolerance = 4;
 
 
 	std::vector<unsigned int> NsdVector;

@@ -438,7 +438,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime_V2()
 	int iCurrentAnimationValue2 = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
 
 	//Battle mode state
-	int iCurrentBattleModeState = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
+	//int iCurrentBattleModeState = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
 
 	//Channel
 	int iCurrentChannelInMemory = ReadMemoryInt(hProcessHandle, lpcvCabalChannelAddress);
