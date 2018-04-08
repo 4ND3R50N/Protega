@@ -3,7 +3,7 @@
 
 #pragma region PROTES_STATIC_DATA_CONFIG
 
-int Data_Manager::SOFTWARE_VERSION = 114;
+int Data_Manager::SOFTWARE_VERSION = 115;
 
 //Web data
 
@@ -21,8 +21,8 @@ const char* Data_Manager::LOCAL_DATA_PROTEGA_IMAGE = "Protega_Logo.bmp";
 std::string Data_Manager::LOCAL_DATA_PROTECTION_TARGET = "CabalMain.exe";
 
 //Network data
-const char* Data_Manager::NETWORK_SERVER_IP = "62.138.6.50";
-//13015
+const char* Data_Manager::NETWORK_SERVER_IP = "192.99.142.28";
+
 int Data_Manager::NETWORK_SERVER_PORT = 13016;
 int Data_Manager::NETWORK_MAX_SEND_RETRIES = 3;
 std::string Data_Manager::NETWORK_PROTOCOL_DELIMITER = "~";
