@@ -16,7 +16,7 @@ namespace Protega___Server.Classes.Core
     {
         //Variablen
         public networkServer TcpServer;
-        public List<networkServer.networkClientInterface> ActiveConnections;
+        public List<networkServer.networkClientInterface> ActiveConnections = null;
         public ProtocolController ProtocolController;
         
         private string sAesKey;
@@ -48,8 +48,9 @@ namespace Protega___Server.Classes.Core
         public ControllerCore(string _ApplicationName, int LatestClientVersion, short _iPort, char _cProtocolDelimiter, string _EncryptionKey, string _EncryptionIV, int _PingTimer, int SessionLength, string _sDatabaseDriver,
             string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath, int LogLevel, string PathGameDll)
         {
+
             //Logging initialisations
-            Support.logWriter Logger = new logWriter(_sLogPath, LogLevel);
+            Support.logWriter Logger = new logWriter(_sLogPath, Path.Combine(Path.GetDirectoryName(_sLogPath), "DetectionLog"), LogLevel);
             Logger.Seperate();
             Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "Logging class initialized!");
             DBEngine dBEngine = null;
@@ -139,9 +140,9 @@ namespace Protega___Server.Classes.Core
             ProtocolController.SendProtocol += this.SendProtocol;
             Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "TCP Server ready for start!");
             Logger.Seperate();
-            ProtocolController = new ProtocolController(ref ActiveConnections, Application.ID);
+            ProtocolController = new ProtocolController(cProtocolDelimiter, ref this.ActiveConnections, Application.ID);
 
-            ProtocolController.ReceivedProtocol(null, "500;23");
+            //ProtocolController.ReceivedProtocol(null, "500;23");
 
         }
         
@@ -180,7 +181,7 @@ namespace Protega___Server.Classes.Core
         public void NetworkProtocol(ref networkServer.networkClientInterface NetworkClient, string message)
         {
             //Public for the Unit Tests
-            CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received: " + message);
+            CCstData.GetInstance(Application).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received: " + message);
             try
             {
                 //Öañ4\u001b3[\b\nÎbÞö}\u0010VDYZ‚\u009d\u0005sQ˜e@p•\u001e\ab{ó¥Ÿ›¨YÉ`\\wõˆ¹éî\0
@@ -205,7 +206,10 @@ namespace Protega___Server.Classes.Core
                 CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Protocol Decryption failed! Message: " + message + ", Error: " + e.ToString());
                 return;
             }
-            CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received decrypted: " + message);
+
+            //Dont log Pings cause it would spam the log
+            if(!message.StartsWith("600"))
+                CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received decrypted: " + message);
             ProtocolController.ReceivedProtocol(NetworkClient, message);
         }
 
@@ -219,13 +223,33 @@ namespace Protega___Server.Classes.Core
                 LengthAddition = "0" + LengthAddition;
             }
             EncryptedProt = LengthAddition + EncryptedProt;
-            CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Protocol encrypted: {0} ({1})", EncryptedProt, Protocol));
+            CCstData.GetInstance(Application).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Protocol encrypted: {0} ({1})", EncryptedProt, Protocol));
 
             TcpServer.sendMessage(EncryptedProt, ClientInterface);
         }
         #endregion
 
         #region Support functions
+        public void CheckPings()
+        {
+            string PingCheck = "";
+            int PingTimer = CCstData.GetInstance(Application).PingTimer;
+
+            foreach (var item in ActiveConnections)
+            {
+                TimeSpan PingStatus = (DateTime.Now - item._LastPing);
+                if (PingStatus.TotalMilliseconds > PingTimer)
+                {
+                    PingCheck+=String.Format("User {0}, IP {1}, LoginTime {2}, LastPing {3}, Difference {4} sec - ", item.User.ID,item.IP,item.ConnectedTime.ToShortTimeString(), PingStatus.TotalSeconds);
+                }
+            }
+            if (PingCheck.Length == 0)
+                PingCheck = "PingCheck: Everything is alright!";
+            else
+                PingCheck = "PingCheck: Inconsistencies! (Max PingTimer: "+PingTimer.ToString()+" ms) \n " + PingCheck;
+
+            CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, LoggerType.SERVER, PingCheck);
+        }
         //private List<string> GetProtocolData(string message)
         //{
         //    return message.Split(cProtocolDelimiter).ToList();

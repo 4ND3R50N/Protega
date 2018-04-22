@@ -72,6 +72,7 @@ namespace Protega___Server
             }
             catch (Exception e)
             {
+                Console.WriteLine("Starting Error: " + e.Message);
                 return false;
             }
             return true;
@@ -79,7 +80,7 @@ namespace Protega___Server
 
         private void AcceptCallback(IAsyncResult result)
         {
-            Protega___Server.Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, Support.LogCategory.OK, Support.LoggerType.SERVER, "Protocol accepted");
+            Protega___Server.Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(5, Support.LogCategory.OK, Support.LoggerType.SERVER, "Protocol accepted");
             //Wenns klappt, using drum!
             networkClientInterface connection = new networkClientInterface((Socket)result.AsyncState, result);
             
@@ -110,7 +111,7 @@ namespace Protega___Server
 
         private void ReceiveCallback(IAsyncResult result)
         {
-            Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, Support.LogCategory.OK, Support.LoggerType.SERVER, "Protocol received");
+            Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, Support.LogCategory.OK, Support.LoggerType.SERVER, "Protocol received");
             networkClientInterface connection = (networkClientInterface)result.AsyncState;
             try
             {
@@ -162,11 +163,11 @@ namespace Protega___Server
                 byte[] bytes = Encoding.Default.GetBytes(message);
                 client.networkSocket.Send(bytes, bytes.Length,
                                 SocketFlags.None);
-                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, Support.LoggerType.SERVER, String.Format("Protocol sending succeeded. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
+                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(4, Support.LogCategory.OK, Support.LoggerType.SERVER, String.Format("Protocol sending succeeded. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
             }
             catch (Exception e)
             {
-                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Protocol sending failed. Protocol: {0}, Session: {1}, HardwareID: {2}. Error {3}", message, client.SessionID, client.User.ID, e.Message));
+                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(4, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Protocol sending failed. Protocol: {0}, Session: {1}, HardwareID: {2}. Error {3}", message, client.SessionID, client.User.ID, e.Message));
                 closeConnection(client);
             }
         }
@@ -188,7 +189,7 @@ namespace Protega___Server
         }
 
         //Class model -> Client -> MUST be edited for each implementation 
-        public class networkClientInterface:IDisposable
+        public class networkClientInterface : IDisposable
         {
             //Technical API
             public Socket networkSocket;
@@ -197,28 +198,51 @@ namespace Protega___Server
             public Classes.Entity.EPlayer User;
             public string SessionID;
             public DateTime ConnectedTime;
+            List<IPAddress> listIPs = new List<IPAddress>();
+            public DateTime _LastPing = DateTime.MinValue;
 
-            private IPAddress _IP;
+            private IPAddress _LatestIP;
+            public bool KickTriggered = false;
+            int ApplicationID = 0;
 
             public IPAddress IP
             {
                 get
                 {
-                    if (_IP == null)
+                    IPAddress CurrentIP = null;
+                    try
                     {
-                        try
-                        {
-                            _IP = (networkSocket.RemoteEndPoint as IPEndPoint).Address;
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine("Could not get IP. User: " + User.ID + ", Session: " + SessionID+", Error: "+e.Message);
-                        }
+                        CurrentIP = (networkSocket.RemoteEndPoint as IPEndPoint).Address;
                     }
-                    return _IP;
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Could not get IP. User: " + User.ID + ", Session: " + SessionID + ", Error: " + e.Message);
+                        return _LatestIP;
+                    }
+
+                    if (_LatestIP == null)
+                    {
+                        _LatestIP = CurrentIP;
+                        listIPs.Add(CurrentIP);
+                        return _LatestIP;
+                    }
+                    if (CurrentIP == _LatestIP)
+                        return _LatestIP;
+
+                    listIPs.Add(CurrentIP);
+                    _LatestIP = CurrentIP;
+
+                    if (ApplicationID != 0)
+                    {
+                        string FormerIPs = "";
+                        listIPs.ForEach(IP => FormerIPs += IP + " - ");
+                        Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Client IP Changed! CurrentIP: {0}. Former IPs: {2}", CurrentIP, FormerIPs));
+                    }
+                    return _LatestIP;
                 }
-                set { _IP = value; }
+                set { _LatestIP = value; }
             }
+            
 
             public delegate void KickUser(networkClientInterface Client);
             event KickUser Kick;
@@ -267,7 +291,7 @@ namespace Protega___Server
                 //Kick - Timer elapsed
                 Kick(this);
 
-                Classes.CCstData.GetInstance(this.User.Application.ID).Logger.writeInLog(3, Support.LogCategory.OK, Support.LoggerType.SERVER, String.Format("User timeout! Session: {0}, HardwareID: {1}", this.SessionID, this.User.ID));
+                Classes.CCstData.GetInstance(this.User.Application.ID).Logger.writeInLog(4, Support.LogCategory.OK, Support.LoggerType.SERVER, String.Format("User timeout! Session: {0}, HardwareID: {1}", this.SessionID, this.User.ID));
                 this.Dispose();
                 //User kicked
             }
@@ -277,6 +301,7 @@ namespace Protega___Server
             {
                 tmrPing.Stop();
                 tmrPing.Start();
+                _LastPing = DateTime.Now;
             }
 
             public networkClientInterface(Socket connection, IAsyncResult result)

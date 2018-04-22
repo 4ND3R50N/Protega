@@ -35,6 +35,10 @@ namespace Protega___Server
                     case "ConfigReload":
                         RefreshSettings();
                         break;
+                    case "CheckPings":
+                        if (AppsRunning.Count > 0)
+                            AppsRunning[0].CheckPings();
+                        break;
                     default:
                         Console.WriteLine("Command '" + Command + "' unknown!");
                         Console.WriteLine("Available: Online, ConfigReload (refreshes Version, PingTimer, EncryptionKey/IV from Config.ini");

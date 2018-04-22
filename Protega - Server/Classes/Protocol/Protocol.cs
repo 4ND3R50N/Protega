@@ -10,10 +10,12 @@ namespace Protega___Server.Classes.Protocol
         public string UserID;
         private string ReceivedString;
         private ArrayList values = new ArrayList();
+        char Delimiter;
         
-        public Protocol(string protocol)
+        public Protocol(string protocol, char Delimiter)
         {
             ReceivedString = protocol;
+            this.Delimiter = Delimiter;
         }
         
         public bool Split()
@@ -22,7 +24,7 @@ namespace Protega___Server.Classes.Protocol
 
             //Every protocol must have at least 2 parameters (Protocol ID & Session ID), seperated by the delimiter
             //If this is not the case, the protocol is not sent by one of our clients
-            if (!ReceivedString.Contains(";") || (elements = ReceivedString.Split(';')).Length < 2)
+            if (!ReceivedString.Contains(Delimiter.ToString()) || (elements = ReceivedString.Split(Delimiter)).Length < 2)
                 return false;
 
             //Make sure that Index 0 is an Integer
