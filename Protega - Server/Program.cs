@@ -181,7 +181,7 @@ namespace Protega___Server
                     }
 
                     int FormerPingTimer = Classes.CCstData.GetInstance(AppsRunning[0].Application).PingTimer;
-                    if (FormerEncryptionIV != EncryptionIV)
+                    if (FormerPingTimer != PingTimer)
                     {
                         Classes.CCstData.GetInstance(AppsRunning[0].Application).PingTimer = PingTimer;
                         Console.WriteLine("CONFIG update: Using now PingTimer " + PingTimer.ToString() + "ms");

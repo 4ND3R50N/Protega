@@ -238,9 +238,9 @@ namespace Protega___Server.Classes.Core
             foreach (var item in ActiveConnections)
             {
                 TimeSpan PingStatus = (DateTime.Now - item._LastPing);
-                if (PingStatus.TotalMilliseconds > PingTimer)
+                if (PingStatus.TotalMilliseconds + 2000 > PingTimer)
                 {
-                    PingCheck+=String.Format("User {0}, IP {1}, LoginTime {2}, LastPing {3}, Difference {4} sec - ", item.User.ID,item.IP,item.ConnectedTime.ToShortTimeString(), PingStatus.TotalSeconds);
+                    PingCheck += String.Format("User {0}, IP {1}, LoginTime {2}, LastPing {3}, Difference {4} sec - ", item.User.ID, item.IP, item.ConnectedTime.ToShortTimeString(), item._LastPing.ToShortTimeString(), PingStatus.TotalSeconds);
                 }
             }
             if (PingCheck.Length == 0)

@@ -203,44 +203,11 @@ namespace Protega___Server
 
             private IPAddress _LatestIP;
             public bool KickTriggered = false;
-            int ApplicationID = 0;
 
             public IPAddress IP
             {
-                get
-                {
-                    IPAddress CurrentIP = null;
-                    try
-                    {
-                        CurrentIP = (networkSocket.RemoteEndPoint as IPEndPoint).Address;
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("Could not get IP. User: " + User.ID + ", Session: " + SessionID + ", Error: " + e.Message);
-                        return _LatestIP;
-                    }
-
-                    if (_LatestIP == null)
-                    {
-                        _LatestIP = CurrentIP;
-                        listIPs.Add(CurrentIP);
-                        return _LatestIP;
-                    }
-                    if (CurrentIP == _LatestIP)
-                        return _LatestIP;
-
-                    listIPs.Add(CurrentIP);
-                    _LatestIP = CurrentIP;
-
-                    if (ApplicationID != 0)
-                    {
-                        string FormerIPs = "";
-                        listIPs.ForEach(IP => FormerIPs += IP + " - ");
-                        Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Client IP Changed! CurrentIP: {0}. Former IPs: {2}", CurrentIP, FormerIPs));
-                    }
-                    return _LatestIP;
-                }
-                set { _LatestIP = value; }
+                get { return _LatestIP; }
+                set { CheckIP(); }
             }
             
 
@@ -270,13 +237,55 @@ namespace Protega___Server
                 }
             }
 
+            public void CheckIP()
+            {
+                IPAddress CurrentIP = null;
+
+                //Try to get the current IP address
+                try
+                {
+                    if (networkSocket.Connected)
+                        CurrentIP = (networkSocket.RemoteEndPoint as IPEndPoint).Address;
+                }
+                catch (Exception e)
+                {
+                    if (User.Application.ID != 0)
+                        Classes.CCstData.GetInstance(User.Application.ID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.CLIENT, "Could not get IP.User: " + User.ID + ", Session: " + SessionID + ", Error: " + e.Message);
+                }
+                
+                //If CurrentIP could not be fetched, log and ignore it
+                if (CurrentIP != null)
+                {
+                    if (CurrentIP == _LatestIP)
+                        return;
+                    
+                    //Update LatestIP if IP has changed
+                    _LatestIP = CurrentIP;
+                    listIPs.Add(CurrentIP);
+
+                    //Log that this case is possible
+                    if (User.Application.ID != 0)
+                    {
+                        string FormerIPs = "";
+                        listIPs.ForEach(IP => FormerIPs += IP + " - ");
+                        Classes.CCstData.GetInstance(User.Application.ID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Client IP Changed! CurrentIP: {0}. Former IPs: {1}", CurrentIP, FormerIPs));
+                    }
+                }
+                else
+                {
+                    if (User.Application.ID != 0)
+                    {
+                        Classes.CCstData.GetInstance(User.Application.ID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Cannot get current IP! User: {0}. Session: {1}", User.ID, SessionID));
+                    }
+                }
+            }
+
             public networkClientInterface()
             {
             }
             public void SetPingTimer(int Interval, KickUser _Kick)
             {
                 this.Kick = _Kick;
-
                 tmrPing = new System.Timers.Timer();
                 tmrPing.Elapsed += TmrPing_Elapsed;
                 ConnectedTime = DateTime.Now;
@@ -302,6 +311,7 @@ namespace Protega___Server
                 tmrPing.Stop();
                 tmrPing.Start();
                 _LastPing = DateTime.Now;
+                CheckIP();
             }
 
             public networkClientInterface(Socket connection, IAsyncResult result)
