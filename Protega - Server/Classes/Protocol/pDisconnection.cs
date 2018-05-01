@@ -7,10 +7,8 @@ using System.Net;
 
 namespace Protega___Server.Classes.Protocol
 {
-    class pDisconnection:pLoginLogout
+    class pDisconnection:InterfaceLoginLogout
     {
-        public networkServer.networkClientInterface Client;
-
         DateTime LogoutTriggered;
         
         public pDisconnection(ref networkServer.networkClientInterface Client)
@@ -19,9 +17,9 @@ namespace Protega___Server.Classes.Protocol
             this.Client = Client;
         }
 
-        public int TimePassedSecs()
+        public string TimePassed()
         {
-            return (int)Math.Round((DateTime.Now - LogoutTriggered).TotalSeconds);
+            return Math.Round((DateTime.Now - LogoutTriggered).TotalMilliseconds) + "ms";
         }
     }
 }

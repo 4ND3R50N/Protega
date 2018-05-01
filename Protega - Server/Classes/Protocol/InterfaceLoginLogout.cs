@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Protega___Server.Classes.Protocol
 {
-    public abstract class pLoginLogout
+    public abstract class InterfaceLoginLogout
     {
+        public networkServer.networkClientInterface Client;
     }
 }

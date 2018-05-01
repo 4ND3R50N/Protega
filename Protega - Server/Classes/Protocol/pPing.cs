@@ -6,17 +6,35 @@ using System.Threading.Tasks;
 
 namespace Protega___Server.Classes.Protocol
 {
-    class EPing:pRuneTimeTasks
+    class pPing : InterfaceRuneTimeTasks
     {
-        public networkServer.networkClientInterface Client;
-        public string SessionID;
-        public string AdditionalMessage = null;
-        public DateTime TimeStamp;
+        public string AdditionalMessage;
 
-        public EPing(ref networkServer.networkClientInterface Client)
+        public pPing(ref networkServer.networkClientInterface Client, Protocol prot)
         {
-            TimeStamp = DateTime.Now;
             this.Client = Client;
+            this.prot = prot;
+            this.Session = prot.GetUserID();
+        }
+
+        public bool Initialize()
+        {
+            if (prot.HasValues())
+            {
+                int Parameter;
+                if (Int32.TryParse(prot.GetValues()[0].ToString(), out Parameter))
+                {
+                    switch (Parameter)
+                    {
+                        case 1:
+                            AdditionalMessage = ";123";
+                            return true;
+                        default:
+                            break;
+                    }
+                }
+            }
+            return false;
         }
     }
 }

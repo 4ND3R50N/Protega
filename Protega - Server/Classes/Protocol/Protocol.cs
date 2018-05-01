@@ -65,9 +65,14 @@ namespace Protega___Server.Classes.Protocol
             return values.Count > 0;
         }
 
-        public TimeSpan TimeNeededSecs()
+        public TimeSpan TimePassed()
         {
             return (DateTime.Now - TimeStampReceived);
+        }
+
+        public string TimePassedMs()
+        {
+            return Math.Round(this.TimePassed().TotalMilliseconds) + "ms";
         }
     }
 }

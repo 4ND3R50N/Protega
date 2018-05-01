@@ -7,14 +7,13 @@ using System.Threading.Tasks;
 
 namespace Protega___Server.Classes.Protocol
 {
-    class pAuthentication:pLoginLogout
+    class pAuthentication:InterfaceLoginLogout
     {
-        public networkServer.networkClientInterface Client;
         public string ApplicationHash;
         public string architecture;
         public string language;
         public double version;
-        Protocol prot;
+        protected Protocol prot;
 
         public pAuthentication(ref networkServer.networkClientInterface Client, Protocol protocol)
         {
@@ -43,10 +42,11 @@ namespace Protega___Server.Classes.Protocol
         {
             get { return prot.GetUserID(); }
         }
-        
-        public int TimePassedSecs()
+
+        public string TimePassed()
         {
-            return (int)Math.Round(prot.TimeNeededSecs().TotalSeconds);
+            return prot.TimePassedMs();
         }
+        
     }
 }

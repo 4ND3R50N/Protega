@@ -12,25 +12,28 @@ using Renci.SshNet;
 
 namespace Protega___Server.Classes.Protocol
 {
-    public class ProtocolController
+    public class _ProtocolController
     {
         List<networkServer.networkClientInterface> ActiveConnections;
         int ApplicationID;
         char ProtocolDelimiter;
         Thread AuthManager, RuntimeManager;
-        //Queue<Classes.Protocol.> RuntimeQueue;
-        Queue<Classes.Protocol.pLoginLogout> AuthQueue;
+        Queue<Classes.Protocol.InterfaceRuneTimeTasks> RuntimeQueue;
+        Queue<Classes.Protocol.InterfaceLoginLogout> AuthQueue;
 
-        public ProtocolController(char ProtocolDelimiter, ref List<networkServer.networkClientInterface> ActiveConnections, int _ApplicationID)
+        public _ProtocolController(char ProtocolDelimiter, ref List<networkServer.networkClientInterface> ActiveConnections, int _ApplicationID)
         {
             this.ProtocolDelimiter = ProtocolDelimiter;
             this.ActiveConnections = ActiveConnections;
             ApplicationID = _ApplicationID;
-            //RuntimeQueue = new Queue<pRuneTimeTasks>();
-            AuthQueue = new Queue<Classes.Protocol.pLoginLogout>();
+            RuntimeQueue = new Queue<InterfaceRuneTimeTasks>();
+            AuthQueue = new Queue<Classes.Protocol.InterfaceLoginLogout>();
 
             AuthManager = new Thread(LoginLogoutManagement);
+            RuntimeManager = new Thread(RunTimeManagement);
+
             AuthManager.Start();
+            RuntimeManager.Start();
         }
         
         public delegate void SendProt(string Protocol, networkServer.networkClientInterface ClientInterface);
@@ -48,7 +51,7 @@ namespace Protega___Server.Classes.Protocol
             switch (protocol.GetKey())
             {
                 case 600:
-                    return CheckPing(ref NetworkClient, protocol); 
+                    return ResetPing(ref NetworkClient, protocol); 
                 case 500:
                     AuthenticateUser(NetworkClient, protocol);
                     return true;
@@ -89,7 +92,7 @@ namespace Protega___Server.Classes.Protocol
             {
                 while (AuthQueue.Count > 0)
                 {
-                    pLoginLogout Task = AuthQueue.Dequeue();
+                    InterfaceLoginLogout Task = AuthQueue.Dequeue();
                     if (Task is pAuthentication)
                         TaskAuthenticateUser(Task as pAuthentication);
                     else if (Task is pDisconnection)
@@ -103,7 +106,18 @@ namespace Protega___Server.Classes.Protocol
 
         void RunTimeManagement()
         {
-
+            while (true)
+            {
+                while(RuntimeQueue.Count>0)
+                {
+                    InterfaceRuneTimeTasks Task = RuntimeQueue.Dequeue();
+                    if (Task is pPing)
+                        TaskResetPing(Task as pPing);
+                    else
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Impossible Runtime-Queue item found!"));
+                }
+                Thread.Sleep(500);
+            }
         }
         #endregion
 
@@ -125,6 +139,14 @@ namespace Protega___Server.Classes.Protocol
             pDisconnection DisconnectionTask = new pDisconnection(ref ClientInterface);
             AuthQueue.Enqueue(DisconnectionTask);
             return;
+        }
+
+        private bool ResetPing(ref networkServer.networkClientInterface Client, Protocol prot)
+        {
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Ping: Protocol received. User: " + prot.GetUserID());
+            pPing ping = new pPing(ref Client, prot);
+            RuntimeQueue.Enqueue(ping);
+            return true;
         }
         #endregion
 
@@ -414,7 +436,7 @@ namespace Protega___Server.Classes.Protocol
             ActiveConnections.Add(prot.Client);
 
             SendProtocol(String.Format("200{0}{1}", ProtocolDelimiter, prot.Client.SessionID), prot.Client);
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user {0} ({1} - {2}). Time: {3} secs", prot.Client.User.ID, prot.Client.SessionID, prot.Client.IP.ToString(), prot.TimePassedSecs()));
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user {0} ({1} - {2}). Time {3}", prot.Client.User.ID, prot.Client.SessionID, prot.Client.IP.ToString(), prot.TimePassed()));
             return true;
         }
 
@@ -472,9 +494,51 @@ namespace Protega___Server.Classes.Protocol
             }
             
             DisconnectionTask.Client.Dispose();
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("User disconnected. User {0} ({1} - {2}). Time {3} secs", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP, DisconnectionTask.TimePassedSecs()));
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("User disconnected. User {0} ({1} - {2}). Time {3}", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP, DisconnectionTask.TimePassed()));
         }
-        
+
+        private bool TaskResetPing(pPing ping)
+        {
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Ping proceeding. User: " + ping.Session);
+
+            //networkServer.networkClientInterface ClientInterface = Client;
+            if (CheckIfUserExists(ping.Session, ref ping.Client))
+            {
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(5, LogCategory.OK, Support.LoggerType.SERVER, "Ping: User found in the list.");
+
+                if (ping.Initialize())
+                {
+                    //Ping has additional tasks. Do something
+
+                }
+
+                //Reset the Ping timer
+
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Ping: Resetting timer.");
+                ping.Client.ResetPingTimer();
+
+                //zhCCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, "Additional Infos: "+AdditionalInfo);
+                if (ping.AdditionalMessage==null)
+                    SendProtocol("300", ping.Client);
+                else
+                    SendProtocol(String.Format("301{0}{1}", ProtocolDelimiter, ping.AdditionalMessage), ping.Client);
+
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Ping resetted. User {0} ({1} - {2}). Time {3}", ping.Client.User.ID, ping.Client.SessionID, ping.Client.IP, ping.TimePassed()));
+                return true;
+            }
+
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Ping: User does not exist in the active connections ({0})", ping.Session));
+            try
+            {
+                ping.Client.Dispose();
+            }
+            catch (Exception e)
+            {
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Ping: Could not dispose not found client! Error {0}", e.Message));
+            }
+            return false;
+        }
+
         bool RemoveNetworkinterfaceBySession(string Session)
         {
             foreach (networkServer.networkClientInterface item in ActiveConnections)
@@ -490,53 +554,6 @@ namespace Protega___Server.Classes.Protocol
 
 
         #endregion
-
-        private bool CheckPing(ref networkServer.networkClientInterface Client, Protocol prot)
-        {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Ping: Protocol received. User: " + prot.GetUserID());
-
-            //networkServer.networkClientInterface ClientInterface = Client;
-            if (CheckIfUserExists(prot.UserID, ref Client))
-            {
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Ping: User found in the list.");
-
-                int AdditionalInfos = prot.HasValues() ? Convert.ToInt32(prot.GetValues()[0]) : -1;
-                string AdditionalInfo = "";
-                switch (AdditionalInfos)
-                {
-                    case 1:
-                        AdditionalInfo = ";123";
-                        break;
-                    default:
-                        break;
-                }
-
-                //Reset the Ping timer
-
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Ping: Resetting timer.");
-                Client.ResetPingTimer();
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Ping resetted.");
-
-                //zhCCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, "Additional Infos: "+AdditionalInfo);
-                if (AdditionalInfo.Length == 0)
-                    SendProtocol("300", Client);
-                else
-                    SendProtocol(String.Format("301{0}{1}", ProtocolDelimiter, AdditionalInfo), Client);
-
-                return true;
-            }
-
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Ping: User does not exist in the active connections ({0})", prot.GetUserID()));
-            try
-            {
-                Client.Dispose();
-            }
-            catch (Exception)
-            {
-
-            }
-            return false;
-        }
 
 
         #region Hack Detections

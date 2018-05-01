@@ -6,16 +6,17 @@ using System.Threading.Tasks;
 
 namespace Protega___Server.Classes.Protocol
 {
-    abstract class pRuneTimeTasks
+    abstract class InterfaceRuneTimeTasks
     {
-        public pRuneTimeTasks() { }
+        public InterfaceRuneTimeTasks() { }
 
-        protected Protocol prot;
-        protected networkServer.networkClientInterface Client;
-        
-        public int TimePassedSecs()
+        public Protocol prot;
+        public networkServer.networkClientInterface Client;
+        public string Session;
+
+        public string TimePassed()
         {
-            return (int)Math.Round(prot.TimeNeededSecs().TotalSeconds);
+            return prot.TimePassedMs();
         }
     }
 }

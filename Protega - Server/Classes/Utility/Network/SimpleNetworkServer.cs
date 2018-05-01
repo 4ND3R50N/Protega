@@ -167,7 +167,7 @@ namespace Protega___Server
             }
             catch (Exception e)
             {
-                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(4, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Protocol sending failed. Protocol: {0}, Session: {1}, HardwareID: {2}. Error {3}", message, client.SessionID, client.User.ID, e.Message));
+                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(4, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Protocol sending failed. Protocol: {0}. Error {1}", message, e.Message));
                 closeConnection(client);
             }
         }

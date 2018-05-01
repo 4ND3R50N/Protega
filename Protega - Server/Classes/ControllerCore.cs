@@ -17,7 +17,7 @@ namespace Protega___Server.Classes.Core
         //Variablen
         public networkServer TcpServer;
         public List<networkServer.networkClientInterface> ActiveConnections = null;
-        public ProtocolController ProtocolController;
+        public _ProtocolController ProtocolController;
         
         private string sAesKey;
         private char   cProtocolDelimiter;
@@ -137,10 +137,10 @@ namespace Protega___Server.Classes.Core
             this.cDataDelimiter = _cProtocolDelimiter;
             TcpServer = new networkServer(NetworkProtocol, sAesKey, Application.ID, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         
-            ProtocolController.SendProtocol += this.SendProtocol;
+            _ProtocolController.SendProtocol += this.SendProtocol;
             Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "TCP Server ready for start!");
             Logger.Seperate();
-            ProtocolController = new ProtocolController(cProtocolDelimiter, ref this.ActiveConnections, Application.ID);
+            ProtocolController = new _ProtocolController(cProtocolDelimiter, ref this.ActiveConnections, Application.ID);
 
             //ProtocolController.ReceivedProtocol(null, "500;23");
 
