@@ -11,11 +11,13 @@ namespace Protega___Server.Classes.Protocol
         private string ReceivedString;
         private ArrayList values = new ArrayList();
         char Delimiter;
+        DateTime TimeStampReceived;
         
         public Protocol(string protocol, char Delimiter)
         {
             ReceivedString = protocol;
             this.Delimiter = Delimiter;
+            TimeStampReceived = DateTime.Now;
         }
         
         public bool Split()
@@ -61,6 +63,11 @@ namespace Protega___Server.Classes.Protocol
         public bool HasValues()
         {
             return values.Count > 0;
+        }
+
+        public TimeSpan TimeNeededSecs()
+        {
+            return (DateTime.Now - TimeStampReceived);
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Protega___Server.Classes.Entity;
 using Support;
+using System.Threading;
 using Renci.SshNet;
 
 namespace Protega___Server.Classes.Protocol
@@ -16,12 +17,20 @@ namespace Protega___Server.Classes.Protocol
         List<networkServer.networkClientInterface> ActiveConnections;
         int ApplicationID;
         char ProtocolDelimiter;
+        Thread AuthManager, RuntimeManager;
+        //Queue<Classes.Protocol.> RuntimeQueue;
+        Queue<Classes.Protocol.EAuthentication> AuthQueue;
 
         public ProtocolController(char ProtocolDelimiter, ref List<networkServer.networkClientInterface> ActiveConnections, int _ApplicationID)
         {
             this.ProtocolDelimiter = ProtocolDelimiter;
             this.ActiveConnections = ActiveConnections;
             ApplicationID = _ApplicationID;
+            //RuntimeQueue = new Queue<pRuneTimeTasks>();
+            AuthQueue = new Queue<Classes.Protocol.EAuthentication>();
+
+            AuthManager = new Thread(AuthManagement);
+            AuthManager.Start();
         }
         
         public delegate void SendProt(string Protocol, networkServer.networkClientInterface ClientInterface);
@@ -41,7 +50,8 @@ namespace Protega___Server.Classes.Protocol
                 case 600:
                     return CheckPing(ref NetworkClient, protocol); 
                 case 500:
-                    return AuthenticateUser(NetworkClient, protocol); 
+                    AuthenticateUser(NetworkClient, protocol);
+                    return true;
                 case 701:
                     return HackDetection_Heuristic(NetworkClient, protocol); 
                 case 702:
@@ -76,30 +86,13 @@ namespace Protega___Server.Classes.Protocol
         #region Authenticate User
         private bool AuthenticateUser(networkServer.networkClientInterface ClientInterface, Protocol prot)
         {
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticating new user ({0}), IP: ", prot.GetUserID(), ClientInterface.IP.ToString()));
-            ArrayList Objects = prot.GetValues();
-            if(Objects.Count!=4)
-            {
-                //Log error - protocol size not as expected
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.CLIENT, String.Format("Unexpected size of protocol. Expected are 4 but it was {0}. Protocol: {1}", Objects.Count, prot.GetOriginalString()));
-                return false;
-            }
+            ClientInterface.CheckIP(ApplicationID);
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Received new Authentication. User ({0}), IP: {1}", prot.GetUserID(), ClientInterface.IP.ToString()));
+            EAuthentication AuthProt = new EAuthentication(ref ClientInterface, prot);
 
-            //Computer ID, Computer Architecture, Language, Version
-            string ApplicationHash = Objects[1].ToString();
-            string architecture = Objects[2].ToString();
-            string language = Objects[3].ToString();            
-            double version;
-            if (!Double.TryParse(Objects[0].ToString(), out version))
-            {
-                //Log error - protocol index 3 is not as expected
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.CLIENT, "Double expected but received " + Objects[3].ToString());
-                return false;
-            }
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authentification protocol correct. ApplicationHash={0}, Architecture={1}, Language={2}, Version={3}", ApplicationHash, architecture, language, version));
-
-            //Check if user exists and add it to the list
-            return AddUserToActiveConnections(ref ClientInterface, ApplicationHash, prot.GetUserID(), architecture, language, version);
+            //Add the Auth protocol into the queue which is checked by a separate thread
+            AuthQueue.Enqueue(AuthProt);
+            return true;
         }
 
         bool AddUserToActiveConnections(ref networkServer.networkClientInterface ClientInterface, string ApplicationHash, string ComputerID, string architecture, String language, double version)
@@ -132,7 +125,7 @@ namespace Protega___Server.Classes.Protocol
             //}
 
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(5, LogCategory.OK, Support.LoggerType.DATABASE, "Authentification: Checking user in the database");
-            ClientInterface.CheckIP();
+            ClientInterface.CheckIP(ApplicationID);
             EPlayer dataClient = SPlayer.Authenticate(ComputerID, ApplicationHash, architecture, language, ClientInterface.IP.ToString());
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(5, LogCategory.OK, Support.LoggerType.DATABASE, "Authentification: User found!");
 
@@ -151,7 +144,7 @@ namespace Protega___Server.Classes.Protocol
                 //Do something and dont let him enter
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authentification: Banned user tried to authentificate. User: {0}", dataClient.ID));
                 //Send protocol to client that user is banned
-                SendProtocol(String.Format("201{0}4{0}Too many hacks",ProtocolDelimiter), ClientInterface);
+                SendProtocol(String.Format("201{0}4{0}Too many hacks", ProtocolDelimiter), ClientInterface);
                 return false;
             }
 
@@ -174,7 +167,7 @@ namespace Protega___Server.Classes.Protocol
 
             //Add the new connection to the list of connected connections
             ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, KickUser);
-            
+
             bool IpExistsAlready = false;
             foreach (var Client in ActiveConnections)
             {
@@ -192,7 +185,7 @@ namespace Protega___Server.Classes.Protocol
                     //Do something and dont let him enter
                     CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, String.Format("Linux exception failed. User: {0}", dataClient.ID));
                     //Send protocol to client that user is banned
-                    SendProtocol(String.Format("201{0}30{0}Access verification failed",ProtocolDelimiter), ClientInterface);
+                    SendProtocol(String.Format("201{0}30{0}Access verification failed", ProtocolDelimiter), ClientInterface);
                     return false;
                 }
             }
@@ -201,7 +194,7 @@ namespace Protega___Server.Classes.Protocol
 
             ActiveConnections.Add(ClientInterface);
 
-            SendProtocol(String.Format("200{0}{1}",ProtocolDelimiter, ClientInterface.SessionID), ClientInterface);
+            SendProtocol(String.Format("200{0}{1}", ProtocolDelimiter, ClientInterface.SessionID), ClientInterface);
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user. Computer ID: {0}, Session ID: {1}, IP: {2}", ClientInterface.User.ID, ClientInterface.SessionID, ClientInterface.IP.ToString()));
 
             /*if (!IpExistsAlready)
@@ -279,6 +272,136 @@ namespace Protega___Server.Classes.Protocol
         }
 
 
+        void AuthManagement()
+        {
+            while (true)
+            {
+                while (AuthQueue.Count > 0)
+                {
+                    EAuthentication authProt = AuthQueue.Dequeue();
+                    ProtAuthenticateUser(authProt);
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, LoggerType.SERVER, String.Format("Auth finished! Time passed {0}", authProt.TimePassedSecs()));
+                }
+                Thread.Sleep(1000);
+            }
+        }
+
+        bool ProtAuthenticateUser(EAuthentication prot)
+        {
+            if(!prot.Initialize())
+            {
+                //Input parameters had an error
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Invalid application hash received in authentification protocol! ComputerID: {0}, ApplicationHash: {1}", prot.HardwareID, prot.ApplicationHash));
+                return false;
+            }
+
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.DATABASE, String.Format("Authentificating user {0} ({1})", prot.HardwareID, prot.Client.IP));
+
+            if (!CCstData.InstanceExists(prot.ApplicationHash))
+            {
+                //Instance does not exist. The player must have manipulated the protocol!
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Invalid application hash received in authentification protocol! ComputerID: {0}, ApplicationHash: {1}", prot.HardwareID, prot.ApplicationHash));
+                return false;
+            }
+
+            if (CCstData.GetInstance(prot.ApplicationHash).LatestClientVersion != prot.version)
+            {
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Invalid version! Having {0}, expected {1}. Hardware ID {2}", prot.version, CCstData.GetInstance(ApplicationID).LatestClientVersion, prot.HardwareID));
+                SendProtocol(String.Format("201{0}35{0}Antihack Client version outdated!", ProtocolDelimiter), prot.Client);
+                return false;
+            }
+
+            ////Check if user is already connected
+            //foreach (networkServer.networkClientInterface item in ActiveConnections)
+            //{
+            //    if(item.User.ID==ComputerID
+            //        && item.User.Application.Hash==ApplicationHash)
+            //    {
+            //        //User is already registered
+            //        CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.CLIENT, "Authentification: User is already added to list!");
+            //        SendProtocol("201;2;Still logged in. Please try again", ClientInterface);
+            //        return false;
+            //    }
+            //}
+
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(5, LogCategory.OK, Support.LoggerType.DATABASE, "Authentification: Checking user in the database");
+            EPlayer dataClient = SPlayer.Authenticate(prot.HardwareID, prot.ApplicationHash, prot.architecture, prot.language, prot.Client.IP.ToString());
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(5, LogCategory.OK, Support.LoggerType.DATABASE, "Authentification: User found!");
+
+            if (dataClient == null)
+            {
+                //If a computer ID exists multiple times in the database, a null object is returned
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.DATABASE, "Authentification: Hardware ID exists multiple times in the database");
+                SendProtocol(String.Format("201{0}3{0}Contact Admin", ProtocolDelimiter), prot.Client);
+                return false;
+            }
+            dataClient.Application.Hash = prot.ApplicationHash;
+
+            //Check if user is banned
+            if (dataClient.isBanned == true)
+            {
+                //Do something and dont let him enter
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authentification: Banned user tried to authentificate. User: {0}", dataClient.ID));
+                //Send protocol to client that user is banned
+                SendProtocol(String.Format("201{0}4{0}Too many hacks", ProtocolDelimiter), prot.Client);
+                return false;
+            }
+
+            //Add EPlayer to ClientInterface and to the list
+            prot.Client.User = dataClient;
+
+            //Generate unique Session ID for network communication
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Authentification: Start creating a unique session ID");
+            while (true)
+            {
+                string SessionID = AdditionalFunctions.GenerateSessionID(CCstData.GetInstance(prot.ApplicationHash).SessionIDLength);
+                //Checks if that connection exists already. Gives back the amount of matching ClientInterfaces
+                if (ActiveConnections.Where(Client => Client.SessionID == SessionID).ToList().Count == 0)
+                {
+                    prot.Client.SessionID = SessionID;
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, String.Format("New user authentificated! HardwareID: {0}, Session ID: {1}", dataClient.ID, SessionID));
+                    break;
+                }
+            }
+
+            //Add the new connection to the list of connected connections
+            prot.Client.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, KickUser);
+
+            bool IpExistsAlready = false;
+            foreach (var Client in ActiveConnections)
+            {
+                if (Client.IP == prot.Client.IP)
+                    IpExistsAlready = true;
+            }
+
+
+            //Linux takes ages to connect. Therefore contact the client before it sends another request
+
+            if (!IpExistsAlready)
+            {
+                if (!CCstData.GetInstance(ApplicationID).GameDLL.AllowUser(prot.Client.IP, prot.Client.User.ID))
+                {
+                    //Do something and dont let him enter
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, String.Format("Linux exception failed. User: {0}", dataClient.ID));
+                    //Send protocol to client that user is banned
+                    SendProtocol(String.Format("201{0}30{0}Access verification failed", ProtocolDelimiter), prot.Client);
+                    return false;
+                }
+            }
+            else
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authentication: IP already exists ({0})", prot.Client.IP.ToString()));
+
+            ActiveConnections.Add(prot.Client);
+
+            SendProtocol(String.Format("200{0}{1}", ProtocolDelimiter, prot.Client.SessionID), prot.Client);
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user. Computer ID: {0}, Session ID: {1}, IP: {2}", prot.Client.User.ID, prot.Client.SessionID, prot.Client.IP.ToString()));
+            
+            return true;
+        }
+
+
+        
+
         bool RemoveNetworkinterfaceBySession(string Session)
         {
             foreach (networkServer.networkClientInterface item in ActiveConnections)
@@ -303,7 +426,7 @@ namespace Protega___Server.Classes.Protocol
                 return;
             }
 
-            int Index=0;
+            int Index=-1;
             for (int i = 0; i < ActiveConnections.Count; i++)
             {
                 if(ActiveConnections[i].SessionID==ClientInterface.SessionID)
@@ -312,6 +435,8 @@ namespace Protega___Server.Classes.Protocol
                     Index = i;
                 }
             }
+            if (Index == -1)
+                return;
 
             CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Info Kick trigger: {0} - {1}", ActiveConnections[Index].KickTriggered.ToString(), ClientInterface.KickTriggered.ToString()));
             ClientInterface.KickTriggered = true;

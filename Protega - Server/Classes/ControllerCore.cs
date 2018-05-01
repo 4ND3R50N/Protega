@@ -181,19 +181,13 @@ namespace Protega___Server.Classes.Core
         public void NetworkProtocol(ref networkServer.networkClientInterface NetworkClient, string message)
         {
             //Public for the Unit Tests
-            CCstData.GetInstance(Application).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received: " + message);
             try
             {
-                //Öañ4\u001b3[\b\nÎbÞö}\u0010VDYZ‚\u009d\u0005sQ˜e@p•\u001e\ab{ó¥Ÿ›¨YÉ`\\wõˆ¹éî\0
                 if (message[message.Length-1]=='\0')
                 {
                     message = message.Substring(0, message.Length - 1);
                 }
                 //Decrypt received protocol
-                // QUESTION: Can we somehow see if we get something that isn't encrypted like traffic?
-                // QUESTION: Is it possible to decrypt something that isn't enchrypted and send it to the ProtocolController?
-                // QUESTION: Or does the decryption function checck all this?
-                List<char> Chars = message.ToList();
                 message = AES_Converter.DecryptFromCBC(CCstData.GetInstance(Application).EncryptionKey, CCstData.GetInstance(Application).EncryptionIV, message);
                 if (message[message.Length - 1] == '\0')
                 {

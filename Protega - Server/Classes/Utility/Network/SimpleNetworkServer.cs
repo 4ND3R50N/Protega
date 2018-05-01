@@ -207,7 +207,6 @@ namespace Protega___Server
             public IPAddress IP
             {
                 get { return _LatestIP; }
-                set { CheckIP(); }
             }
             
 
@@ -237,7 +236,7 @@ namespace Protega___Server
                 }
             }
 
-            public void CheckIP()
+            public void CheckIP(int ApplicationID)
             {
                 IPAddress CurrentIP = null;
 
@@ -249,14 +248,20 @@ namespace Protega___Server
                 }
                 catch (Exception e)
                 {
-                    if (User.Application.ID != 0)
+                    if (ApplicationID != 0)
                         Classes.CCstData.GetInstance(User.Application.ID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.CLIENT, "Could not get IP.User: " + User.ID + ", Session: " + SessionID + ", Error: " + e.Message);
                 }
                 
                 //If CurrentIP could not be fetched, log and ignore it
                 if (CurrentIP != null)
                 {
-                    if (CurrentIP == _LatestIP)
+                    if(_LatestIP==null)
+                    {
+                        _LatestIP = CurrentIP;
+                        return;
+                    }
+
+                    if (CurrentIP.ToString() == _LatestIP.ToString())
                         return;
                     
                     //Update LatestIP if IP has changed
@@ -264,18 +269,18 @@ namespace Protega___Server
                     listIPs.Add(CurrentIP);
 
                     //Log that this case is possible
-                    if (User.Application.ID != 0)
+                    if (listIPs.Count > 1 && ApplicationID != 0)
                     {
                         string FormerIPs = "";
                         listIPs.ForEach(IP => FormerIPs += IP + " - ");
-                        Classes.CCstData.GetInstance(User.Application.ID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Client IP Changed! CurrentIP: {0}. Former IPs: {1}", CurrentIP, FormerIPs));
+                        Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Client IP Changed! CurrentIP: {0}. Former IPs: {1}", CurrentIP, FormerIPs));
                     }
                 }
                 else
                 {
-                    if (User.Application.ID != 0)
+                    if (ApplicationID != 0)
                     {
-                        Classes.CCstData.GetInstance(User.Application.ID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Cannot get current IP! User: {0}. Session: {1}", User.ID, SessionID));
+                        Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Cannot get current IP! User: {0}. Session: {1}", User.ID, SessionID));
                     }
                 }
             }
@@ -311,7 +316,7 @@ namespace Protega___Server
                 tmrPing.Stop();
                 tmrPing.Start();
                 _LastPing = DateTime.Now;
-                CheckIP();
+                CheckIP(User.Application.ID);
             }
 
             public networkClientInterface(Socket connection, IAsyncResult result)
