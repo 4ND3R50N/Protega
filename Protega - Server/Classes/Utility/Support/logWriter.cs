@@ -16,7 +16,6 @@ namespace Support
         string banPath;
         public int LogLevel;
         public int ApplicationID = 0;
-        static bool LogInUse = false;
 
         public logWriter(string path, string banPath, int LogLevel)
         {
@@ -28,20 +27,19 @@ namespace Support
 
         public void writeInLog(int Importance, LogCategory Category, LoggerType LType, string Message)
         {
-            string DateFormat = String.Format("{0:dd.MM HH:mm:ss (fff)}", DateTime.Now);
+            string DateFormatLog = String.Format("{0:dd.MM HH:mm:ss (fff)}", DateTime.Now);
+            string DateFormatConsole = String.Format("{0:HH:mm:ss}", DateTime.Now);
             if (Category == LogCategory.ERROR || Category == LogCategory.CRITICAL)
             {
-                LogDatabase(Importance, Category, LType, Message, DateFormat);
+                LogDatabase(Importance, Category, LType, Message, DateFormatLog);
             }
 
             //1=Important, 2=Medium, 3=Debug Infos
             if (Importance > LogLevel)
                 return;
 
-            string OutMessage = string.Format("[{0}]: ({1}) - {2}", DateFormat, Category, Message);
-
-            conOut(OutMessage);
-            logFile(OutMessage);
+            conOut(String.Format("[{0}] {1} - {2}", DateFormatConsole, Category, Message));
+            logFile(String.Format("[{0}] {1} - {2}", DateFormatLog, Category, Message));
         }
 
         private void conOut(string Message)
