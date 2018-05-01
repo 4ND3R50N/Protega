@@ -67,6 +67,8 @@
     <Compile Include="Classes\Entity\EPlayer.cs" />
     <Compile Include="Classes\Protocol\EAuthentication.cs" />
     <Compile Include="Classes\Protocol\EPing.cs" />
+    <Compile Include="Classes\Protocol\pDisconnection.cs" />
+    <Compile Include="Classes\Protocol\pLoginLogout.cs" />
     <Compile Include="Classes\Service\SHackFile.cs" />
     <Compile Include="Classes\Protocol\pRuneTimeTasks.cs" />
     <Compile Include="Classes\Service\SApplication.cs" />

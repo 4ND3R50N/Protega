@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace Protega___Server.Classes.Protocol
 {
-    public abstract class pRuneTimeTasks
+    public abstract class pLoginLogout
     {
-        public pRuneTimeTasks() { }
     }
 }

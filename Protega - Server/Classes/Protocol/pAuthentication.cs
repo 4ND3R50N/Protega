@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Protega___Server.Classes.Protocol
 {
-    class EAuthentication
+    class pAuthentication:pLoginLogout
     {
         public networkServer.networkClientInterface Client;
         public string ApplicationHash;
@@ -16,7 +16,7 @@ namespace Protega___Server.Classes.Protocol
         public double version;
         Protocol prot;
 
-        public EAuthentication(ref networkServer.networkClientInterface Client, Protocol protocol)
+        public pAuthentication(ref networkServer.networkClientInterface Client, Protocol protocol)
         {
             this.Client = Client;
             this.prot = protocol;

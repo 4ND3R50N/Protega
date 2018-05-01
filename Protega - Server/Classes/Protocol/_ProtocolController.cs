@@ -19,7 +19,7 @@ namespace Protega___Server.Classes.Protocol
         char ProtocolDelimiter;
         Thread AuthManager, RuntimeManager;
         //Queue<Classes.Protocol.> RuntimeQueue;
-        Queue<Classes.Protocol.EAuthentication> AuthQueue;
+        Queue<Classes.Protocol.pLoginLogout> AuthQueue;
 
         public ProtocolController(char ProtocolDelimiter, ref List<networkServer.networkClientInterface> ActiveConnections, int _ApplicationID)
         {
@@ -27,9 +27,9 @@ namespace Protega___Server.Classes.Protocol
             this.ActiveConnections = ActiveConnections;
             ApplicationID = _ApplicationID;
             //RuntimeQueue = new Queue<pRuneTimeTasks>();
-            AuthQueue = new Queue<Classes.Protocol.EAuthentication>();
+            AuthQueue = new Queue<Classes.Protocol.pLoginLogout>();
 
-            AuthManager = new Thread(AuthManagement);
+            AuthManager = new Thread(LoginLogoutManagement);
             AuthManager.Start();
         }
         
@@ -81,19 +81,52 @@ namespace Protega___Server.Classes.Protocol
             }
             return false;
         }
-  
+        
+        #region Thread Protocol managing
+        void LoginLogoutManagement()
+        {
+            while (true)
+            {
+                while (AuthQueue.Count > 0)
+                {
+                    pLoginLogout Task = AuthQueue.Dequeue();
+                    if (Task is pAuthentication)
+                        TaskAuthenticateUser(Task as pAuthentication);
+                    else if (Task is pDisconnection)
+                        TaskKickUser(Task as pDisconnection);
+                    else
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Impossible LoginLogout-Queue item found!"));
+                }
+                Thread.Sleep(1000);
+            }
+        }
 
-        #region Authenticate User
+        void RunTimeManagement()
+        {
+
+        }
+        #endregion
+
+        #region Protocol Packing
         private bool AuthenticateUser(networkServer.networkClientInterface ClientInterface, Protocol prot)
         {
             ClientInterface.CheckIP(ApplicationID);
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Received new Authentication. User ({0}), IP: {1}", prot.GetUserID(), ClientInterface.IP.ToString()));
-            EAuthentication AuthProt = new EAuthentication(ref ClientInterface, prot);
+            pAuthentication AuthProt = new pAuthentication(ref ClientInterface, prot);
 
             //Add the Auth protocol into the queue which is checked by a separate thread
             AuthQueue.Enqueue(AuthProt);
             return true;
         }
+
+        void KickUser(networkServer.networkClientInterface ClientInterface)
+        {
+            CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Disconnection triggered!. {0} ({1} - {2})", ClientInterface.User.ID, ClientInterface.SessionID, ClientInterface.IP));
+            pDisconnection DisconnectionTask = new pDisconnection(ref ClientInterface);
+            AuthQueue.Enqueue(DisconnectionTask);
+            return;
+        }
+        #endregion
 
         bool AddUserToActiveConnections(ref networkServer.networkClientInterface ClientInterface, string ApplicationHash, string ComputerID, string architecture, String language, double version)
         {
@@ -272,21 +305,8 @@ namespace Protega___Server.Classes.Protocol
         }
 
 
-        void AuthManagement()
-        {
-            while (true)
-            {
-                while (AuthQueue.Count > 0)
-                {
-                    EAuthentication authProt = AuthQueue.Dequeue();
-                    ProtAuthenticateUser(authProt);
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, LoggerType.SERVER, String.Format("Auth finished! Time passed {0}", authProt.TimePassedSecs()));
-                }
-                Thread.Sleep(1000);
-            }
-        }
-
-        bool ProtAuthenticateUser(EAuthentication prot)
+        #region Protocol proceeding functions
+        bool TaskAuthenticateUser(pAuthentication prot)
         {
             if(!prot.Initialize())
             {
@@ -394,14 +414,67 @@ namespace Protega___Server.Classes.Protocol
             ActiveConnections.Add(prot.Client);
 
             SendProtocol(String.Format("200{0}{1}", ProtocolDelimiter, prot.Client.SessionID), prot.Client);
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user. Computer ID: {0}, Session ID: {1}, IP: {2}", prot.Client.User.ID, prot.Client.SessionID, prot.Client.IP.ToString()));
-            
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user {0} ({1} - {2}). Time: {3} secs", prot.Client.User.ID, prot.Client.SessionID, prot.Client.IP.ToString(), prot.TimePassedSecs()));
             return true;
         }
 
+        void TaskKickUser (pDisconnection DisconnectionTask)
+        {
+            CCstData.GetInstance(DisconnectionTask.Client.User.Application.ID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Kick triggered for user {0} ({1} - {2})", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP));
+            if (DisconnectionTask.Client.KickTriggered)
+            {
+                CCstData.GetInstance(DisconnectionTask.Client.User.Application.ID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Kick triggered multiple times!. {0} ({1} - {2})", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP));
+                return;
+            }
 
+            int Index=-1;
+            for (int i = 0; i < ActiveConnections.Count; i++)
+            {
+                if(ActiveConnections[i].SessionID==DisconnectionTask.Client.SessionID)
+                {
+                    ActiveConnections[i].KickTriggered = true;
+                    Index = i;
+                }
+            }
+            if (Index == -1)
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Kick triggered for not existing user: {0} ({1} - {2}", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP));
+            
+            DisconnectionTask.Client.ResetPingTimer();
+            //System.Threading.Thread.Sleep(1000);
+            
+            bool IpExistsAlready = false;
+            foreach (var item in ActiveConnections)
+            {
+                if (item.IP == DisconnectionTask.Client.IP)
+                    if (item.SessionID != DisconnectionTask.Client.SessionID)
+                        IpExistsAlready = true;
+            }
+
+
+            if (!RemoveNetworkinterfaceBySession(DisconnectionTask.Client.SessionID))
+            {
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Disconnection: User not found. User {0} ({1} - {2})", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP));
+
+                string ErrorMessageDetail = String.Format("Searched User: {0}, {1}, {2}\n", DisconnectionTask.Client.SessionID, DisconnectionTask.Client.User.ID, DisconnectionTask.Client.IP);
+                for (int i = 0; i < ActiveConnections.Count; i++)
+                {
+                    ErrorMessageDetail += String.Format("User{0}: {1}, {2}, {3}. KickTrigger: {4}, LastPing: {5} ({6}), ", i, ActiveConnections[i].SessionID, ActiveConnections[i].User.ID, ActiveConnections[i].IP, ActiveConnections[i].KickTriggered.ToString(), ActiveConnections[i]._LastPing, (DateTime.Now - ActiveConnections[i]._LastPing).TotalSeconds);
+                }
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.CRITICAL, Support.LoggerType.SERVER, ErrorMessageDetail);
+            }
+
+            if (!IpExistsAlready)
+            {
+                if(!CCstData.GetInstance(ApplicationID).GameDLL.KickUser(DisconnectionTask.Client.IP,DisconnectionTask.Client.User.ID))
+                {
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, String.Format("Linux exception removal failed. IP {0}, User: {1}", DisconnectionTask.Client.IP, DisconnectionTask.Client.User.ID));
+                }
+            }
+            
+            DisconnectionTask.Client.Dispose();
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("User disconnected. User {0} ({1} - {2}). Time {3} secs", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP, DisconnectionTask.TimePassedSecs()));
+        }
         
-
         bool RemoveNetworkinterfaceBySession(string Session)
         {
             foreach (networkServer.networkClientInterface item in ActiveConnections)
@@ -415,66 +488,6 @@ namespace Protega___Server.Classes.Protocol
             return false;
         }
 
-        void KickUser(networkServer.networkClientInterface ClientInterface)
-        {
-            string t1 = ClientInterface.User.ID;
-            string t2 = ClientInterface.SessionID;
-            string IP = ClientInterface.IP.ToString();
-            if (ClientInterface.KickTriggered)
-            {
-                CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Kick triggered multiple times!. {0} - {1}, {2}", t1, t2, IP));
-                return;
-            }
-
-            int Index=-1;
-            for (int i = 0; i < ActiveConnections.Count; i++)
-            {
-                if(ActiveConnections[i].SessionID==ClientInterface.SessionID)
-                {
-                    ActiveConnections[i].KickTriggered = true;
-                    Index = i;
-                }
-            }
-            if (Index == -1)
-                return;
-
-            CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Info Kick trigger: {0} - {1}", ActiveConnections[Index].KickTriggered.ToString(), ClientInterface.KickTriggered.ToString()));
-            ClientInterface.KickTriggered = true;
-            ClientInterface.ResetPingTimer();
-            //System.Threading.Thread.Sleep(1000);
-            
-            bool IpExistsAlready = false;
-            foreach (var item in ActiveConnections)
-            {
-                if (item.IP == ClientInterface.IP)
-                    if (item.SessionID != ClientInterface.SessionID)
-                        IpExistsAlready = true;
-            }
-
-            CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("User disconnected. {0} - {1}", t1, t2));
-
-            if (!RemoveNetworkinterfaceBySession(ClientInterface.SessionID))
-            {
-                CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Disconnection: User not found. User {0}, Session {1}, IP {2}", t1, t2, IP));
-
-                string ErrorMessageDetail = String.Format("Searched User: {0}, {1}, {2}\n", ClientInterface.SessionID, ClientInterface.User.ID, ClientInterface.IP);
-                for (int i = 0; i < ActiveConnections.Count; i++)
-                {
-                    ErrorMessageDetail += String.Format("User{0}: {1}, {2}, {3}. KickTrigger: {4}, LastPing: {5} ({6}), ", i, ActiveConnections[i].SessionID, ActiveConnections[i].User.ID, ActiveConnections[i].IP, ActiveConnections[i].KickTriggered.ToString(), ActiveConnections[i]._LastPing, (DateTime.Now - ActiveConnections[i]._LastPing).TotalSeconds);
-                }
-                CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(2, LogCategory.CRITICAL, Support.LoggerType.SERVER, ErrorMessageDetail);
-            }
-
-            if (!IpExistsAlready)
-            {
-                if(!CCstData.GetInstance(ApplicationID).GameDLL.KickUser(ClientInterface.IP,ClientInterface.User.ID))
-                {
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, String.Format("Linux exception removal failed. IP {0}, User: {1}", ClientInterface.IP, ClientInterface.User.ID));
-                }
-            }
-
-            ClientInterface.Dispose();
-        }
 
         #endregion
 

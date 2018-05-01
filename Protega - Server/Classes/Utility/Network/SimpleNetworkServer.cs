@@ -301,12 +301,12 @@ namespace Protega___Server
 
             private void TmrPing_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
             {
-                tmrPing.Stop();
+                //tmrPing.Stop();
                 //Kick - Timer elapsed
                 Kick(this);
 
                 Classes.CCstData.GetInstance(this.User.Application.ID).Logger.writeInLog(4, Support.LogCategory.OK, Support.LoggerType.SERVER, String.Format("User timeout! Session: {0}, HardwareID: {1}", this.SessionID, this.User.ID));
-                this.Dispose();
+                //this.Dispose();
                 //User kicked
             }
             
