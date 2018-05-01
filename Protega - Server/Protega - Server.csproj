@@ -66,6 +66,7 @@
     <Compile Include="Classes\Entity\ELoggerData.cs" />
     <Compile Include="Classes\Entity\EPlayer.cs" />
     <Compile Include="Classes\Protocol\pAuthentication.cs" />
+    <Compile Include="Classes\Protocol\pHackDetectionHeuristic.cs" />
     <Compile Include="Classes\Protocol\pPing.cs" />
     <Compile Include="Classes\Protocol\pDisconnection.cs" />
     <Compile Include="Classes\Protocol\InterfaceLoginLogout.cs" />

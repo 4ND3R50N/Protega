@@ -8,7 +8,12 @@ namespace Protega___Server.Classes
     {
         public static bool Insert(string _HardwareID, int _ApplicationID, string _ProcessName, string _WindowName, string _ClassName, string _MD5Value)
         {
-            return DHackHeuristic.Insert(new EHackHeuristic() { ApplicationID=_ApplicationID, ProcessName = _ProcessName, WindowName = _WindowName, ClassName = _ClassName, MD5Value = _MD5Value, User = new EPlayer() { ID = _HardwareID } });
+            return DHackHeuristic.Insert(new EHackHeuristic() { ApplicationID = _ApplicationID, ProcessName = _ProcessName, WindowName = _WindowName, ClassName = _ClassName, MD5Value = _MD5Value, User = new EPlayer() { ID = _HardwareID } });
+        }
+
+        public static bool Insert(EHackHeuristic hackData)
+        {
+            return DHackHeuristic.Insert(hackData);
         }
     }
 }
