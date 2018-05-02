@@ -27,7 +27,7 @@ namespace Protega___Server.Classes.Protocol
             this.ActiveConnections = ActiveConnections;
             ApplicationID = _ApplicationID;
             RuntimeQueue = new Queue<InterfaceRuneTimeTasks>();
-            AuthQueue = new Queue<Classes.Protocol.InterfaceLoginLogout>();
+            AuthQueue = new Queue<InterfaceLoginLogout>();
 
             AuthManager = new Thread(LoginLogoutManagement);
             RuntimeManager = new Thread(RunTimeManagement);
@@ -35,7 +35,7 @@ namespace Protega___Server.Classes.Protocol
             AuthManager.Start();
             RuntimeManager.Start();
         }
-        
+
         public delegate void SendProt(string Protocol, networkServer.networkClientInterface ClientInterface);
         public static event SendProt SendProtocol = null;
 
@@ -51,23 +51,23 @@ namespace Protega___Server.Classes.Protocol
             switch (protocol.GetKey())
             {
                 case 600:
-                    return ResetPing(ref NetworkClient, protocol); 
+                    return ResetPing(ref NetworkClient, protocol);
                 case 500:
                     AuthenticateUser(NetworkClient, protocol);
                     return true;
                 case 701:
-                    return HackDetection_Heuristic(ref NetworkClient, protocol); 
+                    return HackDetection_Heuristic(ref NetworkClient, protocol);
                 case 702:
                     return HackDetection_VirtualMemory(NetworkClient, protocol);
                 case 703:
                     return HackDetection_File(NetworkClient, protocol);
                 default:
                     CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.CLIENT, "Received invalid protocol: " + protocolString);
-                    return false; 
+                    return false;
             }
-            
+
         }
-        
+
         public bool CheckIfUserExists(string SessionID, ref networkServer.networkClientInterface ClientInterface)
         {
             //Checks if that connection exists already. Gives back the amount of matching ClientInterfaces
@@ -84,7 +84,7 @@ namespace Protega___Server.Classes.Protocol
             }
             return false;
         }
-        
+
         #region Thread Protocol managing
         void LoginLogoutManagement()
         {
@@ -98,17 +98,18 @@ namespace Protega___Server.Classes.Protocol
                     else if (Task is pDisconnection)
                         TaskKickUser(Task as pDisconnection);
                     else
-                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Impossible LoginLogout-Queue item found!"));
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Impossible LoginLogout-Queue item found!");
                 }
                 Thread.Sleep(1000);
             }
         }
+    
 
         void RunTimeManagement()
         {
             while (true)
             {
-                while(RuntimeQueue.Count>0)
+                while (RuntimeQueue.Count > 0)
                 {
                     InterfaceRuneTimeTasks Task = RuntimeQueue.Dequeue();
                     if (Task is pPing)
@@ -116,7 +117,7 @@ namespace Protega___Server.Classes.Protocol
                     else if (Task is pHackDetectionHeuristic)
                         TaskHackDetection_Heuristic(Task as pHackDetectionHeuristic);
                     else
-                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Impossible Runtime-Queue item found!"));
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Impossible Runtime-Queue item found!");
                 }
                 Thread.Sleep(500);
             }
@@ -135,7 +136,7 @@ namespace Protega___Server.Classes.Protocol
             return true;
         }
 
-        void KickUser(networkServer.networkClientInterface ClientInterface)
+        public void KickUser(networkServer.networkClientInterface ClientInterface)
         {
             CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Disconnection triggered!. {0} ({1} - {2})", ClientInterface.User.ID, ClientInterface.SessionID, ClientInterface.IP));
             pDisconnection DisconnectionTask = new pDisconnection(ref ClientInterface);
@@ -358,7 +359,7 @@ namespace Protega___Server.Classes.Protocol
 
             if (CCstData.GetInstance(prot.ApplicationHash).LatestClientVersion != prot.version)
             {
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Invalid version! Having {0}, expected {1}. Hardware ID {2}", prot.version, CCstData.GetInstance(ApplicationID).LatestClientVersion, prot.HardwareID));
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Invalid version! Having {0}, expected {1}. Hardware ID {2}", prot.version, CCstData.GetInstance(ApplicationID).LatestClientVersion, prot.HardwareID));
                 SendProtocol(String.Format("201{0}35{0}Antihack Client version outdated!", ProtocolDelimiter), prot.Client);
                 return false;
             }
@@ -446,7 +447,7 @@ namespace Protega___Server.Classes.Protocol
             ActiveConnections.Add(prot.Client);
 
             SendProtocol(String.Format("200{0}{1}", ProtocolDelimiter, prot.Client.SessionID), prot.Client);
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user {0} ({1} - {2}). Time {3}", prot.Client.User.ID, prot.Client.SessionID, prot.Client.IP.ToString(), prot.TimePassed()));
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user {0} ({1} - {2}). {3}", prot.Client.User.ID, prot.Client.SessionID, prot.Client.IP.ToString(), prot.TimePassed()));
             return true;
         }
 
@@ -504,7 +505,7 @@ namespace Protega___Server.Classes.Protocol
             }
             
             DisconnectionTask.Client.Dispose();
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("User disconnected. User {0} ({1} - {2}). Time {3}", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP, DisconnectionTask.TimePassed()));
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("User disconnected. User {0} ({1} - {2}). {3}", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP, DisconnectionTask.TimePassed()));
         }
 
         private bool TaskResetPing(pPing ping)
@@ -533,7 +534,7 @@ namespace Protega___Server.Classes.Protocol
                 else
                     SendProtocol(String.Format("301{0}{1}", ProtocolDelimiter, ping.AdditionalMessage), ping.Client);
 
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Ping resetted. User {0} ({1} - {2}). Time {3}", ping.Client.User.ID, ping.Client.SessionID, ping.Client.IP, ping.TimePassed()));
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Ping resetted User {0} ({1} - {2}). {3}", ping.Client.User.ID, ping.Client.SessionID, ping.Client.IP, ping.TimePassed()));
                 return true;
             }
 

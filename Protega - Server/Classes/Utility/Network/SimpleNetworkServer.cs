@@ -72,7 +72,7 @@ namespace Protega___Server
             }
             catch (Exception e)
             {
-                Console.WriteLine("Starting Error: " + e.Message);
+                Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Networkserver starting error: {0}", e.Message));
                 return false;
             }
             return true;
@@ -104,7 +104,7 @@ namespace Protega___Server
             }
             catch (Exception e)
             {
-                Console.WriteLine("DEBUG: " + e.ToString());
+                Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Accept callback error: {0}",e.Message));
                 closeConnection(connection);
             }
         }
@@ -139,7 +139,7 @@ namespace Protega___Server
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Could not dispose connection! Error: " + e.Message);
+                    Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Could not dispose connection! Error: {0}", e.Message));
                 }
             }
             catch (Exception e)
@@ -151,7 +151,7 @@ namespace Protega___Server
                 }
                 catch (Exception f)
                 {
-                    Console.WriteLine("Could not dispose connection 2! Error: " + f.Message);
+                    Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Could not dispose connection 2! Error: {0}", f.Message));
                 }
             }
         }
@@ -163,11 +163,15 @@ namespace Protega___Server
                 byte[] bytes = Encoding.Default.GetBytes(message);
                 client.networkSocket.Send(bytes, bytes.Length,
                                 SocketFlags.None);
-                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(4, Support.LogCategory.OK, Support.LoggerType.SERVER, String.Format("Protocol sending succeeded. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
+                if (client.User != null)
+                    Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, Support.LogCategory.OK, Support.LoggerType.SERVER, String.Format("Protocol sending succeeded. Protocol: {0}, Session: {1}, HardwareID: {2}", message, client.SessionID, client.User.ID));
+                else
+                    Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, Support.LogCategory.OK, Support.LoggerType.SERVER, String.Format("Protocol sending succeeded. Protocol: {0}, User null", message));
+
             }
             catch (Exception e)
             {
-                Classes.CCstData.GetInstance(client.User.Application.ID).Logger.writeInLog(4, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Protocol sending failed. Protocol: {0}. Error {1}", message, e.Message));
+                Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Protocol sending failed. Protocol: {0}. Error {1}", message, e.Message));
                 closeConnection(client);
             }
         }
@@ -296,7 +300,18 @@ namespace Protega___Server
                 ConnectedTime = DateTime.Now;
                 tmrPing.Interval = Interval;
                 tmrPing.Start();
-                
+            }
+
+            public bool AdjustPingTimer(int Interval)
+            {
+                if(tmrPing!=null)
+                {
+                    tmrPing.Stop();
+                    tmrPing.Interval = Interval;
+                    tmrPing.Start();
+                    return true;
+                }
+                return false;
             }
 
             private void TmrPing_Elapsed(object sender, System.Timers.ElapsedEventArgs e)

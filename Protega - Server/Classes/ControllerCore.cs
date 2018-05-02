@@ -162,18 +162,36 @@ namespace Protega___Server.Classes.Core
         #region Destructor
         public void Dispose()
         {
+            CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.SERVER, "Disposing Server!");
+            int Attempt = 0;
             //Kick all connected clients and remove the objects
-            foreach (networkServer.networkClientInterface item in ActiveConnections)
+            while (ActiveConnections.Count>0 && Attempt++<5)
             {
-                item.Dispose();
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.SERVER, "Disposing Server - kicking players attempt " + Attempt.ToString());
+                KickAllPlayers();
+                System.Threading.Thread.Sleep(5000);
             }
 
+
+            CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.SERVER, "Disposing Server - disposing network client!");
             //Close network server
             TcpServer.Dispose();
 
+            CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.SERVER, "Disposing Server - removing instance from list - finished!");
             //Remove instance from CCstData
             if (CCstData.InstanceExists(Application.Hash))
                 CCstData.InstanceClose(Application.ID);
+        }
+
+        public int KickAllPlayers()
+        {
+            int AmountofKicks = 0;
+            foreach (var item in ActiveConnections)
+            {
+                ProtocolController.KickUser(item);
+                AmountofKicks++;
+            }
+            return AmountofKicks;
         }
         #endregion
 

@@ -38,7 +38,7 @@ namespace Support
             if (Importance > LogLevel)
                 return;
 
-            conOut(String.Format("[{0}] {1} - {2}", DateFormatConsole, Category, Message));
+            conOut(String.Format("{0} {1} - {2}", DateFormatConsole, Category, Message));
             logFile(String.Format("[{0}] {1} - {2}", DateFormatLog, Category, Message));
         }
 

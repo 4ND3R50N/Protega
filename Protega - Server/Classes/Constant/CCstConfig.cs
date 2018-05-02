@@ -18,6 +18,9 @@ namespace Protega___Server.Classes
 
         //1 = User output, 2 = User output with more details, 3 = Debug infos
         public int LogLevel=3;
+
+        //Set to false to stop threads and thus protocol proceeding
+        public bool RunThreads = true;
         #endregion
 
 

@@ -10,10 +10,11 @@ namespace Protega___Server
 {
     class Program
     {
-        static List<ControllerCore> AppsRunning = new List<ControllerCore>();
+        static List<ControllerCore> AppsRunning;
 
         static void Main(string[] args)
         {
+            AppsRunning = new List<ControllerCore>();
             StartServer();
 
             while(true)
@@ -38,6 +39,10 @@ namespace Protega___Server
                     case "CheckPings":
                         if (AppsRunning.Count > 0)
                             AppsRunning[0].CheckPings();
+                        break;
+                    case "KickAll":
+                        if (AppsRunning.Count > 0)
+                            Console.WriteLine("KickAll: Kicked " + AppsRunning[0].KickAllPlayers() + " players!");
                         break;
                     default:
                         Console.WriteLine("Command '" + Command + "' unknown!");
@@ -105,7 +110,6 @@ namespace Protega___Server
                 }
 
                 string PathGameDll = iniEngine.IniReadValue(item, "PathGameDll");
-
                 
                 ControllerCore Controller = new ControllerCore(ApplicationName, Version, InputPort, ProtocolDelimiter, EncryptionKey, EncryptionIV, PingTimer, SessionLength, DatabaseDriver, DatabaseIP, DatabasePort, DatabaseLoginName, DatabasePassword, DatabaseDefault, LogFile, LogLevel, PathGameDll);
 
@@ -113,7 +117,7 @@ namespace Protega___Server
                 {
                     Controller.Start();
                     AppsRunning.Add(Controller);
-                    
+
                 }
                 catch (Exception e)
                 {
@@ -123,6 +127,7 @@ namespace Protega___Server
             return true;
         }
 
+        #region Commands
         static bool RefreshSettings()
         {
             List<string> Sections = GetSections(Path.Combine(Environment.CurrentDirectory, "config.ini"));
@@ -184,13 +189,26 @@ namespace Protega___Server
                     if (FormerPingTimer != PingTimer)
                     {
                         Classes.CCstData.GetInstance(AppsRunning[0].Application).PingTimer = PingTimer;
+                        int AmountErrors = 0;
+                        int AmountSuccess = 0;
+                        foreach (var Client in AppsRunning[0].ActiveConnections)
+                        {
+                            if (Client.AdjustPingTimer(PingTimer))
+                                AmountSuccess++;
+                            else
+                                AmountErrors++;
+                        }
                         Console.WriteLine("CONFIG update: Using now PingTimer " + PingTimer.ToString() + "ms");
+                        Console.WriteLine(String.Format("CONFIG update: Ping adjusted for {0} players, failures: {1}", AmountSuccess, AmountErrors));
+
+
                     }
                 }
 
             }
             return true;
         }
+        #endregion
 
         static List<string> GetSections(string ConfigPath)
         {
