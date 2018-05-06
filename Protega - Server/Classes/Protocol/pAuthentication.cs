@@ -47,6 +47,10 @@ namespace Protega___Server.Classes.Protocol
         {
             return prot.TimePassedMs();
         }
+        public DateTime TimeStampStart()
+        {
+            return prot.TimeStampStart();
+        }
         
     }
 }

@@ -22,7 +22,7 @@ namespace Protega___Server
     {
         //Variables
         //--Public
-        public delegate void protocolFunction(ref networkClientInterface NetworkClient, string prot);
+        public delegate void protocolFunction(ref networkClientInterface NetworkClient, string prot, DateTime TimeStampStart);
         public delegate void _AuthenticateClient(networkClientInterface Client);
         //--Private
         private IPEndPoint serverEndPoint;
@@ -111,6 +111,7 @@ namespace Protega___Server
 
         private void ReceiveCallback(IAsyncResult result)
         {
+            DateTime TimeStampStart = DateTime.Now;
             Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, Support.LogCategory.OK, Support.LoggerType.SERVER, "Protocol received");
             networkClientInterface connection = (networkClientInterface)result.AsyncState;
             try
@@ -119,7 +120,7 @@ namespace Protega___Server
                 int bytesRead = connection.networkSocket.EndReceive(result);
                 if (0 != bytesRead)
                 {
-                    protAnalyseFunction(ref connection, Encoding.Default.GetString(connection.buffer, 0, bytesRead));
+                    protAnalyseFunction(ref connection, Encoding.Default.GetString(connection.buffer, 0, bytesRead),TimeStampStart);
                     //connection.networkSocket.BeginReceive(connection.buffer, 0,
                     //  connection.buffer.Length, SocketFlags.None,
                     //  new AsyncCallback(ReceiveCallback), connection);
@@ -207,6 +208,7 @@ namespace Protega___Server
 
             private IPAddress _LatestIP;
             public bool KickTriggered = false;
+            public bool LoginCompleted = false;
 
             public IPAddress IP
             {
@@ -216,8 +218,30 @@ namespace Protega___Server
 
             public delegate void KickUser(networkClientInterface Client);
             event KickUser Kick;
-            System.Timers.Timer tmrPing;
-            
+            public System.Timers.Timer tmrPing;
+
+            #region Constructor & Destructor
+
+            public networkClientInterface()
+            {
+            }
+
+            public networkClientInterface(Socket connection, IAsyncResult result)
+            {
+                try
+                {
+                    networkSocket = connection.EndAccept(result);
+                }
+                catch (Exception)
+                {
+                    Protega___Server.Classes.CCstData.GetInstance(User.Application != null ? User.Application.ID : 1).Logger.writeInLog(2, Support.LogCategory.CRITICAL, Support.LoggerType.SERVER, "Endaccept error 1");
+                    return;
+                }
+
+                networkSocket.Blocking = false;
+                buffer = new byte[1024];
+            }
+
             public void Dispose()
             {
                 if (networkSocket != null)
@@ -226,7 +250,7 @@ namespace Protega___Server
                     {
                         networkSocket.Shutdown(SocketShutdown.Both);
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
                     }
                     networkSocket.Close();
@@ -238,6 +262,17 @@ namespace Protega___Server
                     tmrPing.Enabled = false;
                     tmrPing.Dispose();
                 }
+            }
+            #endregion
+
+            public void Initialize(int Interval, KickUser _Kick)
+            {
+                this.Kick = _Kick;
+                tmrPing = new System.Timers.Timer();
+                tmrPing.Elapsed += TmrPing_Elapsed;
+                ConnectedTime = DateTime.Now;
+                tmrPing.Interval = Interval;
+                tmrPing.Start();
             }
 
             public void CheckIP(int ApplicationID)
@@ -270,14 +305,22 @@ namespace Protega___Server
                     
                     //Update LatestIP if IP has changed
                     _LatestIP = CurrentIP;
-                    listIPs.Add(CurrentIP);
+
+                    bool Contains = false;
+                    foreach (IPAddress item in listIPs)
+                    {
+                        if (item.ToString() == CurrentIP.ToString())
+                            Contains = true;
+                    }
+                    if(!Contains)
+                        listIPs.Add(CurrentIP);
 
                     //Log that this case is possible
                     if (listIPs.Count > 1 && ApplicationID != 0)
                     {
                         string FormerIPs = "";
                         listIPs.ForEach(IP => FormerIPs += IP + " - ");
-                        Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Client IP Changed! CurrentIP: {0}. Former IPs: {1}", CurrentIP, FormerIPs));
+                        Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, Support.LogCategory.OK, Support.LoggerType.CLIENT, String.Format("Client IP Changed! CurrentIP: {0}. Former IPs: {1}", CurrentIP, FormerIPs));
                     }
                 }
                 else
@@ -287,19 +330,6 @@ namespace Protega___Server
                         Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Cannot get current IP! User: {0}. Session: {1}", User.ID, SessionID));
                     }
                 }
-            }
-
-            public networkClientInterface()
-            {
-            }
-            public void SetPingTimer(int Interval, KickUser _Kick)
-            {
-                this.Kick = _Kick;
-                tmrPing = new System.Timers.Timer();
-                tmrPing.Elapsed += TmrPing_Elapsed;
-                ConnectedTime = DateTime.Now;
-                tmrPing.Interval = Interval;
-                tmrPing.Start();
             }
 
             public bool AdjustPingTimer(int Interval)
@@ -325,30 +355,12 @@ namespace Protega___Server
                 //User kicked
             }
             
-
             public void ResetPingTimer()
             {
                 tmrPing.Stop();
                 tmrPing.Start();
                 _LastPing = DateTime.Now;
                 CheckIP(User.Application.ID);
-            }
-
-            public networkClientInterface(Socket connection, IAsyncResult result)
-            {
-                AddressFamily test= connection.AddressFamily;
-                try
-                {
-                    networkSocket = connection.EndAccept(result);
-                }
-                catch (Exception)
-                {
-                    Protega___Server.Classes.CCstData.GetInstance(User.Application != null ? User.Application.ID : 1).Logger.writeInLog(2, Support.LogCategory.CRITICAL, Support.LoggerType.SERVER, "Endaccept error 1");
-                    return;
-                }
-                
-                networkSocket.Blocking = false;
-                buffer = new byte[1024];
             }
         }
     }

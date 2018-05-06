@@ -7,7 +7,7 @@ using System.Collections;
 
 namespace Protega___Server.Classes.Protocol
 {
-    class pHackDetectionHeuristic:InterfaceRuneTimeTasks
+    class pHackDetectionHeuristic:InterfaceRunTimeTasks
     {
         public Entity.EHackHeuristic hackData;
         string ProcessName = null;

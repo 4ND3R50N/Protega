@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Protega___Server.Classes.Protocol
 {
-    class pPing : InterfaceRuneTimeTasks
+    class pPing : InterfaceRunTimeTasks
     {
         public string AdditionalMessage;
 

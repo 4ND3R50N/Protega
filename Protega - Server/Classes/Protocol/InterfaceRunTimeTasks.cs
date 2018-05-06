@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Protega___Server.Classes.Protocol
 {
-    abstract class InterfaceRuneTimeTasks
+    abstract class InterfaceRunTimeTasks
     {
-        public InterfaceRuneTimeTasks() { }
+        public InterfaceRunTimeTasks() { }
 
         public Protocol prot;
         public networkServer.networkClientInterface Client;

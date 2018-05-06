@@ -11,13 +11,13 @@ namespace Protega___Server.Classes.Protocol
         private string ReceivedString;
         private ArrayList values = new ArrayList();
         char Delimiter;
-        DateTime TimeStampReceived;
+        public DateTime TimeStampReceived;
         
-        public Protocol(string protocol, char Delimiter)
+        public Protocol(string protocol, char Delimiter, DateTime TimeStampStart)
         {
             ReceivedString = protocol;
             this.Delimiter = Delimiter;
-            TimeStampReceived = DateTime.Now;
+            TimeStampReceived = TimeStampStart;
         }
         
         public bool Split()
@@ -73,6 +73,11 @@ namespace Protega___Server.Classes.Protocol
         public string TimePassedMs()
         {
             return Math.Round(this.TimePassed().TotalMilliseconds) + "ms";
+        }
+
+        public DateTime TimeStampStart()
+        {
+            return TimeStampReceived;
         }
     }
 }

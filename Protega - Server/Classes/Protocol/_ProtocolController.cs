@@ -17,31 +17,35 @@ namespace Protega___Server.Classes.Protocol
         List<networkServer.networkClientInterface> ActiveConnections;
         int ApplicationID;
         char ProtocolDelimiter;
-        Thread AuthManager, RuntimeManager;
-        Queue<Classes.Protocol.InterfaceRuneTimeTasks> RuntimeQueue;
-        Queue<Classes.Protocol.InterfaceLoginLogout> AuthQueue;
+        Thread LoginManager, LogoutManager, RuntimeManager;
+        Queue<Classes.Protocol.InterfaceRunTimeTasks> RuntimeQueue;
+        Queue<Classes.Protocol.InterfaceLoginLogout> LoginQueue;
+        Queue<Classes.Protocol.InterfaceLoginLogout> LogoutQueue;
 
         public _ProtocolController(char ProtocolDelimiter, ref List<networkServer.networkClientInterface> ActiveConnections, int _ApplicationID)
         {
             this.ProtocolDelimiter = ProtocolDelimiter;
             this.ActiveConnections = ActiveConnections;
             ApplicationID = _ApplicationID;
-            RuntimeQueue = new Queue<InterfaceRuneTimeTasks>();
-            AuthQueue = new Queue<InterfaceLoginLogout>();
+            RuntimeQueue = new Queue<InterfaceRunTimeTasks>();
+            LoginQueue = new Queue<InterfaceLoginLogout>();
+            LogoutQueue = new Queue<InterfaceLoginLogout>();
 
-            AuthManager = new Thread(LoginLogoutManagement);
+            LoginManager = new Thread(LoginManagement);
+            LogoutManager = new Thread(LogoutManagement);
             RuntimeManager = new Thread(RunTimeManagement);
 
-            AuthManager.Start();
+            LoginManager.Start();
+            LogoutManager.Start();
             RuntimeManager.Start();
         }
 
         public delegate void SendProt(string Protocol, networkServer.networkClientInterface ClientInterface);
         public static event SendProt SendProtocol = null;
 
-        public bool ReceivedProtocol(networkServer.networkClientInterface NetworkClient, string protocolString)
+        public bool ReceivedProtocol(networkServer.networkClientInterface NetworkClient, string protocolString, DateTime TimestampStart)
         {
-            Protocol protocol = new Protocol(protocolString, ProtocolDelimiter);
+            Protocol protocol = new Protocol(protocolString, ProtocolDelimiter, TimestampStart);
             if (!protocol.Split())
             {
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.CLIENT, "Received invalid protocol synthax: " + protocolString);
@@ -68,16 +72,19 @@ namespace Protega___Server.Classes.Protocol
 
         }
 
-        public bool CheckIfUserExists(string SessionID, ref networkServer.networkClientInterface ClientInterface)
+        public bool CheckIfUserExists(string SessionID, ref networkServer.networkClientInterface ClientInterface, bool ReplaceSocket=true)
         {
             //Checks if that connection exists already. Gives back the amount of matching ClientInterfaces
             for (int i = 0; i < ActiveConnections.Count; i++)
             {
                 if (ActiveConnections[i].SessionID == SessionID)
                 {
-                    ActiveConnections[i].networkSocket.Close();
-                    ActiveConnections[i].networkSocket.Dispose();
-                    ActiveConnections[i].networkSocket = ClientInterface.networkSocket;
+                    if (ReplaceSocket)
+                    {
+                        ActiveConnections[i].networkSocket.Close();
+                        ActiveConnections[i].networkSocket.Dispose();
+                        ActiveConnections[i].networkSocket = ClientInterface.networkSocket;
+                    }
                     ClientInterface = ActiveConnections[i];
                     return true;
                 }
@@ -86,24 +93,57 @@ namespace Protega___Server.Classes.Protocol
         }
 
         #region Thread Protocol managing
-        void LoginLogoutManagement()
+        object SyncRunTime = new object();
+        object SyncLogin = new object();
+        object SyncLogout = new object();
+        void LoginManagement()
         {
             while (true)
             {
-                while (AuthQueue.Count > 0)
+                while (LoginQueue.Count > 0)
                 {
-                    InterfaceLoginLogout Task = AuthQueue.Dequeue();
+                    
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("New Login Task. Open: {0}", LoginQueue.Count));
+                    int Index = LoginQueue.Count - 1;
+                    InterfaceLoginLogout Task;
+                    lock (SyncLogin)
+                    {
+                        //Task = LoginQueue[Index];
+                        //LoginQueue.Remove(Task);
+                        Task = LoginQueue.Dequeue();
+                    }
                     if (Task is pAuthentication)
                         TaskAuthenticateUser(Task as pAuthentication);
                     else if (Task is pDisconnection)
                         TaskKickUser(Task as pDisconnection);
                     else
-                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Impossible LoginLogout-Queue item found!");
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Impossible Login-Queue item found!");
                 }
                 Thread.Sleep(1000);
             }
         }
-    
+
+        void LogoutManagement()
+        {
+            while (true)
+            {
+                while (LogoutQueue.Count > 0)
+                {
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("New Logout Task. Open: {0}", LogoutQueue.Count));
+                    InterfaceLoginLogout Task;
+                    lock (SyncLogout)
+                    {
+                        Task = LogoutQueue.Dequeue();
+                    }
+                    if (Task is pDisconnection)
+                        TaskKickUser(Task as pDisconnection);
+                    else
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Impossible Logout-Queue item found!");
+                }
+                Thread.Sleep(1000);
+            }
+        }
+
 
         void RunTimeManagement()
         {
@@ -111,7 +151,12 @@ namespace Protega___Server.Classes.Protocol
             {
                 while (RuntimeQueue.Count > 0)
                 {
-                    InterfaceRuneTimeTasks Task = RuntimeQueue.Dequeue();
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, String.Format("New Runtime Task. Open: {0}", RuntimeQueue.Count));
+                    InterfaceRunTimeTasks Task;
+                    lock (SyncRunTime)
+                    {
+                        Task = RuntimeQueue.Dequeue();
+                    }
                     if (Task is pPing)
                         TaskResetPing(Task as pPing);
                     else if (Task is pHackDetectionHeuristic)
@@ -119,7 +164,7 @@ namespace Protega___Server.Classes.Protocol
                     else
                         CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Impossible Runtime-Queue item found!");
                 }
-                Thread.Sleep(500);
+                Thread.Sleep(200);
             }
         }
         #endregion
@@ -132,7 +177,10 @@ namespace Protega___Server.Classes.Protocol
             pAuthentication AuthProt = new pAuthentication(ref ClientInterface, prot);
 
             //Add the Auth protocol into the queue which is checked by a separate thread
-            AuthQueue.Enqueue(AuthProt);
+            lock (SyncLogin)
+            {
+                LoginQueue.Enqueue(AuthProt);
+            }
             return true;
         }
 
@@ -140,7 +188,10 @@ namespace Protega___Server.Classes.Protocol
         {
             CCstData.GetInstance(ClientInterface.User.Application.ID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Disconnection triggered!. {0} ({1} - {2})", ClientInterface.User.ID, ClientInterface.SessionID, ClientInterface.IP));
             pDisconnection DisconnectionTask = new pDisconnection(ref ClientInterface);
-            AuthQueue.Enqueue(DisconnectionTask);
+            lock (SyncLogout)
+            {
+                LogoutQueue.Enqueue(DisconnectionTask);
+            }
             return;
         }
 
@@ -148,7 +199,10 @@ namespace Protega___Server.Classes.Protocol
         {
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Ping: Protocol received. User: " + prot.GetUserID());
             pPing ping = new pPing(ref Client, prot);
-            RuntimeQueue.Enqueue(ping);
+            lock (SyncRunTime)
+            {
+                RuntimeQueue.Enqueue(ping);
+            }
             return true;
         }
 
@@ -156,187 +210,11 @@ namespace Protega___Server.Classes.Protocol
         {
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Heuristic-Detection received. User: " + prot.GetUserID());
             pHackDetectionHeuristic detection = new pHackDetectionHeuristic(ref Client, prot);
-            RuntimeQueue.Enqueue(detection);
+            TaskHackDetection_Heuristic(detection);
+            //RuntimeQueue.Enqueue(detection);
             return true;
         }
         #endregion
-
-        bool AddUserToActiveConnections(ref networkServer.networkClientInterface ClientInterface, string ApplicationHash, string ComputerID, string architecture, String language, double version)
-        {
-            if (!CCstData.InstanceExists(ApplicationHash))
-            {
-                //Instance does not exist. The player must have manipulated the protocol!
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Invalid application hash received in authentification protocol! ComputerID: {0}, ApplicationHash: {1}", ComputerID, ApplicationHash));
-                return false;
-            }
-
-            if (CCstData.GetInstance(ApplicationHash).LatestClientVersion != version)
-            {
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Invalid version! Having {0}, expected {1}. Hardware ID {2}", version, CCstData.GetInstance(ApplicationHash).LatestClientVersion, ComputerID));
-                SendProtocol(String.Format("201{0}35{0}Antihack Client version outdated!", ProtocolDelimiter), ClientInterface);
-                return false;
-            }
-
-            ////Check if user is already connected
-            //foreach (networkServer.networkClientInterface item in ActiveConnections)
-            //{
-            //    if(item.User.ID==ComputerID
-            //        && item.User.Application.Hash==ApplicationHash)
-            //    {
-            //        //User is already registered
-            //        CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.CLIENT, "Authentification: User is already added to list!");
-            //        SendProtocol("201;2;Still logged in. Please try again", ClientInterface);
-            //        return false;
-            //    }
-            //}
-
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(5, LogCategory.OK, Support.LoggerType.DATABASE, "Authentification: Checking user in the database");
-            ClientInterface.CheckIP(ApplicationID);
-            EPlayer dataClient = SPlayer.Authenticate(ComputerID, ApplicationHash, architecture, language, ClientInterface.IP.ToString());
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(5, LogCategory.OK, Support.LoggerType.DATABASE, "Authentification: User found!");
-
-            if (dataClient == null)
-            {
-                //If a computer ID exists multiple times in the database, a null object is returned
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.DATABASE, "Authentification: Hardware ID exists multiple times in the database");
-                SendProtocol(String.Format("201{0}3{0}Contact Admin", ProtocolDelimiter), ClientInterface);
-                return false;
-            }
-            dataClient.Application.Hash = ApplicationHash;
-
-            //Check if user is banned
-            if (dataClient.isBanned == true)
-            {
-                //Do something and dont let him enter
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authentification: Banned user tried to authentificate. User: {0}", dataClient.ID));
-                //Send protocol to client that user is banned
-                SendProtocol(String.Format("201{0}4{0}Too many hacks", ProtocolDelimiter), ClientInterface);
-                return false;
-            }
-
-            //Add EPlayer to ClientInterface and to the list
-            ClientInterface.User = dataClient;
-
-            //Generate unique Session ID for network communication
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Authentification: Start creating a unique session ID");
-            while (true)
-            {
-                string SessionID = AdditionalFunctions.GenerateSessionID(CCstData.GetInstance(ApplicationHash).SessionIDLength);
-                //Checks if that connection exists already. Gives back the amount of matching ClientInterfaces
-                if (ActiveConnections.Where(Client => Client.SessionID == SessionID).ToList().Count == 0)
-                {
-                    ClientInterface.SessionID = SessionID;
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, String.Format("New user authentificated! HardwareID: {0}, Session ID: {1}", dataClient.ID, SessionID));
-                    break;
-                }
-            }
-
-            //Add the new connection to the list of connected connections
-            ClientInterface.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, KickUser);
-
-            bool IpExistsAlready = false;
-            foreach (var Client in ActiveConnections)
-            {
-                if (Client.IP == ClientInterface.IP)
-                    IpExistsAlready = true;
-            }
-
-
-            //Linux takes ages to connect. Therefore contact the client before it sends another request
-
-            if (!IpExistsAlready)
-            {
-                if (!CCstData.GetInstance(ApplicationID).GameDLL.AllowUser(ClientInterface.IP, ClientInterface.User.ID))
-                {
-                    //Do something and dont let him enter
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, String.Format("Linux exception failed. User: {0}", dataClient.ID));
-                    //Send protocol to client that user is banned
-                    SendProtocol(String.Format("201{0}30{0}Access verification failed", ProtocolDelimiter), ClientInterface);
-                    return false;
-                }
-            }
-            else
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authentication: IP already exists ({0})", ClientInterface.IP.ToString()));
-
-            ActiveConnections.Add(ClientInterface);
-
-            SendProtocol(String.Format("200{0}{1}", ProtocolDelimiter, ClientInterface.SessionID), ClientInterface);
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authenticated new user. Computer ID: {0}, Session ID: {1}, IP: {2}", ClientInterface.User.ID, ClientInterface.SessionID, ClientInterface.IP.ToString()));
-
-            /*if (!IpExistsAlready)
-            {
-                //If there is already an IP exception, we dont need another
-                try
-                {
-                    ClientInterface.unixSshConnectorAccept.Connect();
-                }
-                catch (Exception)
-                {
-                    
-                }
-                if (ClientInterface.unixSshConnectorAccept.IsConnected)
-                {
-                    List<int> Ports = new List<int>();
-                    Ports.Add(50001);
-                    Ports.Add(50002);
-                    Ports.Add(50003);
-                    Ports.Add(50004);
-                    Ports.Add(50005);
-                    Ports.Add(50006);
-                    Ports.Add(50007);
-                    Ports.Add(50008);
-                    Ports.Add(50009);
-                    Ports.Add(50010);
-                    Ports.Add(50011);
-                    Ports.Add(50012);
-                    Ports.Add(50013);
-                    Ports.Add(50014);
-                    Ports.Add(50015);
-                    Ports.Add(50016);
-                    Ports.Add(50017);
-                    Ports.Add(50018);
-                    Ports.Add(50019);
-                    Ports.Add(50020);
-                    string LinuxPorts = "";
-                    foreach (int item in Ports)
-                    {
-                        LinuxPorts += "iptables -I INPUT -p tcp -s " + ClientInterface.IP + " --dport " + item + " -j ACCEPT && ";
-                    }
-                    if(LinuxPorts.Length > 0)
-                    {
-                        LinuxPorts = LinuxPorts.TrimEnd(' ');
-                        LinuxPorts = LinuxPorts.TrimEnd('&');
-                        using (SshCommand Result = ClientInterface.unixSshConnectorAccept.RunCommand(LinuxPorts))
-                        {
-                            if (Result.Error.Length > 0)
-                                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "Linux exception failed! Session ID: " + ClientInterface.SessionID + ", Error: " + Result.Error);
-                            else
-                                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.GAMEDLL, "Linux exception successful. Session ID: " + ClientInterface.SessionID + ", Result: " + Result.Result);
-                        }
-                    }
-
-                    ClientInterface.unixSshConnectorAccept.Disconnect();
-                }
-                else
-                {
-                    //Fehlerinfo
-                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.CLIENT, "Client could not be connected to the Linux Server. Session ID: " + ClientInterface.SessionID);
-                    return false;
-                }
-            }
-            else
-            {
-                string AllIPs = "";
-                foreach (var item in ActiveConnections)
-                {
-                    AllIPs += String.Format(" User: {0}, IP: {1} -", item.User.ID, item.IP);
-                }
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authentication: IP already exists ({0})", AllIPs));
-            }*/
-
-            return true;
-        }
-
 
         #region Protocol proceeding functions
         bool TaskAuthenticateUser(pAuthentication prot)
@@ -418,7 +296,7 @@ namespace Protega___Server.Classes.Protocol
             }
 
             //Add the new connection to the list of connected connections
-            prot.Client.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, KickUser);
+            //prot.Client.SetPingTimer(CCstData.GetInstance(dataClient.Application.ID).PingTimer, KickUser);
 
             bool IpExistsAlready = false;
             foreach (var Client in ActiveConnections)
@@ -430,9 +308,11 @@ namespace Protega___Server.Classes.Protocol
 
             //Linux takes ages to connect. Therefore contact the client before it sends another request
 
+            //ActiveConnections.Add(prot.Client);
+            //SendProtocol(String.Format("200{0}{1}", ProtocolDelimiter, prot.Client.SessionID), prot.Client);
             if (!IpExistsAlready)
             {
-                if (!CCstData.GetInstance(ApplicationID).GameDLL.AllowUser(prot.Client.IP, prot.Client.User.ID))
+                if (!CCstData.GetInstance(ApplicationID).GameDLL.AllowUser(prot.Client.IP, prot.Client.SessionID, prot.TimeStampStart()))
                 {
                     //Do something and dont let him enter
                     CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, String.Format("Linux exception failed. User: {0}", dataClient.ID));
@@ -443,6 +323,9 @@ namespace Protega___Server.Classes.Protocol
             }
             else
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Authentication: IP already exists ({0})", prot.Client.IP.ToString()));
+
+
+            prot.Client.Initialize(CCstData.GetInstance(dataClient.Application.ID).PingTimer, KickUser);
 
             ActiveConnections.Add(prot.Client);
 
@@ -459,18 +342,12 @@ namespace Protega___Server.Classes.Protocol
                 CCstData.GetInstance(DisconnectionTask.Client.User.Application.ID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Kick triggered multiple times!. {0} ({1} - {2})", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP));
                 return;
             }
+            DisconnectionTask.Client.KickTriggered = true;
 
-            int Index=-1;
-            for (int i = 0; i < ActiveConnections.Count; i++)
+            if(!CheckIfUserExists(DisconnectionTask.Client.SessionID,ref DisconnectionTask.Client, false))
             {
-                if(ActiveConnections[i].SessionID==DisconnectionTask.Client.SessionID)
-                {
-                    ActiveConnections[i].KickTriggered = true;
-                    Index = i;
-                }
+                CCstData.GetInstance(DisconnectionTask.Client.User.Application.ID).Logger.writeInLog(2, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Kick triggered for not existing user: {0} ({1} - {2})", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP));
             }
-            if (Index == -1)
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Kick triggered for not existing user: {0} ({1} - {2}", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP));
             
             DisconnectionTask.Client.ResetPingTimer();
             //System.Threading.Thread.Sleep(1000);
@@ -483,27 +360,14 @@ namespace Protega___Server.Classes.Protocol
                         IpExistsAlready = true;
             }
 
-
-            if (!RemoveNetworkinterfaceBySession(DisconnectionTask.Client.SessionID))
-            {
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Disconnection: User not found. User {0} ({1} - {2})", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP));
-
-                string ErrorMessageDetail = String.Format("Searched User: {0}, {1}, {2}\n", DisconnectionTask.Client.SessionID, DisconnectionTask.Client.User.ID, DisconnectionTask.Client.IP);
-                for (int i = 0; i < ActiveConnections.Count; i++)
-                {
-                    ErrorMessageDetail += String.Format("User{0}: {1}, {2}, {3}. KickTrigger: {4}, LastPing: {5} ({6}), ", i, ActiveConnections[i].SessionID, ActiveConnections[i].User.ID, ActiveConnections[i].IP, ActiveConnections[i].KickTriggered.ToString(), ActiveConnections[i]._LastPing, (DateTime.Now - ActiveConnections[i]._LastPing).TotalSeconds);
-                }
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.CRITICAL, Support.LoggerType.SERVER, ErrorMessageDetail);
-            }
-
             if (!IpExistsAlready)
             {
-                if(!CCstData.GetInstance(ApplicationID).GameDLL.KickUser(DisconnectionTask.Client.IP,DisconnectionTask.Client.User.ID))
+                if (!CCstData.GetInstance(ApplicationID).GameDLL.KickUser(DisconnectionTask.Client.IP, DisconnectionTask.Client.SessionID, DisconnectionTask.TimeStampStart()))
                 {
                     CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, String.Format("Linux exception removal failed. IP {0}, User: {1}", DisconnectionTask.Client.IP, DisconnectionTask.Client.User.ID));
                 }
             }
-            
+
             DisconnectionTask.Client.Dispose();
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("User disconnected. User {0} ({1} - {2}). {3}", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP, DisconnectionTask.TimePassed()));
         }
@@ -534,7 +398,7 @@ namespace Protega___Server.Classes.Protocol
                 else
                     SendProtocol(String.Format("301{0}{1}", ProtocolDelimiter, ping.AdditionalMessage), ping.Client);
 
-                CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Ping resetted User {0} ({1} - {2}). {3}", ping.Client.User.ID, ping.Client.SessionID, ping.Client.IP, ping.TimePassed()));
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, String.Format("Ping resetted User {0} ({1} - {2}). {3}", ping.Client.User.ID, ping.Client.SessionID, ping.Client.IP, ping.TimePassed()));
                 return true;
             }
 
@@ -725,6 +589,96 @@ namespace Protega___Server.Classes.Protocol
             KickUser(ClientInterface);
             return false;
         }
+        #endregion
+        
+        #region Callbacks
+        public void ReceiveGameDLLCallback(string Username, System.Net.IPAddress IP, Classes.Utility.ApplicationAdapter.Task task, Classes.Utility.ApplicationAdapter.Result Result,DateTime TimeStampStart)
+        {
+            if (task == Utility.ApplicationAdapter.Task.InsertConnection)
+            {
+                networkServer.networkClientInterface Client = new networkServer.networkClientInterface();
+                if (Result == Utility.ApplicationAdapter.Result.SUCCESS)
+                {
+                    if (CheckIfUserExists(Username, ref Client, false))
+                    {
+                        //Authentication success and user exists
+                        Client.LoginCompleted = true;
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, LoggerType.SERVER, String.Format("Linux exception successful: {0} ({1} - {2}) {3}", Client.User.ID, Client.SessionID, Client.IP, Classes.AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now)));
+                    }
+                    else
+                    {
+                        //Authentication success but user does not exist
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, LoggerType.SERVER, String.Format("Linux exception successful but user not found: {0} ({1}) {2}", Username, IP, Classes.AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now)));
+                        CCstData.GetInstance(ApplicationID).GameDLL.KickUser(IP, Username,DateTime.Now);
+                        Client.Dispose();
+                    }
+                }
+                else
+                {
+                    if (CheckIfUserExists(Username, ref Client, false))
+                    {
+                        //Authentication failed but user exists
+                        //Send protocol to kick user since IPException was not successful
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, LoggerType.SERVER, String.Format("Linux exception failed: {0} ({1} - {2}) {3}", Client.User.ID, Client.SessionID, Client.IP, Classes.AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now)));
+                        KickUser(Client);
+                    }
+                    else
+                    {
+                        //Authentication failed and user does not exist
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, LoggerType.SERVER, String.Format("Linux exception failed and user not found: {0} ({1}) {2}", Username, IP, Classes.AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now)));
+                    }
+                }
+            }
+            else if (task == Utility.ApplicationAdapter.Task.RemoveConnection)
+            {
+                networkServer.networkClientInterface Client = new networkServer.networkClientInterface();
+                if (Result == Utility.ApplicationAdapter.Result.SUCCESS)
+                {
+                    if (CheckIfUserExists(Username, ref Client, false))
+                    {
+                        //Kick succeeded and user exists
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, LoggerType.SERVER, String.Format("Linux exception removal success: {0} ({1} - {2}) {3}", Client.User.ID, Client.SessionID, Client.IP, Classes.AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now)));
+
+
+                        if (!RemoveNetworkinterfaceBySession(Client.SessionID))
+                        {
+                            CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Disconnection: User not found. User {0} ({1} - {2})", Client.User.ID, Client.SessionID, Client.IP));
+
+                            string ErrorMessageDetail = String.Format("Searched User: {0}, {1}, {2}\n", Client.SessionID, Client.User.ID, Client.IP);
+                            for (int i = 0; i < ActiveConnections.Count; i++)
+                            {
+                                ErrorMessageDetail += String.Format("User{0}: {1}, {2}, {3}. KickTrigger: {4}, LastPing: {5} ({6}), ", i, ActiveConnections[i].SessionID, ActiveConnections[i].User.ID, ActiveConnections[i].IP, ActiveConnections[i].KickTriggered.ToString(), ActiveConnections[i]._LastPing, (DateTime.Now - ActiveConnections[i]._LastPing).TotalSeconds);
+                            }
+                            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.CRITICAL, Support.LoggerType.SERVER, ErrorMessageDetail);
+                        }
+                    }
+                    else
+                    {
+                        //Kick succeeded but user does not exist
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, LoggerType.SERVER, String.Format("Linux exception removal success but user not found: {0} ({1}) {2}", Username, IP, Classes.AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now)));
+                        Client.Dispose();
+                    }
+                }
+                else
+                {
+                    if (CheckIfUserExists(Username, ref Client, false))
+                    {
+                        //Kick failed but user exists - retry
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, LoggerType.SERVER, String.Format("Linux exception removal failed: {0} ({1} - {2}) {3}", Client.User.ID, Client.SessionID, Client.IP, Classes.AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now)));
+                        Client.KickTriggered = false;
+                        KickUser(Client);
+                    }
+                    else
+                    {
+                        //Kick failed and user does not exist
+                        CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, LoggerType.SERVER, String.Format("Linux exception removal success but user not found: {0} ({1}) {2}", Username, IP, Classes.AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now)));
+                        Client.Dispose();
+                    }
+                }
+            }
+        }
+
+
         #endregion
     }
 }

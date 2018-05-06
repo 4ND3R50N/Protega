@@ -50,7 +50,7 @@ namespace Protega___Server_Testsuite
             //CCstData.GetInstance(Core.Application).Logger.Seperate();
             ////CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test Authentification started!");
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
-            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;12312315;{0};1;Windoofs 7;Deutsch",Core.Application.Hash)), true);
+            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;12312315;{0};1;Windoofs 7;Deutsch",Core.Application.Hash),DateTime.Now), true);
             ////CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test Authentification finished!");
             //CCstData.GetInstance(Core.Application).Logger.Seperate();
         }
@@ -60,7 +60,7 @@ namespace Protega___Server_Testsuite
         {
             //CCstData.GetInstance(Core.Application).Logger.Seperate();
             //CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test HackDetection Heuristic started!");
-            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(Client, "701;123;Process;Window;Class;MD5"), true);
+            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(Client, "701;123;Process;Window;Class;MD5",DateTime.Now), true);
             //CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test HackDetection nHeuristic finished!");
             //CCstData.GetInstance(Core.Application).Logger.Seperate();
         }
@@ -70,7 +70,7 @@ namespace Protega___Server_Testsuite
         {
             //CCstData.GetInstance(Core.Application).Logger.Seperate();
             //CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test HackDetection Virtual started!");
-            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(Client, "702;123;Base;OfS;DetectedV;DefaultV"), true);
+            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(Client, "702;123;Base;OfS;DetectedV;DefaultV",DateTime.Now), true);
             //CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test HackDetection Virtual finished!");
             //CCstData.GetInstance(Core.Application).Logger.Seperate();
         }
@@ -83,7 +83,7 @@ namespace Protega___Server_Testsuite
             Random Ran = new Random();
             string HardwareID = Ran.Next(1, 50000).ToString();
             networkServer.networkClientInterface dummy = new networkServer.networkClientInterface();
-            Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;{0};{1};Windoofs 7;Deutsch;1",HardwareID, Core.Application.Hash));
+            Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;{0};{1};Windoofs 7;Deutsch;1",HardwareID, Core.Application.Hash),DateTime.Now);
             string SessionID="";
             foreach (var item in Core.ActiveConnections)
             {
@@ -94,14 +94,14 @@ namespace Protega___Server_Testsuite
                     dummy = item;
                 }
             } 
-            bool Test= Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID));
-            Test = Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID));
-            Test = Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID));
-            Test = Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID));
-            Test = Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID));
-            Test = Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID));
+            bool Test= Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID), DateTime.Now);
+            Test = Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID), DateTime.Now);
+            Test = Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID), DateTime.Now);
+            Test = Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID), DateTime.Now);
+            Test = Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID), DateTime.Now);
+            Test = Core.ProtocolController.ReceivedProtocol(Client, String.Format("701;{0};Process;Window;Class;MD5", SessionID), DateTime.Now);
             Core.ActiveConnections.Remove(dummy);
-            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;{0};{1};Windoofs 7;Deutsch;1", HardwareID, Core.Application.Hash)), false);
+            Assert.AreEqual(Core.ProtocolController.ReceivedProtocol(dummy, String.Format("500;{0};{1};Windoofs 7;Deutsch;1", HardwareID, Core.Application.Hash),DateTime.Now), false);
 
             //CCstData.GetInstance(Core.Application).Logger.writeInLog(3, Support.LogCategory.OK, "Test AuthHackError finished!");
             //CCstData.GetInstance(Core.Application).Logger.Seperate();

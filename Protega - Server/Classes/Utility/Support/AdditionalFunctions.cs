@@ -19,5 +19,9 @@ namespace Protega___Server.Classes
             }
             return SessionID;
         }
+        public static string CalcDifferenceMS(DateTime time1, DateTime time2)
+        {
+            return Math.Round((time2 - time1).TotalMilliseconds).ToString() + "ms";
+        }
     }
 }

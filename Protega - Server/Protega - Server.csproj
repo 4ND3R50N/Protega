@@ -71,7 +71,7 @@
     <Compile Include="Classes\Protocol\pDisconnection.cs" />
     <Compile Include="Classes\Protocol\InterfaceLoginLogout.cs" />
     <Compile Include="Classes\Service\SHackFile.cs" />
-    <Compile Include="Classes\Protocol\InterfaceRuneTimeTasks.cs" />
+    <Compile Include="Classes\Protocol\InterfaceRunTimeTasks.cs" />
     <Compile Include="Classes\Service\SApplication.cs" />
     <Compile Include="Classes\Service\SHackHeuristic.cs" />
     <Compile Include="Classes\Service\SHackVirtual.cs" />

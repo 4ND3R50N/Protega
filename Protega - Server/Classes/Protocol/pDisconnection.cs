@@ -21,5 +21,10 @@ namespace Protega___Server.Classes.Protocol
         {
             return Math.Round((DateTime.Now - LogoutTriggered).TotalMilliseconds) + "ms";
         }
+
+        public DateTime TimeStampStart()
+        {
+            return LogoutTriggered;
+        }
     }
 }

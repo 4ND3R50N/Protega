@@ -23,6 +23,8 @@ namespace Protega___Server.Classes.Core
         private char   cProtocolDelimiter;
         private char   cDataDelimiter;
         public Classes.Entity.EApplication Application;
+
+        public bool ConfigureSuccessful = false;
         //Konstruktor
         /// <summary>
         /// To initial the core we need to know many parameters to be flexible for different clients.
@@ -128,7 +130,6 @@ namespace Protega___Server.Classes.Core
             if (!CCstData.GetInstance(Application).GameDLL.ConstructorSuccessful)
                 return;
 
-            CCstData.GetInstance(Application).GameDLL.PrepareServer(ConfigPath);
 
             
             ActiveConnections = new List<networkServer.networkClientInterface>();
@@ -142,8 +143,10 @@ namespace Protega___Server.Classes.Core
             Logger.Seperate();
             ProtocolController = new _ProtocolController(cProtocolDelimiter, ref this.ActiveConnections, Application.ID);
 
+            if (!CCstData.GetInstance(Application).GameDLL.PrepareServer(ConfigPath, ProtocolController.ReceiveGameDLLCallback))
+                return;
             //ProtocolController.ReceivedProtocol(null, "500;23");
-
+            ConfigureSuccessful = true;
         }
         
         public void Start()
@@ -196,11 +199,57 @@ namespace Protega___Server.Classes.Core
         #endregion
 
         #region Protocol
-        public void NetworkProtocol(ref networkServer.networkClientInterface NetworkClient, string message)
+
+        #region Protection layer against people who manipulate protocols
+        class HackPlayers { public IPAddress IP; public int Counter; public DateTime LastAttempt; }
+        class SuspiciousPlayers
         {
-            //Public for the Unit Tests
+            List<HackPlayers> Hackers=new List<HackPlayers>();
+
+            public int AllowProtocol(IPAddress IP, bool HackAttempt = false)
+            {
+                int Attempt = 0;
+                //Check if sender is marked as hacker
+                for (int i = 0; i < Hackers.Count; i++)
+                {
+                    if (Hackers[i].IP.ToString() == IP.ToString())
+                    {
+                        //If yes and the current protocol is a hack attempt, notice it
+                        if (HackAttempt)
+                        {
+                            Hackers[i].Counter++;
+                            Hackers[i].LastAttempt = DateTime.Now;
+                        }
+                        Attempt = Hackers[i].Counter;
+                        //Deny any protocol of the hacker
+                        return Attempt;
+                    }
+                }
+                
+                //If player is not hacker & did not try to hack, proceed the protocol
+                if (!HackAttempt)
+                    return Attempt;
+
+                //If the player tried to hack, add to the list
+                Hackers.Add(new HackPlayers() { IP = IP, Counter = 1, LastAttempt = DateTime.Now });
+                //Deny protocol of the hacker
+                return 1;
+            }
+        }
+
+        static SuspiciousPlayers suspiciousPlayers = new SuspiciousPlayers();
+        #endregion
+
+        public void NetworkProtocol(ref networkServer.networkClientInterface NetworkClient, string message, DateTime TimeStampStart)
+        {
+            //Assign current IP to the NetworkClient
+            NetworkClient.CheckIP(Application.ID);
+            int HackAttempts = 0;
             try
             {
+                if (message == null || message.Length == 0)
+                    throw new Exception("Protocol message null or length=0");
+
                 if (message[message.Length-1]=='\0')
                 {
                     message = message.Substring(0, message.Length - 1);
@@ -214,15 +263,28 @@ namespace Protega___Server.Classes.Core
             }
             catch (Exception e)
             {
-                //If decryption failed, something was probably manipulated -> Log it
-                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Protocol Decryption failed! Message: " + message + ", Error: " + e.ToString());
+                //If decryption failed, something was probably manipulated
+                //Store the IP as potential hacker to block further protocols
+                HackAttempts = suspiciousPlayers.AllowProtocol(NetworkClient.IP, true);
+
+                //Log the attempt
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Protocol Decryption failed! ("+ AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now)+") Message: " + message + " ("+NetworkClient.IP+") Attempt "+HackAttempts.ToString()+", Error: " + e.ToString());
+                NetworkClient.Dispose();
+                return;
+            }
+            
+            //Check if the protocol sender previously tried to manipulate protocols
+            if ((HackAttempts=suspiciousPlayers.AllowProtocol(NetworkClient.IP)) > 0)
+            {
+                CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Hacker sent encryptable protocol. IP {0} Hack Attempts {1}, message {2} ({3})", NetworkClient.IP, HackAttempts, message, AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now)));
+                NetworkClient.Dispose();
                 return;
             }
 
-            //Dont log Pings cause it would spam the log
-            if(!message.StartsWith("600"))
-                CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received decrypted: " + message);
-            ProtocolController.ReceivedProtocol(NetworkClient, message);
+            CCstData.GetInstance(Application).Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.SERVER, "Protocol received decrypted: " + message + " (" + AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now) + ")");
+
+            //Proceed protocol
+            ProtocolController.ReceivedProtocol(NetworkClient, message, TimeStampStart);
         }
 
         public void SendProtocol(string Protocol, networkServer.networkClientInterface ClientInterface)
@@ -262,27 +324,6 @@ namespace Protega___Server.Classes.Core
 
             CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, LoggerType.SERVER, PingCheck);
         }
-        //private List<string> GetProtocolData(string message)
-        //{
-        //    return message.Split(cProtocolDelimiter).ToList();
-        //}
-
-        //private string GetProtocolShortcut(string message)
-        //{
-        //    return message.Split(cProtocolDelimiter)[0];
-        //}
-        //private string GetProtocolMessage(string message)
-        //{
-        //    try
-        //    {
-        //        return message.Substring(GetProtocolShortcut(message).Length + 1);
-        //    }
-        //    catch (ArgumentOutOfRangeException)
-        //    {
-        //        return "-";
-        //    }
-            
-        //}
         #endregion
         
     }

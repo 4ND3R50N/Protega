@@ -46,7 +46,7 @@ namespace Protega___Server
                         break;
                     default:
                         Console.WriteLine("Command '" + Command + "' unknown!");
-                        Console.WriteLine("Available: Online, ConfigReload (refreshes Version, PingTimer, EncryptionKey/IV from Config.ini");
+                        Console.WriteLine("Available: Online, ConfigReload (refreshes Version & PingTimer from Config.ini, CheckPings, KickAll");
                         break;
                 }
             }
@@ -112,6 +112,9 @@ namespace Protega___Server
                 string PathGameDll = iniEngine.IniReadValue(item, "PathGameDll");
                 
                 ControllerCore Controller = new ControllerCore(ApplicationName, Version, InputPort, ProtocolDelimiter, EncryptionKey, EncryptionIV, PingTimer, SessionLength, DatabaseDriver, DatabaseIP, DatabasePort, DatabaseLoginName, DatabasePassword, DatabaseDefault, LogFile, LogLevel, PathGameDll);
+
+                if (!Controller.ConfigureSuccessful)
+                    continue;
 
                 try
                 {
