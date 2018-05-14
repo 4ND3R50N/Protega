@@ -31,8 +31,21 @@ private:
 	LPCVOID lpcvCabalRangeOffset2 = (LPCVOID)0x4E8;
 
 	//Map 
-	LPCVOID lpcvCabalMapOffset =   (LPCVOID)0x000072E4;
+	LPCVOID lpcvCabalMapOffset = (LPCVOID)0x000072E4;
 	
+	//Class
+	LPCVOID lpcvCabalClassOffset = (LPCVOID)0x4178;
+
+	enum eCabalClasses
+	{
+		WA = 1,
+		BL = 2,
+		WI = 3,
+		FA = 4,
+		FS = 5,
+		FB = 6,
+	};
+
 	//Speed
 	LPCVOID lpcvCabalSpeedOffset = (LPCVOID)0x204;
 	
@@ -53,10 +66,6 @@ private:
 	//Nation
 	LPCVOID lpcvCabalNationOffset = (LPCVOID)0x35C;
 
-	//Battle mode state offsets
-	LPCVOID lpcvCabalBattleModeStateOffset = (LPCVOID)0x41B0;
-	LPCVOID lpcvCabalBattelModeStateBOffset = (LPCVOID)0x344;
-
 	//Combo offsets
 	LPCVOID lpcvCabalComboOffset1 = (LPCVOID)0x73A1;
 	LPCVOID lpcvCabalComboOffset2 = (LPCVOID)0x7399;
@@ -64,6 +73,10 @@ private:
 	LPCVOID lpcvCabalComboOffset4 = (LPCVOID)0x738C;
 	LPCVOID lpcvCabalComboOffset5 = (LPCVOID)0x73A8;
 	LPCVOID lpcvCabalComboOffset6 = (LPCVOID)0x7397;
+
+	//Battle mode state offsets
+	LPCVOID lpcvCabalBattleModeStateOffset = (LPCVOID)0x41B0;
+	LPCVOID lpcvCabalBattelModeStateBOffset = (LPCVOID)0x344;
 
 	//BM Offsets
 	//	BM1
@@ -76,6 +89,18 @@ private:
 
 	//	Aura
 	LPCVOID lpcvCabalAuraOffset2 = (LPCVOID)0x118;
+
+	enum eNotShiftedBattleModeValues
+	{
+		Aura = 8,
+		BM1 = 16,
+		BM2 = 32,
+		BM3 = 64,
+		BM1_And_Aura = 24,
+		BM2_And_Aura = 40,
+		BM3_And_Aura = 72
+	};
+
 
 	//Cabal Values
 	//	Central Value
@@ -179,7 +204,9 @@ private:
 	
 	//	FB Dame
 	std::vector<unsigned int> FbDameVector;
-	int iFbDameBattleModeStateBAnormaly = 2;
+	//Value has to be 5, because the FB Buffs stacks the BM State B.
+	int iFbDameBattleModeStateBAnormaly = 5;
+	int iFbDameBattleModeStateBAnormalyForAura = 7;
 	int iFbDameDetectionTolerance = 3;
 	int iFbDameAnormalyWaitTime = 1000;
 	int iFbDameVectorQueueSize = 10;
@@ -209,6 +236,7 @@ public:
 	bool NoIterativeFunctions_DetectManipulatedMemory();
 
 	//VMP Functions
+
 	bool VMP_CheckGameSpeed();
 	bool VMP_CheckWallBorders();
 	bool VMP_CheckZoomState();

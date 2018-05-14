@@ -176,7 +176,7 @@ bool Virtual_Memory_Protection_Cabal_Online::CloseProcessInstance()
 bool Virtual_Memory_Protection_Cabal_Online::NoIterativeFunctions_DetectManipulatedMemory()
 {
 	if ((VMP_CheckGameSpeed() || VMP_CheckWallBorders() || VMP_CheckZoomState() || 
-		VMP_CheckSkillRange() || VMP_CheckSkillCooldown()  /*|| VMP_CheckFbDame()|| VMP_CheckNation()*/) == true)
+		VMP_CheckSkillRange() || VMP_CheckSkillCooldown()  /*|| VMP_CheckFbDame() || VMP_CheckNation()*/) == true)
 	{
 		return true;
 	}
@@ -761,12 +761,22 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckFbDame()
 {
 	int iCurrentBattleModeState = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
 	int iCurrentSkillDelayValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
+	int iCurrentClass = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalClassOffset);
 
-	if (iCurrentBattleModeState != 16 && iCurrentBattleModeState != 32 && iCurrentBattleModeState != 8 && iCurrentBattleModeState != 24 && iCurrentBattleModeState != 40 && iCurrentSkillDelayValue < iCabalSkillValueLowerLimit)
+	if (//Check if currently a force blader is playing
+		iCurrentClass == eCabalClasses::FB &&
+		//Check if he might have switched values (the values above are SAFE, they are not working for FB dame. This is just to minimize errors
+		//NOTE: Aura is not listed!
+		iCurrentBattleModeState != eNotShiftedBattleModeValues::BM1 && iCurrentBattleModeState != eNotShiftedBattleModeValues::BM2 && iCurrentBattleModeState != eNotShiftedBattleModeValues::BM3 && 
+		iCurrentBattleModeState != eNotShiftedBattleModeValues::BM1_And_Aura && iCurrentBattleModeState != eNotShiftedBattleModeValues::BM2_And_Aura &&
+		eNotShiftedBattleModeValues::BM3_And_Aura &&
+		//Check if the character is not doing anything (Also prevets errors)
+		iCurrentSkillDelayValue < iCabalSkillValueLowerLimit)
 	{
 		int iCurrentBattleModeStateB = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalBattelModeStateBOffset);
 		
-		if (iCurrentBattleModeStateB >= iFbDameBattleModeStateBAnormaly)
+		if (iCurrentBattleModeState != eNotShiftedBattleModeValues::Aura && iCurrentBattleModeStateB >= iFbDameBattleModeStateBAnormaly ||
+			iCurrentBattleModeState == eNotShiftedBattleModeValues::Aura && iCurrentBattleModeStateB >= iFbDameBattleModeStateBAnormalyForAura)
 		{
 			
 			FbDameVector.push_back(iCurrentBattleModeStateB);
@@ -800,24 +810,21 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckFbDame()
 			//Cleanup vector if too large
 			if (FbDameVector.size() >= iFbDameVectorQueueSize)
 			{
-				/*std::ofstream filestr;
-				filestr.open(".\\FbDameMap.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+				std::ofstream filestr;
+				filestr.open(".\\FbDameDetection.txt", std::fstream::in | std::fstream::out | std::fstream::app);
 				std::vector<unsigned int>::iterator iIt;
-				for (iIt = NsdVector.begin(); iIt != NsdVector.end(); iIt++)
+				for (iIt = FbDameVector.begin(); iIt != FbDameVector.end(); iIt++)
 				{
 					unsigned int& iItData(*iIt);
 					filestr << iItData << std::endl;
 				}
-				filestr << "-----------------------------" << iCurrentBattleModeState << std::endl;
-				filestr.close();*/
+				filestr << "-----------------------------" << iCurrentBattleModeStateB << std::endl;
+				filestr.close();
 				FbDameVector.clear();
 			}
 
 		}
 	}
-
-
-
 	return false;
 }
 

@@ -181,7 +181,7 @@ void Protection_Manager::VMP_IF_Thread()
 	do
 	{
 		if (VMP->VMP_CheckNoCastTime_V2() == true || VMP->VMP_CheckNoSkillDelay_V2() == true 
-			|| VMP->VMP_CheckPerfectCombo() == true  /*|| VMP->VMP_CheckBmCooldownReset() == true*/
+			/*|| VMP->VMP_CheckPerfectCombo() == true  || VMP->VMP_CheckBmCooldownReset() == true*/
 			/*|| VMP->VMP_CheckKillGate() == true*/)
 		{
 			VMP->CloseProcessInstance();
