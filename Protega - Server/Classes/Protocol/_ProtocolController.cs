@@ -96,6 +96,7 @@ namespace Protega___Server.Classes.Protocol
         object SyncRunTime = new object();
         object SyncLogin = new object();
         object SyncLogout = new object();
+
         void LoginManagement()
         {
             while (true)
@@ -143,8 +144,7 @@ namespace Protega___Server.Classes.Protocol
                 Thread.Sleep(1000);
             }
         }
-
-
+        
         void RunTimeManagement()
         {
             while (true)
@@ -199,10 +199,11 @@ namespace Protega___Server.Classes.Protocol
         {
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Ping: Protocol received. User: " + prot.GetUserID());
             pPing ping = new pPing(ref Client, prot);
-            lock (SyncRunTime)
-            {
-                RuntimeQueue.Enqueue(ping);
-            }
+            //lock (SyncRunTime)
+            //{
+            //    RuntimeQueue.Enqueue(ping);
+            //}
+            TaskResetPing(ping);
             return true;
         }
 
@@ -371,7 +372,7 @@ namespace Protega___Server.Classes.Protocol
             DisconnectionTask.Client.Dispose();
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, Support.LoggerType.SERVER, String.Format("User disconnected. User {0} ({1} - {2}). {3}", DisconnectionTask.Client.User.ID, DisconnectionTask.Client.SessionID, DisconnectionTask.Client.IP, DisconnectionTask.TimePassed()));
         }
-
+        
         private bool TaskResetPing(pPing ping)
         {
             CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Ping proceeding. User: " + ping.Session);
@@ -388,8 +389,8 @@ namespace Protega___Server.Classes.Protocol
                 }
 
                 //Reset the Ping timer
-
                 CCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, Support.LoggerType.SERVER, "Ping: Resetting timer.");
+
                 ping.Client.ResetPingTimer();
 
                 //zhCCstData.GetInstance(ApplicationID).Logger.writeInLog(4, LogCategory.OK, "Additional Infos: "+AdditionalInfo);
@@ -402,7 +403,7 @@ namespace Protega___Server.Classes.Protocol
                 return true;
             }
 
-            CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.CLIENT, String.Format("Ping: User does not exist in the active connections ({0})", ping.Session));
+            CCstData.GetInstance(ApplicationID).Logger.writeInLog(3, LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Ping: User does not exist in the active connections ({0} {1})", ping.Session, ping.TimePassed()));
             try
             {
                 ping.Client.Dispose();
@@ -484,9 +485,7 @@ namespace Protega___Server.Classes.Protocol
 
 
         #endregion
-
-
-
+        
         #region Hack Detections
         private bool HackDetection_File(networkServer.networkClientInterface Client, Protocol prot)
         {

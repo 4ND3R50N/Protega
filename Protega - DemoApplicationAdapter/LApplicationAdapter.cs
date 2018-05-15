@@ -93,6 +93,9 @@ namespace Protega.ApplicationAdapter
         //Queue<LinuxOperator> LinuxInterfaces = new Queue<LinuxOperator>();
         static readonly object _lockLogin = new object();
 
+        static readonly object LockIPs = new object();
+        static List<IPAddress> listCurrentIPs = new List<IPAddress>();
+
         Queue<_InterfaceTask> qTasks;
 
         List<int> PortsToBlock = new List<int>();
@@ -222,7 +225,7 @@ namespace Protega.ApplicationAdapter
             }
             LinuxInterface.isAvailable = true;
 
-            LinuxManager = new Thread(() => AllowManager(ConnectionManager));
+            LinuxManager = new Thread(() => ManagerUserTasks(ConnectionManager));
 
             LinuxManager.Start();
 
@@ -236,6 +239,33 @@ namespace Protega.ApplicationAdapter
         
         bool LoadConfig(string Path, string Section)
         {
+            LinuxIP = "66.70.240.165";
+            LinuxLoginName = "root";
+            LinuxPassword = "S8qh6QyIE}13rBH";
+            LinuxPort=22;
+            AmountSshInstances = 3;
+            AmountSshInstacesToKeep = 2;
+            PortsToBlock.Add(50001);
+            PortsToBlock.Add(50002);
+            PortsToBlock.Add(50003);
+            PortsToBlock.Add(50004);
+            PortsToBlock.Add(50005);
+            PortsToBlock.Add(50006);
+            PortsToBlock.Add(50007);
+            PortsToBlock.Add(50008);
+            PortsToBlock.Add(50009);
+            PortsToBlock.Add(50010);
+            PortsToBlock.Add(50011);
+            PortsToBlock.Add(50012);
+            PortsToBlock.Add(50013);
+            PortsToBlock.Add(50014);
+            PortsToBlock.Add(50015);
+            PortsToBlock.Add(50016);
+            PortsToBlock.Add(50017);
+            PortsToBlock.Add(50018);
+            PortsToBlock.Add(50019);
+            PortsToBlock.Add(50020);
+
             iniManager iniEngine = new iniManager(Path);
             LinuxIP = iniEngine.IniReadValue(Section, "LinuxIP");
             LinuxLoginName = iniEngine.IniReadValue(Section, "LinuxLoginName");
@@ -254,6 +284,7 @@ namespace Protega.ApplicationAdapter
             }
             DefaultCommand = iniEngine.IniReadValue(Section, "PathDefaultCommand");
 
+            PortsToBlock.Clear();
             bool bPortError = false;
             foreach (string Port in iniEngine.IniReadValue(Section, "Ports").Split(';'))
             {
@@ -288,7 +319,7 @@ namespace Protega.ApplicationAdapter
 
         #region Threadmanager
         private readonly object LockLoginClient = new object();
-        public void AllowManager(SshConnectionManager ConnectionManager)
+        public void ManagerUserTasks(SshConnectionManager ConnectionManager)
         {
             while (true)
             {
@@ -342,6 +373,11 @@ namespace Protega.ApplicationAdapter
                 LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, "Server must be prepared at first!");
                 return false;
             }
+            lock(LockIPs)
+            {
+                if (!listCurrentIPs.Contains(ClientIP))
+                    listCurrentIPs.Add(ClientIP);
+            }
 
             InsertConnection NewTask = new InsertConnection(ClientIP, Timestamp, UserName);
 
@@ -358,6 +394,12 @@ namespace Protega.ApplicationAdapter
             {
                 LogFunction(1, LogCategory.ERROR, LoggerType.GAMEDLL, "Server must be prepared at first!");
                 return false;
+            }
+
+            lock(LockIPs)
+            {
+                if (listCurrentIPs.Contains(ClientIP))
+                    listCurrentIPs.Remove(ClientIP);
             }
 
             Classes.Tasks.RemoveConnection NewTask = new RemoveConnection(ClientIP, Timestamp, UserName);

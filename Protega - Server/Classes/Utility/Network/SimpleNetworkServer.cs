@@ -66,7 +66,7 @@ namespace Protega___Server
             {
                 serverSocket.Bind(serverEndPoint);
                 serverSocket.Listen((int)SocketOptionName.MaxConnections);
-                //for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < 1; i++)
                     serverSocket.BeginAccept(
                         new AsyncCallback(AcceptCallback), serverSocket);
             }
@@ -90,22 +90,37 @@ namespace Protega___Server
                 connection.networkSocket.BeginReceive(connection.buffer, 0,
                     connection.buffer.Length, SocketFlags.None,
                     new AsyncCallback(ReceiveCallback), connection);
-                // Start new Accept
                 //serverSocket.BeginAccept(new AsyncCallback(AcceptCallback),
                 //    result.AsyncState);
                 //for (int i = 0; i < 1000; i++)
-                serverSocket.BeginAccept(
-                    new AsyncCallback(AcceptCallback), serverSocket);
 
             }
             catch (SocketException e)
             {
+                Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Network: Socket Exception: {0}", e.Message));
                 closeConnection(connection);
             }
             catch (Exception e)
             {
-                Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Accept callback error: {0}",e.Message));
+                Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Network: Exception: {0}",e.Message));
                 closeConnection(connection);
+            }
+            finally
+            {
+                // Start new Accept
+                for (int i = 0; i < 3; i++)
+                {
+                    try
+                    {
+                        serverSocket.BeginAccept(
+                            new AsyncCallback(AcceptCallback), serverSocket);
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Network: BeginAccept Exception. (Attempt {0}: {1})", i, e.Message));
+                    }
+                }
             }
         }
 
@@ -219,6 +234,7 @@ namespace Protega___Server
             public delegate void KickUser(networkClientInterface Client);
             event KickUser Kick;
             public System.Timers.Timer tmrPing;
+            bool isDisposed = false;
 
             #region Constructor & Destructor
 
@@ -242,25 +258,30 @@ namespace Protega___Server
                 buffer = new byte[1024];
             }
 
+            private static readonly object lockDispose = new object();
             public void Dispose()
             {
-                if (networkSocket != null)
+                lock (lockDispose)
                 {
-                    try
+                    isDisposed = true;
+                    if (networkSocket != null)
                     {
-                        networkSocket.Shutdown(SocketShutdown.Both);
+                        try
+                        {
+                            networkSocket.Shutdown(SocketShutdown.Both);
+                        }
+                        catch (Exception e)
+                        {
+                        }
+                        networkSocket.Close();
+                        networkSocket.Dispose();
                     }
-                    catch (Exception e)
-                    {
-                    }
-                    networkSocket.Close();
-                    networkSocket.Dispose();
-                }
 
-                if (tmrPing != null)
-                {
-                    tmrPing.Enabled = false;
-                    tmrPing.Dispose();
+                    if (tmrPing != null)
+                    {
+                        tmrPing.Enabled = false;
+                        tmrPing.Dispose();
+                    }
                 }
             }
             #endregion
@@ -332,35 +353,65 @@ namespace Protega___Server
                 }
             }
 
+            private static readonly object lockAdjustPingTimer = new object();
             public bool AdjustPingTimer(int Interval)
             {
-                if(tmrPing!=null)
+                lock (lockDispose)
                 {
-                    tmrPing.Stop();
-                    tmrPing.Interval = Interval;
-                    tmrPing.Start();
-                    return true;
+                    if (isDisposed)
+                        return false;
+                    if (tmrPing != null)
+                    {
+                        tmrPing.Stop();
+                        tmrPing.Interval = Interval;
+                        tmrPing.Start();
+                        return true;
+                    }
                 }
                 return false;
             }
 
+            private static readonly object lockTmrElapsed = new object();
             private void TmrPing_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
             {
-                //tmrPing.Stop();
-                //Kick - Timer elapsed
-                Kick(this);
-
+                lock (lockTmrElapsed)
+                {
+                    //tmrPing.Stop();
+                    //Kick - Timer elapsed
+                    Kick(this);
+                }
                 Classes.CCstData.GetInstance(this.User.Application.ID).Logger.writeInLog(4, Support.LogCategory.OK, Support.LoggerType.SERVER, String.Format("User timeout! Session: {0}, HardwareID: {1}", this.SessionID, this.User.ID));
                 //this.Dispose();
                 //User kicked
             }
-            
+
+            private static readonly object lockPingRest = new object();
             public void ResetPingTimer()
             {
-                tmrPing.Stop();
-                tmrPing.Start();
-                _LastPing = DateTime.Now;
-                CheckIP(User.Application.ID);
+                if (isDisposed)
+                    return;
+
+                lock (lockDispose)
+                {
+                    //User must have been kicked when the timer is disposed
+                    if (tmrPing == null)
+                    {
+                        this.Dispose();
+                        return;
+                    }
+                    try
+                    {
+                        tmrPing.Stop();
+                        tmrPing.Start();
+                       // CheckIP(User.Application.ID);
+                    }
+                    catch (Exception e)
+                    {
+                        if (this.User != null && this.User.Application.ID != 0)
+                            Classes.CCstData.GetInstance(this.User.Application.ID).Logger.writeInLog(2, Support.LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("PingReset failed for user {0} ({1} - {2}: {3}", User.ID, SessionID, IP.ToString(), e.Message));
+                    }
+                    _LastPing = DateTime.Now;
+                }
             }
         }
     }

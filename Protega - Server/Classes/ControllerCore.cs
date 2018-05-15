@@ -12,16 +12,16 @@ using System.IO;
 
 namespace Protega___Server.Classes.Core
 {
-    public class ControllerCore:IDisposable
+    public class ControllerCore : IDisposable
     {
         //Variablen
         public networkServer TcpServer;
         public List<networkServer.networkClientInterface> ActiveConnections = null;
         public _ProtocolController ProtocolController;
-        
+
         private string sAesKey;
-        private char   cProtocolDelimiter;
-        private char   cDataDelimiter;
+        private char cProtocolDelimiter;
+        private char cDataDelimiter;
         public Classes.Entity.EApplication Application;
 
         public bool ConfigureSuccessful = false;
@@ -51,19 +51,21 @@ namespace Protega___Server.Classes.Core
             string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath, int LogLevel, string PathGameDll)
         {
 
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+
             //Logging initialisations
             Support.logWriter Logger = new logWriter(_sLogPath, Path.Combine(Path.GetDirectoryName(_sLogPath), "DetectionLog"), LogLevel);
             Logger.Seperate();
             Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "Logging class initialized!");
             DBEngine dBEngine = null;
-            
-            //Database Initialisations
-            if(_sDatabaseDriver == "mysql")
-            {
-               // mysql isn't supported yet
-               // CCstDatabase.DatabaseEngine = new DBMysqlDataManager(_sDBHostIp,_sDBUser,_sDBPass,_sDBPort,_sDBDefaultDB);
 
-            }else if(_sDatabaseDriver == "mssql")
+            //Database Initialisations
+            if (_sDatabaseDriver == "mysql")
+            {
+                // mysql isn't supported yet
+                // CCstDatabase.DatabaseEngine = new DBMysqlDataManager(_sDBHostIp,_sDBUser,_sDBPass,_sDBPort,_sDBDefaultDB);
+
+            } else if (_sDatabaseDriver == "mssql")
             {
                 // create the mssql manager
                 dBEngine = new DBMssqlDataManager(_sDBHostIp, _sDBUser, _sDBPass, _sDBPort, _sDBDefaultDB);
@@ -74,7 +76,7 @@ namespace Protega___Server.Classes.Core
             if (dBEngine.testDBConnection())
             {
                 Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.DATABASE, "Database test successfull!");
-            }else
+            } else
             {
                 Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.DATABASE, "Database test was not successfull!");
                 return;
@@ -82,7 +84,7 @@ namespace Protega___Server.Classes.Core
             // try to get the application ID for the given application out of the DB
             Application = SApplication.GetByName(_ApplicationName, dBEngine);
             // QUESTION: usually the procedure creates a new ID for a new application so this case should never apear?
-            if(Application==null)
+            if (Application == null)
             {
                 Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.DATABASE, "The application name was not found in the database!");
                 return;
@@ -109,8 +111,9 @@ namespace Protega___Server.Classes.Core
             CCstData.GetInstance(Application.ID).PingTimer = _PingTimer;
             CCstData.GetInstance(Application.ID).SessionIDLength = SessionLength;
 
+
             // Check if the user really included the path with the needed URL.            
-            if(!File.Exists(PathGameDll))
+            if (!File.Exists(PathGameDll))
             {
                 // this would be a critical error because we need the functions of the DLL to be a productive server
                 Logger.writeInLog(1, LogCategory.CRITICAL, LoggerType.SERVER, String.Format("Game Dll not found! Path: {0}", PathGameDll));
@@ -131,13 +134,13 @@ namespace Protega___Server.Classes.Core
                 return;
 
 
-            
+
             ActiveConnections = new List<networkServer.networkClientInterface>();
             sAesKey = "";
             this.cProtocolDelimiter = _cProtocolDelimiter;
             this.cDataDelimiter = _cProtocolDelimiter;
             TcpServer = new networkServer(NetworkProtocol, sAesKey, Application.ID, IPAddress.Any, _iPort, AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        
+
             _ProtocolController.SendProtocol += this.SendProtocol;
             Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "TCP Server ready for start!");
             Logger.Seperate();
@@ -148,10 +151,10 @@ namespace Protega___Server.Classes.Core
             //ProtocolController.ReceivedProtocol(null, "500;23");
             ConfigureSuccessful = true;
         }
-        
+
         public void Start()
         {
-            if(TcpServer.startListening())
+            if (TcpServer.startListening())
             {
                 CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "Server has been started successfully!");
             }
@@ -168,7 +171,7 @@ namespace Protega___Server.Classes.Core
             CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.SERVER, "Disposing Server!");
             int Attempt = 0;
             //Kick all connected clients and remove the objects
-            while (ActiveConnections.Count>0 && Attempt++<5)
+            while (ActiveConnections.Count > 0 && Attempt++ < 5)
             {
                 CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.SERVER, "Disposing Server - kicking players attempt " + Attempt.ToString());
                 KickAllPlayers();
@@ -204,7 +207,7 @@ namespace Protega___Server.Classes.Core
         class HackPlayers { public IPAddress IP; public int Counter; public DateTime LastAttempt; }
         class SuspiciousPlayers
         {
-            List<HackPlayers> Hackers=new List<HackPlayers>();
+            public List<HackPlayers> Hackers = new List<HackPlayers>();
 
             public int AllowProtocol(IPAddress IP, bool HackAttempt = false)
             {
@@ -225,7 +228,7 @@ namespace Protega___Server.Classes.Core
                         return Attempt;
                     }
                 }
-                
+
                 //If player is not hacker & did not try to hack, proceed the protocol
                 if (!HackAttempt)
                     return Attempt;
@@ -234,6 +237,39 @@ namespace Protega___Server.Classes.Core
                 Hackers.Add(new HackPlayers() { IP = IP, Counter = 1, LastAttempt = DateTime.Now });
                 //Deny protocol of the hacker
                 return 1;
+            }
+
+            public bool BlockIP(IPAddress IP)
+            {
+                bool IPExists = false;
+                foreach (var item in Hackers)
+                {
+                    if (item.IP.ToString() == IP.ToString())
+                        IPExists = true;
+                }
+                if (IPExists)
+                    return false;
+
+                Hackers.Add(new HackPlayers() { IP = IP, Counter = 1, LastAttempt = DateTime.Now });
+                return true;
+            }
+
+            public bool RemoveIP(IPAddress IP)
+            {
+                foreach (var item in Hackers)
+                {
+                    if (item.IP.ToString() == IP.ToString())
+                    {
+                        Hackers.Remove(item);
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            public void RemoveAll()
+            {
+                Hackers.Clear();
             }
         }
 
@@ -250,7 +286,7 @@ namespace Protega___Server.Classes.Core
                 if (message == null || message.Length == 0)
                     throw new Exception("Protocol message null or length=0");
 
-                if (message[message.Length-1]=='\0')
+                if (message[message.Length - 1] == '\0')
                 {
                     message = message.Substring(0, message.Length - 1);
                 }
@@ -268,13 +304,13 @@ namespace Protega___Server.Classes.Core
                 HackAttempts = suspiciousPlayers.AllowProtocol(NetworkClient.IP, true);
 
                 //Log the attempt
-                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Protocol Decryption failed! ("+ AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now)+") Message: " + message + " ("+NetworkClient.IP+") Attempt "+HackAttempts.ToString()+", Error: " + e.ToString());
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.SERVER, "Protocol Decryption failed! (" + AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now) + ") Message: " + message + " (" + NetworkClient.IP + ") Attempt " + HackAttempts.ToString() + ", Error: " + e.ToString());
                 NetworkClient.Dispose();
                 return;
             }
-            
+
             //Check if the protocol sender previously tried to manipulate protocols
-            if ((HackAttempts=suspiciousPlayers.AllowProtocol(NetworkClient.IP)) > 0)
+            if ((HackAttempts = suspiciousPlayers.AllowProtocol(NetworkClient.IP)) > 0)
             {
                 CCstData.GetInstance(Application).Logger.writeInLog(2, LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("Hacker sent encryptable protocol. IP {0} Hack Attempts {1}, message {2} ({3})", NetworkClient.IP, HackAttempts, message, AdditionalFunctions.CalcDifferenceMS(TimeStampStart, DateTime.Now)));
                 NetworkClient.Dispose();
@@ -320,11 +356,87 @@ namespace Protega___Server.Classes.Core
             if (PingCheck.Length == 0)
                 PingCheck = "PingCheck: Everything is alright!";
             else
-                PingCheck = "PingCheck: Inconsistencies! (Max PingTimer: "+PingTimer.ToString()+" ms) \n " + PingCheck;
+                PingCheck = "PingCheck: Inconsistencies! (Max PingTimer: " + PingTimer.ToString() + " ms) \n " + PingCheck;
 
             CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, LoggerType.SERVER, PingCheck);
         }
+
+        public void GetBlockedIPs()
+        {
+            if (suspiciousPlayers.Hackers.Count == 0)
+            {
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, LoggerType.SERVER, "Check blocked IPs: Nobody is blocked!");
+                return;
+            }
+            
+            string Feedback = "The following IPs are blocked:\n";
+            foreach (var item in suspiciousPlayers.Hackers)
+            {
+                Feedback += String.Format("IP {0}, attempts {1}, last attempt {2}\n", item.IP, item.Counter, item.LastAttempt.ToShortTimeString());
+            }
+
+
+            CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, LoggerType.SERVER, Feedback);
+        }
+
+        public bool BlockIP(string sIP)
+        {
+            IPAddress IP;
+            if (!IPAddress.TryParse(sIP, out IP))
+            {
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, LoggerType.SERVER, String.Format("BlockIP: {0} is not an IP!", sIP));
+                return false;
+            }
+            bool bBlockSucceeded = suspiciousPlayers.BlockIP(IP);
+            if (bBlockSucceeded)
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, LoggerType.SERVER, String.Format("BlockIP: {0} blocked!", sIP));
+            else
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, LoggerType.SERVER, String.Format("BlockIP: {0} could not be blocked!", sIP));
+            return bBlockSucceeded;
+        }
+
+        public bool RemoveBlockIP(string sIP)
+        {
+            IPAddress IP;
+            if (!IPAddress.TryParse(sIP, out IP))
+            {
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, LoggerType.SERVER, String.Format("Remove BlockIP: {0} is not an IP!", sIP));
+                return false;
+            }
+            bool bBlockSucceeded = suspiciousPlayers.RemoveIP(IP);
+            if (bBlockSucceeded)
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, LoggerType.SERVER, String.Format("Remove BlockIP: {0} unblocked!", sIP));
+            else
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, LoggerType.SERVER, String.Format("Remove BlockIP: {0} could not be unblocked!", sIP));
+            return bBlockSucceeded;
+        }
+
+        public void BlockIPClear()
+        {
+            CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.OK, LoggerType.SERVER, String.Format("Clear BlockIP: Removed {0} entries!", suspiciousPlayers.Hackers.Count));
+            suspiciousPlayers.RemoveAll();
+        }
         #endregion
         
+        void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs args)
+        {
+            string DateFormatLog = String.Format("{0:dd.MM HH:mm:ss (fff)}", DateTime.Now);
+
+            Console.WriteLine(String.Format("arrived! {0} - {1}", Application != null, Application.ID));
+            Exception e = (Exception)args.ExceptionObject;
+            Console.WriteLine(e.Message);
+
+            string Error = "Unhandled Exception: isTerminating " + args.IsTerminating.ToString() + ", Error " + e.Message;
+            if (e.InnerException != null)
+                Error += e.InnerException.Message+"\n";
+            Error += "StackTrace " + e.StackTrace + "\n";
+            //Error += "TargetSite " + e.TargetSite.Name;
+            if(Application!=null)
+                CCstData.GetInstance(Application).Logger.writeInLog(1, LogCategory.CRITICAL, LoggerType.SERVER, Error);
+           
+            Console.WriteLine("Exit this");
+            //Environment.Exit(1);
+
+        }
     }
 }

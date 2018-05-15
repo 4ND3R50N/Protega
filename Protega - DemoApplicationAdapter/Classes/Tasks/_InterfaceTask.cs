@@ -28,6 +28,27 @@ namespace Protega.ApplicationAdapter.Classes.Tasks
         
         public bool BuildLinuxQuery(List<int> Ports, int Length)
         {
+            Ports.Clear();
+            Ports.Add(50001);
+            Ports.Add(50002);
+            Ports.Add(50003);
+            Ports.Add(50004);
+            Ports.Add(50005);
+            Ports.Add(50006);
+            Ports.Add(50007);
+            Ports.Add(50008);
+            Ports.Add(50009);
+            Ports.Add(50010);
+            Ports.Add(50011);
+            Ports.Add(50012);
+            Ports.Add(50013);
+            Ports.Add(50014);
+            Ports.Add(50015);
+            Ports.Add(50016);
+            Ports.Add(50017);
+            Ports.Add(50018);
+            Ports.Add(50019);
+            Ports.Add(50020);
 
             char InOut='a';
             if (this is InsertConnection)
@@ -40,6 +61,7 @@ namespace Protega.ApplicationAdapter.Classes.Tasks
             //IPTables allow max 15 entries
             List<string> lPorts = SplitAmountOfPorts(Ports, Length);
 
+            LinuxQuery = "";
             foreach (var item in lPorts)
             {
                 LinuxQuery += "iptables -" + InOut.ToString() + " INPUT -p tcp -s " + IP.ToString() + " --match multiport --dport " + item + " -j ACCEPT && ";
@@ -49,7 +71,7 @@ namespace Protega.ApplicationAdapter.Classes.Tasks
         }
         
 
-        List<string> SplitAmountOfPorts(List<int> Input, int Length)
+        static List<string> SplitAmountOfPorts(List<int> Input, int Length)
         {
             List<string> Output = new List<string>();
             int Counter = 0;

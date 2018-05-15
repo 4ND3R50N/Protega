@@ -58,6 +58,14 @@ namespace Protega.ApplicationAdapter.Classes
         {
             foreach (var item in listSshConnections)
             {
+                //if(item.reLoadThis)
+                //{
+                    
+                //    if (CreateInstances(1) != 1)
+                //        return null;
+                //    else
+                //        return GetAvailableSshClient();
+                //}
                 if (item.isAvailable)
                 {
                     item.isAvailable = false;
@@ -83,9 +91,9 @@ namespace Protega.ApplicationAdapter.Classes
                     {
                         lock (LockList)
                         {
-                            item.Dispose();
                             listSshConnections.Remove(item);
                         }
+                            item.Dispose();
                         LogFunction(2, Support.LogCategory.OK, Support.LoggerType.GAMEDLL, "DLL: Ssh Instance disposed. Remaining: " + listSshConnections.Count.ToString());
                         break;
                     }
@@ -100,6 +108,7 @@ namespace Protega.ApplicationAdapter.Classes
     {
         public SshClient Client;
         public bool isAvailable;
+        public bool reLoadThis = false;
         public DateTime LastUsed;
 
         public SshConnection(string LinuxIP, int LinuxPort, string LinuxLoginName, string LinuxPassword)

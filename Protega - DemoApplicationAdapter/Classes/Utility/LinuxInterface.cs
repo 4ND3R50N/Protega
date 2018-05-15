@@ -35,7 +35,7 @@ namespace Protega.ApplicationAdapter.Classes.Utility
             thread.Start();
         }
 
-        readonly object _locklogin = new object();
+        readonly object _lockSshClient = new object();
         public void HandleInOutTasks(List<_InterfaceTask> Tasks, SshConnection sshClient)
         {
             //if (!LinuxInterface.Client.IsConnected)
@@ -56,7 +56,7 @@ namespace Protega.ApplicationAdapter.Classes.Utility
             //Query = Query.TrimEnd(' ').TrimEnd('&');
 
 
-            lock (_locklogin)
+            lock (_lockSshClient)
             {
                 try
                 {
@@ -79,22 +79,64 @@ namespace Protega.ApplicationAdapter.Classes.Utility
 
                 foreach (_InterfaceTask Task in Tasks)
                 {
-                    using (SshCommand Result = sshClient.Client.RunCommand(Task.LinuxQuery))
+                    for (int i = 0; i < 3; i++)
                     {
-                        sshClient.isAvailable = true;
-                        if (Result.Error.Length > 0)
+                        try
                         {
-                            if (!Result.Error.Contains("does a matching rule exist in that chain?"))
+                            using (SshCommand Result = sshClient.Client.RunCommand(Task.LinuxQuery))
                             {
-                                LogFunction(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "IPTable " + Task.GetType().ToString() + " failed! Session ID: " + Task.IP + ", Error: " + Result.Error);
-                                dllFeedback(Task.Username, Task.IP, Task.Task, Protega___Server.Classes.Utility.ApplicationAdapter.Result.FAIL, Task.TimeStamp);
-                                continue;
+                                if (Result.Error.Length > 0)
+                                {
+                                    if (!Result.Error.Contains("does a matching rule exist in that chain?"))
+                                    {
+                                        LogFunction(2, LogCategory.ERROR, Support.LoggerType.GAMEDLL, "IPTable " + Task.GetType().Name.ToString() + " failed! Session ID: " + Task.IP + ", Error: " + Result.Error + ", Result " + Result.Result + ", Query: " + Task.LinuxQuery);
+                                        if (i == 2)
+                                        {
+                                            dllFeedback(Task.Username, Task.IP, Task.Task, Protega___Server.Classes.Utility.ApplicationAdapter.Result.FAIL, Task.TimeStamp);
+                                            //ReAddItems(new List<_InterfaceTask>() { Task });
+                                            break;
+                                        }
+                                        Thread.Sleep(200);
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        //Successful - just rule didnt exist
+                                        LogFunction(3, LogCategory.OK, Support.LoggerType.GAMEDLL, "IPTable " + Task.GetType().Name.ToString() + " ok! Session ID: " + Task.IP + ", Error: " + Result.Error + ", Result " + Result.Result + ", Query: " + Task.LinuxQuery);
+                                        dllFeedback(Task.Username, Task.IP, Task.Task, Protega___Server.Classes.Utility.ApplicationAdapter.Result.SUCCESS, Task.TimeStamp);
+                                        i = 3;
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    //sshClient.reLoadThis = true;
+                                    LogFunction(4, LogCategory.OK, Support.LoggerType.GAMEDLL, "IPTable " + Task.GetType().Name.ToString() + " success! Session ID: " + Task.IP + ", Error: " + Result.Error + ", Result " + Result.Result + ", Query: " + Task.LinuxQuery);
+                                    dllFeedback(Task.Username, Task.IP, Task.Task, Protega___Server.Classes.Utility.ApplicationAdapter.Result.SUCCESS, Task.TimeStamp);
+                                    break;
+                                }
                             }
+                            i = 3;
+                            break;
                         }
-                        else
-                            dllFeedback(Task.Username, Task.IP, Task.Task, Protega___Server.Classes.Utility.ApplicationAdapter.Result.SUCCESS, Task.TimeStamp);
+                        catch (Exception e)
+                        {
+                            LogFunction(2, LogCategory.ERROR, LoggerType.GAMEDLL, "Ssh execution error. " + Task.Username + " (" + Task.IP + "), Attempt " + i.ToString() + ": " + e.Message);
+                            if (i == 2)
+                            {
+                                LogFunction(2, LogCategory.ERROR, LoggerType.GAMEDLL, "Ssh critical error (Task readded to queue). " + Task.Username + " (" + Task.IP + "), Attempt " + i.ToString() + ": " + e.Message);
+                                ReAddItems(new List<_InterfaceTask>() { Task });
+                                break;
+                            }
+                            Thread.Sleep(200);
+                        }
+                        finally
+                        {
+                            
+                        }
                     }
                 }
+                sshClient.isAvailable = true;
             }
         }
     }

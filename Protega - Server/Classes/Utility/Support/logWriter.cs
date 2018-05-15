@@ -17,6 +17,9 @@ namespace Support
         public int LogLevel;
         public int ApplicationID = 0;
 
+        const string DateFormatInLog = "{0:dd.MM HH:mm:ss (fff)}";
+        const string DateFormatInConsole = "{0:HH:mm:ss}";
+
         public logWriter(string path, string banPath, int LogLevel)
         {
             this.path = path;
@@ -27,8 +30,8 @@ namespace Support
 
         public void writeInLog(int Importance, LogCategory Category, LoggerType LType, string Message)
         {
-            string DateFormatLog = String.Format("{0:dd.MM HH:mm:ss (fff)}", DateTime.Now);
-            string DateFormatConsole = String.Format("{0:HH:mm:ss}", DateTime.Now);
+            string DateFormatLog = String.Format(DateFormatInLog, DateTime.Now);
+            string DateFormatConsole = String.Format(DateFormatInConsole, DateTime.Now);
             if (Category == LogCategory.ERROR || Category == LogCategory.CRITICAL)
             {
                 LogDatabase(Importance, Category, LType, Message, DateFormatLog);
@@ -38,7 +41,8 @@ namespace Support
             if (Importance > LogLevel)
                 return;
 
-            conOut(String.Format("{0} {1} - {2}", DateFormatConsole, Category, Message));
+            if (Importance <= 3)
+                conOut(String.Format("{0} {1} - {2}", DateFormatConsole, Category, Message));
             logFile(String.Format("[{0}] {1} - {2}", DateFormatLog, Category, Message));
         }
 
