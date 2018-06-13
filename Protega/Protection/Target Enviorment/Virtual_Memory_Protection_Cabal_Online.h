@@ -23,6 +23,9 @@ private:
 	//Channel address
 	LPCVOID lpcvCabalChannelAddress = (LPCVOID)0x0107B1A4;
 
+	//Is Ingame Address (CabalMain.exe+CD378C)
+	LPCVOID lpcvIsIngameAddress = (LPCVOID)0x010D378C;
+
 	// Skill cooldown
 	LPCVOID lpcvCabalSkillCooldownAddress = (LPCVOID)0x876FB4;
 
@@ -90,6 +93,9 @@ private:
 	//	Aura
 	LPCVOID lpcvCabalAuraOffset2 = (LPCVOID)0x118;
 
+	//	BM3
+	LPCVOID lpcvCabalBM3Offset2 = (LPCVOID)0x128;
+
 	enum eNotShiftedBattleModeValues
 	{
 		Aura = 8,
@@ -103,13 +109,13 @@ private:
 
 
 	//Cabal Values
-	//	Central Value
-	int iCurrentSelectedChannel = -1;
+	//	Central Values
+	int iCabalAnimationSkill = 7;
+	int iCabalAnimationDeath = 2;
 	//	Map
 	int iCabalMapDefaultValue = 4294967295;
 	//	Zoom
-	int iCabalDefaultZoom1 = 2;
-	int iCabalDefaultZoom2 = 1;
+	int iCabalDefaultZoomBorder = 4;
 
 	//	NSD + NCT
 	std::map<int, unsigned int> NctMap;
@@ -119,6 +125,7 @@ private:
 
 
 	std::vector<unsigned int> NsdVector;
+	int iCurrentSelectedChannelForNCT = -1;
 	unsigned int iNsdAnormalyWaitTime = 1000;
 	unsigned int iNsdQueueSize = 10;
 	unsigned int iNsdDetectionTolerance = 3;
@@ -129,9 +136,8 @@ private:
 	unsigned int iCabalBm2Value2 = 40;
 
 	int iCabalSkillAnimationDefaultValue = 4294967295;
-	unsigned int iCabalSkillValueLowerLimit = 2000000;
-	int iCabalAnimationSkill = 7;
-	int iCabalAnimationDeath = 2;
+	unsigned int iCabalSkillValueLowerLimit = 2300000;
+
 
 	int iCabalLatestNSDValueForNCTAlgorithm = 0;
 	int iCabalLatestSkillAnimationValueForNCTAlgorithm = 0;
@@ -173,23 +179,32 @@ private:
 	bool bFirstChannelJoin = true;
 	
 	//	BM Cooldown reset
+	int iCurrentSelectedChannelForBMCD = -1;
+	int iChannelSwitchCounter = 0;
+	int iCabalLatestBattleModeState = -1;
+
 	int iCabalLatestBattleMode1CdValue = -1;
 	int iCabalLatestBattleMode2CdValue = -1;
+	int iCabalLatestBattleMode3CdValue = -1;
 	int iCabalLatestAuraCdValue = -1;
 
 	bool bBm1IsRunning = false;
 	bool bBm2IsRunning = false;
+	bool bBm3IsRunning = false;
 	bool bAuraIsRunning = false;
 	bool bBm1RecastException = true;
 	bool bBm2RecastException = true;
+	bool bBm3RecastException = true;
 	bool bAuraRecastException = true;
 
 	clock_t ctCabalBM1Timer;
 	clock_t ctCabalBM2Timer;
+	clock_t ctCabalBM3Timer;
 	clock_t ctCabalAuraTimer;
 
 	unsigned int iLatestAnimationValueForBM1 = 0;
 	unsigned int iLatestAnimationValueForBM2 = 0;
+	unsigned int iLatestAnimationValueForBM3 = 0;
 	unsigned int iLatestAnimationValueForAura = 0;
 
 	//		Static vars, they get used by the abstract algorithm for all BMs
@@ -233,7 +248,9 @@ public:
 	
 	bool OpenProcessInstance();
 	bool CloseProcessInstance();
+
 	bool NoIterativeFunctions_DetectManipulatedMemory();
+	bool IterativeFunctions_DetectManipulatedMemory();
 
 	//VMP Functions
 

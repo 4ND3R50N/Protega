@@ -16,30 +16,113 @@ Virtual_Memory_Protection_Cabal_Online::~Virtual_Memory_Protection_Cabal_Online(
 	CloseProcessInstance();
 }
 
-bool Virtual_Memory_Protection_Cabal_Online::VMP_Private_Abstract_CheckBmCooldownReset(int* iCabalLatestBattleModeCdValue, LPCVOID CabalBaseAddress, 
-	LPCVOID CabalBMOffset1, LPCVOID CabalBMOffset2, LPCVOID CabalBMOffset3, 
+bool Virtual_Memory_Protection_Cabal_Online::VMP_Private_Abstract_CheckBmCooldownReset(int* iCabalLatestBattleModeCdValue, LPCVOID CabalBaseAddress,
+	LPCVOID CabalBMOffset1, LPCVOID CabalBMOffset2, LPCVOID CabalBMOffset3,
 	clock_t* CabalBMTimer, bool* BmIsRunning, bool* BmRecastException, unsigned int* iLatestAnimationValueForBMCD)
 {
+
+	//	Collect BM value
+	int iCurrentBattleModeState = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
+		
+	//Collect abstract current BM + Aura value
+	int iCurrentBattleModeCdValue = GetIntViaLevel3Pointer(lpcvCabalBaseAddress,
+		CabalBMOffset1, CabalBMOffset2, CabalBMOffset3);
+	
+	//Collect IsIngame var
+	bool bIsIngame = (ReadMemoryInt(hProcessHandle, lpcvIsIngameAddress) == 1) ? true : false;
+
+	Sleep(100);
+
+	//Collect current channel
+	int iCurrentChannelInMemory = ReadMemoryInt(hProcessHandle, lpcvCabalChannelAddress);
+	
 	//This triggers if its the first run
 	if (*iCabalLatestBattleModeCdValue == -1)
 	{
 		*iCabalLatestBattleModeCdValue = GetIntViaLevel3Pointer(CabalBaseAddress,
 			CabalBMOffset1, CabalBMOffset2, CabalBMOffset3);
+		iCabalLatestBattleModeState = iCurrentBattleModeState;
+		iCurrentSelectedChannelForBMCD = ReadMemoryInt(hProcessHandle, lpcvCabalChannelAddress);
+	}
+	
+	//If you switch channels, then
+	if (iCurrentChannelInMemory != iCurrentSelectedChannelForBMCD /*|| !bIsIngame*/)
+	{
+		//Sets the old and current CD to 0 to avoid detections
+		*iCabalLatestBattleModeCdValue = 0;
+		iCurrentBattleModeCdValue = 0;
+		
+		iChannelSwitchCounter++;
+
+		//If this is triggered 3 times, then stop triggering
+		if (iChannelSwitchCounter == 4)
+		{
+			iChannelSwitchCounter = 0;
+			iCurrentSelectedChannelForBMCD = iCurrentChannelInMemory;
+		}
+		return false;
 	}
 
-	//Collect current BM + Aura value
-	int iCurrentBattleModeCdValue = GetIntViaLevel3Pointer(lpcvCabalBaseAddress,
-										CabalBMOffset1, CabalBMOffset2, CabalBMOffset3);
-
 	//Check if there was a state change
-	if (iCurrentBattleModeCdValue != *iCabalLatestBattleModeCdValue && !*BmIsRunning)
+	//Info: the state change also triggers (very often), if the CD value is freezed
+	if (iCurrentBattleModeCdValue != *iCabalLatestBattleModeCdValue && !*BmIsRunning && bIsIngame)
 	{
+		
+		Sleep(300);
+		int iCurrentBattleModeCdValueNewB = GetIntViaLevel3Pointer(lpcvCabalBaseAddress,
+			CabalBMOffset1, CabalBMOffset2, CabalBMOffset3);
+		//If the value changed after 100 ms, detect
+		if (iCurrentBattleModeCdValueNewB == *iCabalLatestBattleModeCdValue)
+		{
+			return true;
+		}
+
 		*BmIsRunning = true;
 		//Trigger Bm1 ticker
 		*CabalBMTimer = std::clock();
 		//Safe the value change (Bm gets triggered first)
+		//IMPORTANT: CD value is changing BEFORE BM value!!!!
 		*iCabalLatestBattleModeCdValue = iCurrentBattleModeCdValue;
+		Sleep(100);
+		//To prevent triggering the IF Statement above (This would cause an fail detect
+		iCabalLatestBattleModeState = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalBattleModeStateOffset);
 	}
+
+	//If the 100 ms comparige was not working, this will trigger instead!
+	if (iCurrentBattleModeState != iCabalLatestBattleModeState && iCurrentBattleModeState > 2)
+	{
+		Sleep(200);
+		//Collect Current CD values for BM switch check
+		int iCurrentBattleModeCdValueBM1 = GetIntViaLevel3Pointer(lpcvCabalBaseAddress,
+			lpcvCabalBM1Offset1, lpcvCabalBM1Offset2, lpcvCabalBM1Offset3);
+		int iCurrentBattleModeCdValueBM2 = GetIntViaLevel3Pointer(lpcvCabalBaseAddress,
+			lpcvCabalBM1Offset1, lpcvCabalBM2Offset2, lpcvCabalBM1Offset3);
+		int iCurrentBattleModeCdValueBM3 = GetIntViaLevel3Pointer(lpcvCabalBaseAddress,
+			lpcvCabalBM1Offset1, lpcvCabalBM3Offset2, lpcvCabalBM1Offset3);
+		int iCurrentBattleModeCdValueAura = GetIntViaLevel3Pointer(lpcvCabalBaseAddress,
+			lpcvCabalBM1Offset1, lpcvCabalAuraOffset2, lpcvCabalBM1Offset3);
+
+		/*int iSumOfCdValues = iCurrentBattleModeCdValueBM1 + iCurrentBattleModeCdValueBM2 + iCurrentBattleModeCdValueBM3 + iCurrentBattleModeCdValueAura;
+
+		if (iSumOfCdValues == 0)
+		{
+
+		}*/
+
+		if (iCurrentBattleModeCdValueBM1 == iCabalLatestBattleMode1CdValue && iCurrentBattleModeCdValueBM2 == iCabalLatestBattleMode2CdValue &&
+			iCurrentBattleModeCdValueBM3 == iCabalLatestBattleMode3CdValue && iCurrentBattleModeCdValueAura == iCabalLatestAuraCdValue)
+		{
+			//Problem: if u login and are already in bm, then it fail detects
+ 			return true;
+		}
+		iCabalLatestBattleModeState = iCurrentBattleModeState;
+	}
+	//The BM toggels from X to 0 to X if u switch channel. make sure, that it only rewrites the latest value, if we are NOT switching + no bm timer is running
+	else if(iCurrentChannelInMemory == iCurrentSelectedChannelForBMCD && 
+		!bBm1IsRunning && !bBm2IsRunning && !bBm3IsRunning && !bAuraIsRunning)
+	{
+		iCabalLatestBattleModeState = iCurrentBattleModeState;
+	}	
 
 	//While counter is running -> While BM1 CD is running
 	if (*BmIsRunning)
@@ -50,34 +133,32 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_Private_Abstract_CheckBmCooldow
 		//Check if the bm skill cooldown is nearly over || dBmSkillCooldown -> Global var
 		if (dCurrentDuration < dBmSkillCooldown)
 		{
-			//If the var toggles to 0 after bm1 gets triggered again (which is normal), do an exception for that
-			if (*BmRecastException)
-			{
-				//iBmRecastExceptionWaitTime -> Global var
-				Sleep(iBmRecastExceptionWaitTime);
-				//REFACTOR (Create new IO)
-				*iCabalLatestBattleModeCdValue = GetIntViaLevel3Pointer(lpcvCabalBaseAddress,
-					CabalBMOffset1, CabalBMOffset2, CabalBMOffset3);
+			//Collect animation + isIngame var
+			int iCurrentAnimationValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
+			//Collect IsIngame var
+			bool bIsIngame = (ReadMemoryInt(hProcessHandle, lpcvIsIngameAddress) == 1) ? true : false;
 
-				*BmRecastException = false;
-				return false;
-			}
 
-			//Happens if u cancel BM
+			//Happens if u cancel BM or if the BM ends and triggers CD from new
 			if (iCurrentBattleModeCdValue > *iCabalLatestBattleModeCdValue)
 			{
-				*BmRecastException = true;
+
+				//iBmRecastExceptionWaitTime -> Global var
+				Sleep(iBmRecastExceptionWaitTime);
+
+				*iCabalLatestBattleModeCdValue = GetIntViaLevel3Pointer(lpcvCabalBaseAddress,
+					CabalBMOffset1, CabalBMOffset2, CabalBMOffset3);
+				//INFO: Keep an eye on the first Timer set. 
+				*CabalBMTimer = std::clock();
 				return false;
 			}
 
-			//Check if Animation = 2 (Death)
-			int iCurrentAnimationValue = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationOffset);
 
-			//Check, if we are in death mode
-			if (*iLatestAnimationValueForBMCD == 2)
+			//Check, if we are still in death mode or we are logged out
+			if (*iLatestAnimationValueForBMCD == iCabalAnimationDeath || !bIsIngame)
 			{
-				//Check, if death mode ended in this iteration
-				if (iCurrentAnimationValue != 2)
+				//Check, if death mode ended in this iteration or if we are logged out
+				if (iCurrentAnimationValue != iCabalAnimationDeath || !bIsIngame)
 				{
 					//Unset the death mode, update latest CD battle mode value to not cause a hack detect in the next run
 					*iLatestAnimationValueForBMCD = iCurrentAnimationValue;
@@ -85,16 +166,16 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_Private_Abstract_CheckBmCooldow
 				}
 			}
 
-			//Check, if we are in death mode
-			if (iCurrentAnimationValue == 2)
+			//Check, if we died (death mode)
+			if (iCurrentAnimationValue == iCabalAnimationDeath)
 			{
 				//Set death mode for next iteration
 				//This will also trigger each time we are in death mode
-				*iLatestAnimationValueForBMCD = 2;
+				*iLatestAnimationValueForBMCD = iCurrentAnimationValue;
 				return false;
 			}
 
-			if (iCurrentBattleModeCdValue < *iCabalLatestBattleModeCdValue)
+			if (iCurrentBattleModeCdValue < *iCabalLatestBattleModeCdValue && bIsIngame)
 			{
 				return true;
 			}
@@ -177,6 +258,17 @@ bool Virtual_Memory_Protection_Cabal_Online::NoIterativeFunctions_DetectManipula
 {
 	if ((VMP_CheckGameSpeed() || VMP_CheckWallBorders() || VMP_CheckZoomState() || 
 		VMP_CheckSkillRange() || VMP_CheckSkillCooldown()  /*|| VMP_CheckFbDame() || VMP_CheckNation()*/) == true)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool Virtual_Memory_Protection_Cabal_Online::IterativeFunctions_DetectManipulatedMemory()
+{
+	if (VMP_CheckNoCastTime_V2() == true || VMP_CheckNoSkillDelay_V2() == true 
+		/*|| VMP_CheckBmCooldownReset() == true || VMP_CheckPerfectCombo() == true  */
+		/*|| VMP_CheckKillGate() == true*/)
 	{
 		return true;
 	}
@@ -269,14 +361,13 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckZoomState()
 	int iZoom2 = ReadMemoryInt(hProcessHandle, (LPCVOID)((unsigned int)lpcvCabalModuleAddress + (unsigned int)lpcvCabalZoomOffset2));
 	
 	//Check if they are showing the default value
-	if ((iZoom1 != iCabalDefaultZoom1 && iZoom1 != iCabalDefaultZoom2)  ||
-		iZoom2 != iCabalDefaultZoom1 && iZoom2 != iCabalDefaultZoom2)
+	if ((iZoom1 >= iCabalDefaultZoomBorder || iZoom1 < 0) || (iZoom2 >= iCabalDefaultZoomBorder || iZoom2 < 0))
 	{
 		std::stringstream ss;
 		ss << "Zoom1: " << iZoom1 << " | Zoom2: " << iZoom2;
 		std::string sDetectedValue = ss.str();
 		ss.str("");
-		ss << "Default Zoom 1/2: " << iCabalDefaultZoom1 << " and " << iCabalDefaultZoom2;
+		ss << "Default Zoom 1/2: >" << iCabalDefaultZoomBorder << " or < 0";
 		std::string sDefaultValue = ss.str();
 		ss.str("");
 
@@ -370,7 +461,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay_V2()
 		if (((iCurrentBattleModeState == iCabalBm2Value1 || iCurrentBattleModeState == iCabalBm2Value2) && iAnomalyApperances >= iNsdDetectionToleranceForBm2) ||
 			((iCurrentBattleModeState != iCabalBm2Value1 && iCurrentBattleModeState != iCabalBm2Value2) && iAnomalyApperances >= iNsdDetectionTolerance))
 		{
-	/*		std::ofstream filestr;
+			std::ofstream filestr;
 			filestr.open(".\\nsddetect.txt", std::fstream::in | std::fstream::out | std::fstream::app);
 			std::vector<unsigned int>::iterator iIt;
 			for (iIt = NsdVector.begin(); iIt != NsdVector.end(); iIt++)
@@ -379,7 +470,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay_V2()
 				filestr << iItData << std::endl;
 			}
 			filestr << "-----------------------------1 " << iCurrentBattleModeState << std::endl;
-			filestr.close();*/
+			filestr.close();
 
 			std::stringstream ss;
 			ss << ">= " << iNctDetectionTolerance;
@@ -425,7 +516,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime_V2()
 	{
 		iCabalLatestSkillAnimationValueForNCTAlgorithm = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalAnimationSkillOffset);
 		iCabalLatestNSDValueForNCTAlgorithm = GetIntViaLevel1Pointer(lpcvCabalBaseAddress, lpcvCabalSkillDelayOffset);
-		iCurrentSelectedChannel = ReadMemoryInt(hProcessHandle, lpcvCabalChannelAddress);
+		iCurrentSelectedChannelForNCT = ReadMemoryInt(hProcessHandle, lpcvCabalChannelAddress);
 	}
 
 	//Get current NSD value
@@ -444,9 +535,9 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime_V2()
 	int iCurrentChannelInMemory = ReadMemoryInt(hProcessHandle, lpcvCabalChannelAddress);
 
 	//If character dies, or map switched
-	if (iCurrentAnimationValue2 == iCabalAnimationDeath && iCurrentChannelInMemory != iCurrentSelectedChannel)
+	if (iCurrentAnimationValue2 == iCabalAnimationDeath && iCurrentChannelInMemory != iCurrentSelectedChannelForNCT)
 	{
-		iCurrentSelectedChannel = iCurrentChannelInMemory;
+		iCurrentSelectedChannelForNCT = iCurrentChannelInMemory;
 		CleanUpMapIfSizeIsReached(&NctMap, 0);
 		return false;
 	}
@@ -495,7 +586,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime_V2()
 		unsigned int iDetectedKey = 0;
 		if (ValuesInMapReachedUpperLimit(&NctMap, iNctDetectionTolerance, &iDetectedKey))
 		{
-			/*std::ofstream filestr;
+			std::ofstream filestr;
 
 			std::map<int, unsigned int>::iterator it;
 			filestr.open(".\\nctdetect.txt", std::fstream::in | std::fstream::out | std::fstream::app);
@@ -503,8 +594,8 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoCastTime_V2()
 			{
 				filestr << it->first << " || " << it->second << std::endl;
 			}
-			filestr << "-----------------------------" << " B: " << iCurrentBattleModeState << " A1: " << iCurrentAnimationValue1 << " A2: " << iCurrentAnimationValue2 << " ND: " << iCurrentNSDValue << "LND: " << iCabalLatestNSDValueForNCTAlgorithm << std::endl;
-			filestr.close();*/
+			filestr << "-----------------------------" <<  " A1: " << iCurrentAnimationValue1 << " A2: " << iCurrentAnimationValue2 << " ND: " << iCurrentNSDValue << "LND: " << iCabalLatestNSDValueForNCTAlgorithm << std::endl;
+			filestr.close();
 
 			std::stringstream ss;
 			ss << ">= " << iNctDetectionTolerance;
@@ -709,6 +800,15 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckBmCooldownReset()
 		funcCallbackHandler("CABAL BASE ADDRESS", "BMCD2", "", "");
 		return true;
 	}
+	//BM3
+	if (VMP_Private_Abstract_CheckBmCooldownReset(&iCabalLatestBattleMode3CdValue,
+		lpcvCabalBaseAddress, lpcvCabalBM1Offset1, lpcvCabalBM3Offset2, lpcvCabalBM1Offset3,
+		&ctCabalBM3Timer, &bBm3IsRunning, &bBm3RecastException, &iLatestAnimationValueForBM3))
+	{
+
+		funcCallbackHandler("CABAL BASE ADDRESS", "BMCD2", "", "");
+		return true;
+	}
 	//AURA
 	if (VMP_Private_Abstract_CheckBmCooldownReset(&iCabalLatestAuraCdValue,
 		lpcvCabalBaseAddress, lpcvCabalBM1Offset1, lpcvCabalAuraOffset2, lpcvCabalBM1Offset3,
@@ -769,7 +869,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckFbDame()
 		//NOTE: Aura is not listed!
 		iCurrentBattleModeState != eNotShiftedBattleModeValues::BM1 && iCurrentBattleModeState != eNotShiftedBattleModeValues::BM2 && iCurrentBattleModeState != eNotShiftedBattleModeValues::BM3 && 
 		iCurrentBattleModeState != eNotShiftedBattleModeValues::BM1_And_Aura && iCurrentBattleModeState != eNotShiftedBattleModeValues::BM2_And_Aura &&
-		eNotShiftedBattleModeValues::BM3_And_Aura &&
+		iCurrentBattleModeState != eNotShiftedBattleModeValues::BM3_And_Aura &&
 		//Check if the character is not doing anything (Also prevets errors)
 		iCurrentSkillDelayValue < iCabalSkillValueLowerLimit)
 	{
@@ -804,21 +904,34 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckFbDame()
 				ss.str("");
 				ss << FbDameVector.back();
 				std::string sDetected = ss.str();
-				funcCallbackHandler("CABAL MODULE ADDRESS", "FBDAME", sDetected, sDefault);
-			}
-
-			//Cleanup vector if too large
-			if (FbDameVector.size() >= iFbDameVectorQueueSize)
-			{
+				//DEBUG
 				std::ofstream filestr;
-				filestr.open(".\\FbDameDetection.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+				filestr.open(".\\FbDDetection.txt", std::fstream::in | std::fstream::out | std::fstream::app);
 				std::vector<unsigned int>::iterator iIt;
 				for (iIt = FbDameVector.begin(); iIt != FbDameVector.end(); iIt++)
 				{
 					unsigned int& iItData(*iIt);
 					filestr << iItData << std::endl;
 				}
-				filestr << "-----------------------------" << iCurrentBattleModeStateB << std::endl;
+				filestr << "-----------------------------" << iCurrentBattleModeStateB << " || " << iCurrentBattleModeState <<  std::endl;
+				filestr.close();
+				//------
+				funcCallbackHandler("CABAL MODULE ADDRESS", "FBDAME", sDetected, sDefault);
+
+			}
+
+			//Cleanup vector if too large
+			if (FbDameVector.size() >= iFbDameVectorQueueSize)
+			{
+				std::ofstream filestr;
+				filestr.open(".\\FbDClear.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+				std::vector<unsigned int>::iterator iIt;
+				for (iIt = FbDameVector.begin(); iIt != FbDameVector.end(); iIt++)
+				{
+					unsigned int& iItData(*iIt);
+					filestr << iItData << std::endl;
+				}
+				filestr << "-----------------------------" << iCurrentBattleModeStateB << " || " << iCurrentBattleModeState << std::endl;
 				filestr.close();
 				FbDameVector.clear();
 			}

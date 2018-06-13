@@ -52,32 +52,6 @@ namespace ProtegaClientTestsuite
 		}
 
 	public:
-		//Protection manager
-		TEST_METHOD(Protection_Threads_Test)
-		{
-
-			vBlackListProcessNames.push_back(L"Notepad.exe");
-			vBlackListWindowNames.push_back("ddjbneidb");
-			vBlackListMd5Values.push_back("1c32647a706fbef6faeac45a75201489");
-			vBlackListClassNames.push_back("miaudfhh");
-
-			Protection_Manager* PM = new Protection_Manager(std::bind(&ProtectionTests::PM_Callback, this, std::placeholders::_1, std::placeholders::_2),
-				9999, 20, 1, 2, 2, 99, "",
-				vBlackListProcessNames, vBlackListWindowNames, vBlackListClassNames, vBlackListMd5Values,
-				std::pair<std::vector<std::string>,std::vector<std::string>>());
-			PM->StartProtectionThreads();
-			//Loop "scan all addresses" function
-			do
-			{
-				Sleep(1000);
-			} while (!bDetect);
-		}
-
-		void PM_Callback(unsigned int test, std::vector<std::string> lDetectionInformation)
-		{
-			MessageBoxA(0, "PM_Callback", "PM_Callback", MB_OK);
-		}
-
 		//This test emulates the usage of Virtual_Memory_Protection_Engine class.
 
 		TEST_METHOD(Protection_VMP_Algorithm_Template)
@@ -93,7 +67,7 @@ namespace ProtegaClientTestsuite
 
 			do
 			{
-				VMP_S->VMP_CheckNoCastTime_V2();
+				VMP_S->VMP_CheckZoomState();
 				Sleep(10);
 			} while (!bDetect);
 		}	
@@ -103,27 +77,6 @@ namespace ProtegaClientTestsuite
 			bDetect = true;
 			MessageBoxA(NULL, "DETECT!", "Protega antihack engine", NULL);
 			Assert::AreEqual((float)atof(sDetectedValue.c_str()), 600.0f);
-		}
-
-
-		//This tests emulates the usage of Heuristic_Scan_Engine class
-		TEST_METHOD(Protection_HEP_Test)
-		{
-			vBlackListProcessNames.push_back(L"Notepad.exe");
-			vBlackListWindowNames.push_back("ddjbneidb");
-			vBlackListMd5Values.push_back("12343333");
-			vBlackListClassNames.push_back("miaudfhh");
-
-			Heuristic_Scan_Engine* HEP = new Heuristic_Scan_Engine(vBlackListProcessNames,
-				vBlackListWindowNames, 
-				vBlackListClassNames, 
-				vBlackListMd5Values,
-				std::bind(&ProtectionTests::Heuristic_Callback, this, std::placeholders::_1));
-			do
-			{
-				HEP->DetectBlacklistedProcessNames();
-			} while (true);
-			
 		}
 		
 		TEST_METHOD(Protection_HEM_Test)

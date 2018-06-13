@@ -54,9 +54,9 @@ void ProtegaCore::StartAntihack()
 	do
 	{
 		Sleep(1000);
-	} while(!NetworkManager->GetAuthentificationSuccessStatus());
+	} while(!NetworkManager->GetAuthentificationSuccessStatus());*/
 
-*/
+
 #pragma endregion
 
 #pragma region Collect Dynamic Data
@@ -137,7 +137,6 @@ void ProtegaCore::ServerAnswer(unsigned int iTelegramNumber, std::vector<std::st
 
 void ProtegaCore::ProtectionManagerAnswer(unsigned int iType, std::vector<std::string> vDetectionInformation)
 {
-
 	switch (iType)
 	{
 		//HE
@@ -165,12 +164,11 @@ void ProtegaCore::Update()
 	do
 	{
 		//Ping to server. Check answer.
-
 		/*if (ProtectionManager->ProtectionIsRunning())
 		{
 			NetworkManager->Ping_600(Data_Manager::GetLocalHardwareSID());
-		}		
-		*/
+		}	*/	
+		
 		ProtectionManager->CheckClocks(ProtectionManager->GetMainThreadClock());
 		Sleep(3000);
 	} while (ProtectionManager->ProtectionIsRunning());

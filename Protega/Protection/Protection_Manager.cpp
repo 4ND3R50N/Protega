@@ -180,9 +180,7 @@ void Protection_Manager::VMP_IF_Thread()
 {
 	do
 	{
-		if (VMP->VMP_CheckNoCastTime_V2() == true || VMP->VMP_CheckNoSkillDelay_V2() == true 
-			/*|| VMP->VMP_CheckPerfectCombo() == true  || VMP->VMP_CheckBmCooldownReset() == true*/
-			/*|| VMP->VMP_CheckKillGate() == true*/)
+		if (VMP->IterativeFunctions_DetectManipulatedMemory())
 		{
 			VMP->CloseProcessInstance();
 			bProtectionIsRunning = false;
@@ -199,7 +197,7 @@ void Protection_Manager::VMP_NIF_Thread()
 
 	do
 	{
-		if (VMP->NoIterativeFunctions_DetectManipulatedMemory() == true)
+		if (VMP->NoIterativeFunctions_DetectManipulatedMemory())
 		{
 			VMP->CloseProcessInstance();
 			bProtectionIsRunning = false;
