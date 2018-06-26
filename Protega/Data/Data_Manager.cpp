@@ -21,7 +21,7 @@ const char* Data_Manager::LOCAL_DATA_PROTEGA_IMAGE = "Protega_Logo.bmp";
 std::string Data_Manager::LOCAL_DATA_PROTECTION_TARGET = "CabalMain.exe";
 
 //Network data
-const char* Data_Manager::NETWORK_SERVER_IP = "192.99.142.28";
+const char* Data_Manager::NETWORK_SERVER_IP = "5.189.137.62";
 
 int Data_Manager::NETWORK_SERVER_PORT = 13016;
 int Data_Manager::NETWORK_MAX_SEND_RETRIES = 3;
