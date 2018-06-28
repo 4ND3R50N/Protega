@@ -68,7 +68,8 @@ namespace Protega___Server.Classes.Data
             }
             catch (Exception e)
             {
-                throw e;
+                CCstData.GetInstance(_pdata.ApplicationID).Logger.writeInLog(2, Support.LogCategory.CRITICAL, Support.LoggerType.DATABASE, String.Format("DB: Insert HackVirtual failed - Query could not be executed! Error: {0}",e.Message));
+                return false;
             }
             finally
             {

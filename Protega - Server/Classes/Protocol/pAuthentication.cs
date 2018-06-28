@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace Protega___Server.Classes.Protocol
 {
@@ -13,7 +14,8 @@ namespace Protega___Server.Classes.Protocol
         public string architecture;
         public string language;
         public double version;
-        protected Protocol prot;
+        public IPAddress IPtoGame;
+        public Protocol prot;
 
         public pAuthentication(ref networkServer.networkClientInterface Client, Protocol protocol)
         {
@@ -23,18 +25,23 @@ namespace Protega___Server.Classes.Protocol
         public bool Initialize()
         {
             if (this.Client == null)
-                return false;
+                throw new Exception("Client is null!");
             
             ArrayList ProtValues = prot.GetValues();
-            if (ProtValues == null || ProtValues.Count != 4)
-                return false;
+            if (ProtValues == null)
+                throw new Exception("Could not fetch protocol values!");
+            if (ProtValues.Count != 5)
+                throw new Exception("Parameter Length incorrect, having " + ProtValues.Count + ", expecting 5");
 
             this.ApplicationHash = ProtValues[1].ToString();
             this.architecture = ProtValues[2].ToString();
             this.language = ProtValues[3].ToString();
             if (!Double.TryParse(ProtValues[0].ToString(), out this.version))
-                return false;
-            
+                throw new Exception("Incorrect version format: " + ProtValues[0].ToString());
+
+            if (!IPAddress.TryParse(ProtValues[4].ToString(), out this.IPtoGame))
+                throw new Exception("Incorrect IP format: " + ProtValues[4].ToString());
+
             return true;
         }
 

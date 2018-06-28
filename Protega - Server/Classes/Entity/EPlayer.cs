@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
+using System.Net;
 
 namespace Protega___Server.Classes.Entity
 {
@@ -18,6 +19,8 @@ namespace Protega___Server.Classes.Entity
         private string _Language;
         private string _OperatingSystem;
         private EApplication _Application;
+
+        private IPAddress _GameIP;
 
         //Game Account details
         private string _GameAccID;
@@ -95,8 +98,17 @@ namespace Protega___Server.Classes.Entity
         /// </summary>
         public bool? isBanned
         {
-            get { return _isBanned;}
+            get { return _isBanned; }
             set { _isBanned = value; }
+        }
+
+        /// <summary>
+        /// IP Address of the player that is received by the game server
+        /// </summary>
+        public IPAddress GameIP
+        {
+            get { return _GameIP; }
+            set { _GameIP = value; }
         }
         #endregion
     }

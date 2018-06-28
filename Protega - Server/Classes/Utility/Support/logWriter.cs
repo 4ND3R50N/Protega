@@ -53,22 +53,32 @@ namespace Support
 
         void LogDatabase(int Importance, LogCategory Category, LoggerType LType, string Message, string DateFormat)
         {
-            Protega___Server.Classes.Entity.ELoggerData LogResult=null;
-            if (ApplicationID != 0)
-                LogResult = Protega___Server.Classes.SLoggerData.Insert(ApplicationID, Category, LType, Importance, Message);
+            Protega___Server.Classes.Entity.ELoggerData LogResult = null;
+            try
+            {
+                if (ApplicationID != 0)
+                    LogResult = Protega___Server.Classes.SLoggerData.Insert(ApplicationID, Category, LType, Importance, Message);
+                if (LogResult == null)
+                    return;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return;
+            }
 
-            if (LogResult==null)
+            if (LogResult == null)
             {
                 string OutMessage = string.Format("[{0}]: ({1}) - {2}", DateFormat, "CRITICAL (m)", "Log Result null!");
                 logFile(OutMessage);
             }
 
-            if(LogResult.ID=="-1")
+            if (LogResult.ID == "-1")
             {
                 string OutMessage = string.Format("[{0}]: ({1}) - {2}", DateFormat, "CRITICAL (m)", "Log Result -1!");
                 logFile(OutMessage);
             }
-            if(LogLevel==4)
+            if (LogLevel == 4)
             {
                 string OutMessage = string.Format("[{0}]: ({1}) - {2}", DateFormat, "Ok", "DB Logging succeeded. ID: " + LogResult.ID);
                 logFile(OutMessage);

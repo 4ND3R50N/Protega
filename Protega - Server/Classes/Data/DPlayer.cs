@@ -183,7 +183,8 @@ namespace Protega___Server.Classes.Data
             }
             catch (Exception e)
             {
-                throw e;
+                CCstData.GetInstance(_User.Application.Hash).Logger.writeInLog(2, Support.LogCategory.CRITICAL, Support.LoggerType.DATABASE, String.Format("DB: Player Authenticate - Query could not be executed! Error: {0}", e.Message));
+                return null;
             }
             finally
             {

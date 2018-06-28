@@ -85,7 +85,8 @@ namespace Protega___Server.Classes.Data
             }
             catch (Exception e)
             {
-                throw e;
+                Console.WriteLine("Could not fetch application! Error " + e.Message);
+                return null;
             }
             finally
             {

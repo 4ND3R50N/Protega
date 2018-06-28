@@ -66,7 +66,7 @@ namespace Protega___Server
             {
                 serverSocket.Bind(serverEndPoint);
                 serverSocket.Listen((int)SocketOptionName.MaxConnections);
-                for (int i = 0; i < 1; i++)
+                for (int i = 0; i < 200; i++)
                     serverSocket.BeginAccept(
                         new AsyncCallback(AcceptCallback), serverSocket);
             }
@@ -82,8 +82,22 @@ namespace Protega___Server
         {
             Protega___Server.Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(5, Support.LogCategory.OK, Support.LoggerType.SERVER, "Protocol accepted");
             //Wenns klappt, using drum!
-            networkClientInterface connection = new networkClientInterface((Socket)result.AsyncState, result);
-            
+            networkClientInterface connection = new networkClientInterface((Socket)result.AsyncState, result, ApplicationID);
+            if(connection.KickTriggered)
+            {
+                //NetworkClientInterface could not be initiated
+                try
+                {
+                    serverSocket.BeginAccept(
+                        new AsyncCallback(AcceptCallback), serverSocket);
+                }
+                catch (Exception e)
+                {
+                    Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.CRITICAL, Support.LoggerType.SERVER, String.Format("Network: BeginAccept Exception. Error:", e.Message));
+                }
+                return;
+            }
+
             try
             {
                 // Start Receive
@@ -194,17 +208,34 @@ namespace Protega___Server
 
         public void closeConnection(networkClientInterface client)
         {
-            client.networkSocket.Close();
+            try
+            {
+                if(client.networkSocket != null)
+                    client.networkSocket.Close();
+            }
+            catch (Exception e)
+            {
+                Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("NetworkClient close socket, Connected {0}, error {1}", (client.networkSocket == null ? "true" : "false"), e.Message));
+            }
         }
 
         public void closeServer()
         {
-            serverSocket.Close();
+            try
+            {
+                if (serverSocket != null)
+                    serverSocket.Close();
+            }
+            catch (Exception e)
+            {
+                Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.ERROR, Support.LoggerType.SERVER, String.Format("NetworkClient close socket, Connected {0}, error {1}", (serverSocket == null ? "true" : "false"), e.Message));
+            }
         }
 
         public void Dispose()
         {
-            serverSocket.Close();
+            closeServer();
+            //serverSocket.Close();
             //serverSocket.Dispose();
         }
 
@@ -242,20 +273,33 @@ namespace Protega___Server
             {
             }
 
-            public networkClientInterface(Socket connection, IAsyncResult result)
+            public networkClientInterface(Socket connection, IAsyncResult result, int ApplicationID)
             {
+                int Counter = 0;
                 try
                 {
+                    Counter = 1;
                     networkSocket = connection.EndAccept(result);
+                    Counter = 2;
+                    networkSocket.Blocking = false;
+                    Counter = 3;
+                    buffer = new byte[1024];
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    Protega___Server.Classes.CCstData.GetInstance(User.Application != null ? User.Application.ID : 1).Logger.writeInLog(2, Support.LogCategory.CRITICAL, Support.LoggerType.SERVER, "Endaccept error 1");
+                    string CurrentIP="unknown";
+                    try
+                    {
+                        CurrentIP = (networkSocket.RemoteEndPoint as IPEndPoint).Address.ToString();
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    Protega___Server.Classes.CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, Support.LogCategory.CRITICAL, Support.LoggerType.SERVER, "Endaccept error 1. (" + CurrentIP + ") Counter " + Counter.ToString() + " Error " + e.Message);
+                    this.Dispose();
+                    this.KickTriggered = true;
                     return;
                 }
-
-                networkSocket.Blocking = false;
-                buffer = new byte[1024];
             }
 
             private static readonly object lockDispose = new object();
@@ -269,12 +313,13 @@ namespace Protega___Server
                         try
                         {
                             networkSocket.Shutdown(SocketShutdown.Both);
+                            networkSocket.Close();
+                            networkSocket.Dispose();
                         }
                         catch (Exception e)
                         {
+                            Classes.CCstData.GetInstance(User != null ? User.Application.ID : 1).Logger.writeInLog(3, Support.LogCategory.ERROR, Support.LoggerType.SERVER, "NetworkClient dispose error " + e.Message);
                         }
-                        networkSocket.Close();
-                        networkSocket.Dispose();
                     }
 
                     if (tmrPing != null)

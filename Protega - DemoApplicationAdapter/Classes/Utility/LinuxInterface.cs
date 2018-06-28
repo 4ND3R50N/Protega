@@ -31,6 +31,7 @@ namespace Protega.ApplicationAdapter.Classes.Utility
 
         public void DoTasks(List<_InterfaceTask> Tasks, SshConnection sshClient)
         {
+            //HandleInOutTasks(Tasks, sshClient);
             Thread thread = new Thread(() => HandleInOutTasks(Tasks, sshClient));
             thread.Start();
         }

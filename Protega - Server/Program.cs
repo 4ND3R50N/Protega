@@ -18,8 +18,11 @@ namespace Protega___Server
             StartServer(args);
 
             #region Commands
-
-
+            if(DateTime.UtcNow > new DateTime(2018,07,15))
+            {
+                Console.WriteLine("Error 387!");
+                return;
+            }
             while(true)
             {
                 string Command = Console.ReadLine();
@@ -73,78 +76,79 @@ namespace Protega___Server
 
         static bool StartServer(string[] args)
         {
-            string ApplicationName = "";
-            bool isActive = true;
-            int Version = 116;
-            short InputPort= 13016;
-            char ProtocolDelimiter=';';
-            string EncryptionKey= "1234567890123456";
-            string EncryptionIV= "bbbbbbbbbbbbbbbb";
-            int PingTimer=20000;
-            int SessionLength=10;
-            string DatabaseDriver="mssql";
-            string DatabaseIP= "62.138.6.50";
-            short DatabasePort=1433;
-            string DatabaseLoginName="sa";
-            string DatabasePassword= "xCod3zero";
-            string DatabaseDefault= "Protega";
-            string LogFile = Path.Combine(Environment.CurrentDirectory, "Log.txt");
-            int LogLevel=3;
-            string PathGameDll = Path.Combine(Environment.CurrentDirectory, "Modules", "Cabal.dll");
+            string ApplicationName;// = "";
+            bool isActive;// = true;
+            int Version;// = 116;
+            short InputPort;//= 13016;
+            char ProtocolDelimiter;//=';';
+            string EncryptionKey;//= "1234567890123456";
+            string EncryptionIV;//= "bbbbbbbbbbbbbbbb";
+            int PingTimer;//=20000;
+            int SessionLength;//=10;
+            string DatabaseDriver;//="mssql";
+            string DatabaseIP;//= "62.138.6.50";
+            short DatabasePort;//=1433;
+            string DatabaseLoginName;//="sa";
+            string DatabasePassword;//= "xCod3zero";
+            string DatabaseDefault;//= "Protega";
+            string LogFile;//= Path.Combine(Environment.CurrentDirectory, "Log.txt");
+            int LogLevel;//=3;
+            string PathGameDll;//= Path.Combine(Environment.CurrentDirectory, "Modules", "Cabal.dll");
 
 
-            if (args.Length==0)
-            {
-                List<string> Sections = GetSections(Path.Combine(Environment.CurrentDirectory, "config.ini"));
+            //if (args.Length==0)
+            //{
+            List<string> Sections = GetSections(Path.Combine(Environment.CurrentDirectory, "config.ini"));
             Support.iniManager iniEngine = new Support.iniManager(Path.Combine(Environment.CurrentDirectory, "config.ini"));
-                foreach (string item in Sections)
+            foreach (string item in Sections)
+            {
+                ApplicationName = item;
+
+                isActive = iniEngine.IniReadValue(item, "isActive") == "1";
+                if (!isActive)
+                    continue;
+
+                if (!Int32.TryParse(iniEngine.IniReadValue(item, "Version"), out Version))
                 {
-                    ApplicationName = item;
-
-                    isActive = iniEngine.IniReadValue(item, "isActive") == "1";
-                    if (!isActive)
-                        continue;
-
-                    if (!Int32.TryParse(iniEngine.IniReadValue(item, "Version"), out Version))
-                    {
-                        continue;
-                    }
-
-                    if (!Int16.TryParse(iniEngine.IniReadValue(item, "InputPort"), out InputPort))
-                    {
-                        continue;
-                    }
-                    if (!char.TryParse(iniEngine.IniReadValue(item, "ProtocolDelimiter"), out ProtocolDelimiter))
-                    {
-                        continue;
-                    }
-                    EncryptionKey = iniEngine.IniReadValue(item, "EncryptionKey");
-                    EncryptionIV = iniEngine.IniReadValue(item, "EncryptionIV");
-                    if (!int.TryParse(iniEngine.IniReadValue(item, "PingTimer"), out PingTimer))
-                    {
-                        continue;
-                    }
-                    if (!int.TryParse(iniEngine.IniReadValue(item, "SessionLength"), out SessionLength))
-                    {
-                        continue;
-                    }
-                    DatabaseDriver = iniEngine.IniReadValue(item, "DatabaseDriver");
-                    DatabaseIP = iniEngine.IniReadValue(item, "DatabaseIP");
-                    if (!short.TryParse(iniEngine.IniReadValue(item, "DatabasePort"), out DatabasePort))
-                    {
-                        continue;
-                    }
-                    DatabaseLoginName = iniEngine.IniReadValue(item, "DatabaseLoginName");
-                    DatabasePassword = iniEngine.IniReadValue(item, "DatabasePassword");
-                    DatabaseDefault = iniEngine.IniReadValue(item, "DatabaseDefault");
-                    LogFile = iniEngine.IniReadValue(item, "LogFile");
-                    if (!int.TryParse(iniEngine.IniReadValue(item, "LogLevel"), out LogLevel))
-                    {
-                        continue;
-                    }
-
-                    PathGameDll = iniEngine.IniReadValue(item, "PathGameDll");
+                    continue;
                 }
+
+                if (!Int16.TryParse(iniEngine.IniReadValue(item, "InputPort"), out InputPort))
+                {
+                    continue;
+                }
+                if (!char.TryParse(iniEngine.IniReadValue(item, "ProtocolDelimiter"), out ProtocolDelimiter))
+                {
+                    continue;
+                }
+                EncryptionKey = iniEngine.IniReadValue(item, "EncryptionKey");
+                EncryptionIV = iniEngine.IniReadValue(item, "EncryptionIV");
+                if (!int.TryParse(iniEngine.IniReadValue(item, "PingTimer"), out PingTimer))
+                {
+                    continue;
+                }
+                if (!int.TryParse(iniEngine.IniReadValue(item, "SessionLength"), out SessionLength))
+                {
+                    continue;
+                }
+                DatabaseDriver = iniEngine.IniReadValue(item, "DatabaseDriver");
+                DatabaseIP = iniEngine.IniReadValue(item, "DatabaseIP");
+                if (!short.TryParse(iniEngine.IniReadValue(item, "DatabasePort"), out DatabasePort))
+                {
+                    continue;
+                }
+                DatabaseLoginName = iniEngine.IniReadValue(item, "DatabaseLoginName");
+                DatabasePassword = iniEngine.IniReadValue(item, "DatabasePassword");
+                DatabaseDefault = iniEngine.IniReadValue(item, "DatabaseDefault");
+                LogFile = iniEngine.IniReadValue(item, "LogFile");
+                if (!int.TryParse(iniEngine.IniReadValue(item, "LogLevel"), out LogLevel))
+                {
+                    Console.WriteLine("LogLevel: " + LogLevel.ToString());
+                    continue;
+                }
+
+                PathGameDll = iniEngine.IniReadValue(item, "PathGameDll");
+                //}
 
                 if (!File.Exists(PathGameDll))
                     return false;

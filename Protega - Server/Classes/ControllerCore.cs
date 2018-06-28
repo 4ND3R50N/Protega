@@ -50,7 +50,7 @@ namespace Protega___Server.Classes.Core
         public ControllerCore(string _ApplicationName, int LatestClientVersion, short _iPort, char _cProtocolDelimiter, string _EncryptionKey, string _EncryptionIV, int _PingTimer, int SessionLength, string _sDatabaseDriver,
             string _sDBHostIp, short _sDBPort, string _sDBUser, string _sDBPass, string _sDBDefaultDB, string _sLogPath, int LogLevel, string PathGameDll)
         {
-
+            
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             //Logging initialisations
@@ -72,6 +72,7 @@ namespace Protega___Server.Classes.Core
             }
 
 
+            Logger.writeInLog(1, LogCategory.OK, Support.LoggerType.SERVER, "Testing DB connection...");
             //Database test
             if (dBEngine.testDBConnection())
             {
@@ -83,12 +84,14 @@ namespace Protega___Server.Classes.Core
             }
             // try to get the application ID for the given application out of the DB
             Application = SApplication.GetByName(_ApplicationName, dBEngine);
-            // QUESTION: usually the procedure creates a new ID for a new application so this case should never apear?
+
+
             if (Application == null)
             {
                 Logger.writeInLog(1, LogCategory.ERROR, Support.LoggerType.DATABASE, "The application name was not found in the database!");
                 return;
             }
+            Logger.writeInLog(3, LogCategory.OK, Support.LoggerType.DATABASE, "Application ID: " + Application.ID + ", Name: " + Application.Name);
 
             Logger.ApplicationID = Application.ID;
             // Create a new config object to be able to use specific functions like logging in all classes by getting the instance via application information
