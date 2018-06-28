@@ -3,7 +3,7 @@
 
 #pragma region PROTES_STATIC_DATA_CONFIG
 
-int Data_Manager::SOFTWARE_VERSION = 116;
+int Data_Manager::SOFTWARE_VERSION = 117;
 
 //Web data
 
@@ -260,7 +260,13 @@ std::string Data_Manager::GetProgramFolderPath()
 
 std::string Data_Manager::GetCurrentWanIP()
 {	
-	return Data_Gathering::GetWebFileAsString(TARGET_ENVIORMENT_WAN_IP_URL);
+	boost::system::error_code ec;
+	std::string sIP = Data_Gathering::GetWebFileAsString(TARGET_ENVIORMENT_WAN_IP_URL);
+	boost::asio::ip::address::from_string(sIP, ec);
+	if (ec) {
+		return "127.0.0.1";
+	}
+	return sIP;
 }
 
 

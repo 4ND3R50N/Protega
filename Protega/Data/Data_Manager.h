@@ -6,6 +6,7 @@
 #include <codecvt>
 #include <sstream>
 #include <boost\algorithm\string\regex.hpp>
+#include <boost/asio/ip/address.hpp>
 #include "../Tools/CryptoPP_Converter.h"
 #include "Data_Gathering.h"
 

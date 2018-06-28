@@ -114,14 +114,14 @@ bool Data_Gathering::Is64BitOS()
 #endif
 }
 
-uint16_t Data_Gathering::GetVolumeHash()
+uint32_t Data_Gathering::GetVolumeHash()
 {
 	DWORD dwSerialNum = 0;
 
 	// Determine if this volume uses an NTFS file system.      
 	GetVolumeInformation(L"c:\\", NULL, 0, &dwSerialNum, NULL, NULL, NULL, 0);
-	uint16_t hash = (uint32_t)((dwSerialNum + (dwSerialNum >> 16)) & 0xFFFF);
-
+	/*uint16_t hash = (uint32_t)((dwSerialNum + (dwSerialNum >> 16)) & 0xFFFF);*/
+	uint32_t hash = (uint32_t)dwSerialNum;
 	return hash;
 }
 
