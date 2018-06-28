@@ -8,6 +8,7 @@ int Data_Manager::SOFTWARE_VERSION = 116;
 //Web data
 
 char* Data_Manager::TARGET_ENVIORMENT_DATA_URL = "http://62.138.6.50:13011/CabalOnline/";
+char* Data_Manager::TARGET_ENVIORMENT_WAN_IP_URL = "http://66.70.240.165/";
 char* Data_Manager::TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME = "Heuristic_MD5.csv.enc";
 char* Data_Manager::TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME = "Heuristic_Process_Names.csv.enc";
 char* Data_Manager::TARGET_ENVIORMENT_FTC_FILE_NAME = "Files_To_Check.csv.enc";
@@ -22,7 +23,6 @@ std::string Data_Manager::LOCAL_DATA_PROTECTION_TARGET = "CabalMain.exe";
 
 //Network data
 const char* Data_Manager::NETWORK_SERVER_IP = "5.189.137.62";
-
 int Data_Manager::NETWORK_SERVER_PORT = 13016;
 int Data_Manager::NETWORK_MAX_SEND_RETRIES = 3;
 std::string Data_Manager::NETWORK_PROTOCOL_DELIMITER = "~";
@@ -160,9 +160,7 @@ int Data_Manager::CollectDynamicProtesData()
 	std::stringstream ssLocalPathCombiner;
 	std::string sLocalFolderPath = GetProgramFolderPath();
 
-	//Get FP decrypted string
-
-	
+	//Get FP decrypted string	
 
 	ssUrlCombiner << TARGET_ENVIORMENT_DATA_URL << TARGET_ENVIORMENT_FTC_FILE_NAME;
 	ssLocalPathCombiner << sLocalFolderPath << LOCAL_DATA_FOLDER << TARGET_ENVIORMENT_FTC_FILE_NAME;
@@ -258,6 +256,11 @@ std::string Data_Manager::GetProgramFolderPath()
 	std::vector<std::string> vFolderPath;
 	boost::algorithm::split_regex(vFolderPath, sFilePath, boost::regex(sTmpLocalDataProtectionTarget));
 	return vFolderPath[0];
+}
+
+std::string Data_Manager::GetCurrentWanIP()
+{	
+	return Data_Gathering::GetWebFileAsString(TARGET_ENVIORMENT_WAN_IP_URL);
 }
 
 

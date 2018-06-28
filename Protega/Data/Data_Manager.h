@@ -17,6 +17,7 @@ private:
 	//Static Data Storage Vars
 	static int SOFTWARE_VERSION;
 	static char* TARGET_ENVIORMENT_DATA_URL;
+	static char* TARGET_ENVIORMENT_WAN_IP_URL;
 	static char* TARGET_ENVIORMENT_HEURISTIC_MD5_FILENAME;
 	static char* TARGET_ENVIORMENT_HEURISTIC_PROCESSNAME_FILENAME;
 	static char* TARGET_ENVIORMENT_FTC_FILE_NAME;
@@ -70,9 +71,9 @@ public:
 	static std::string GetSoftwareArchitecture();
 	static std::string GetSoftwareLanguage();
 	static std::string GetProgramFolderPath();
+	static std::string GetCurrentWanIP();
 
 	//Getter
-
 	static int GetSoftwareVersion();
 	static std::string GetTargetEnviormentDataUrl();
 	static const char* GetNetworkServerIP();
