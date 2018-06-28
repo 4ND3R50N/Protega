@@ -46,7 +46,7 @@ public:
 	~Network_Manager();
 	//Protocols C2S
 	bool TestMessage_001();
-	void Authentication_500(std::string sHardwareID, int iVersion, std::string sComputerArchitecture, std::string sLanguage);
+	void Authentication_500(std::string sHardwareID, int iVersion, std::string sComputerArchitecture, std::string sLanguage, std::string sIP);
 	void Ping_600(std::string sSessionID);
 	void HackDetection_HE_701(std::string sSessionID, unsigned int iHeSection, std::string sContent);
 	void HackDetection_VMP_702(std::string sSessionID, std::string sBaseAddress, std::string sOffset, std::string sDetectedValue, 
