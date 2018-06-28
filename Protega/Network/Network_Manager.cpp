@@ -38,7 +38,6 @@ void Network_Manager::Authentication_500(std::string sHardwareID, int iVersion,
 	// BF1426C6DA
 	ss << iAuthenticationProtocolID << sDataDelimiter << sHardwareID << sDataDelimiter << std::to_string(iVersion) << sDataDelimiter << "D6D4ABB30s"
 		<< sDataDelimiter << sComputerArchitecture << sDataDelimiter << sLanguage << sDataDelimiter << sIP;
-	
 	//Call SendAndGet threaded with parameters
 	std::thread* th = new std::thread(&Network_Manager::SendAndGet, this, &bAuthenticationSuccess, &iAuthenticationTries, ss.str());
 
