@@ -26,7 +26,7 @@ public:
 	//Hardware
 	static std::string GetApplicationFilePath();
 	static bool Is64BitOS();
-	static uint16_t GetVolumeHash();
+	static uint32_t GetVolumeHash();
 	static uint16_t GetCpuHash();
 	static std::string GetMachineName();
 	static std::wstring GetLanguage();

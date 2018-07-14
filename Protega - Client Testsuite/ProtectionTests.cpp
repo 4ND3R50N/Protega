@@ -64,7 +64,6 @@ namespace ProtegaClientTestsuite
 
 			VMP_S->OpenProcessInstance();
 
-
 			do
 			{
 				VMP_S->VMP_CheckZoomState();
