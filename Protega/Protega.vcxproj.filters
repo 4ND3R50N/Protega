@@ -51,6 +51,18 @@
     <Filter Include="Quelldateien\Data">
       <UniqueIdentifier>{41e2e1da-6c0b-4057-b0d5-775b63045fd2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headerdateien\Service">
+      <UniqueIdentifier>{3defee0f-337a-44b9-a69c-663a875efe2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\Service">
+      <UniqueIdentifier>{a17ed9fb-db50-4451-9110-f6a714a671b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\Service\Modules">
+      <UniqueIdentifier>{344da90f-399b-480f-a0ba-6eee96e6fbdc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\Service\Modules">
+      <UniqueIdentifier>{1e01e900-8d5b-4f77-bfce-234bcefc9f16}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -107,6 +119,15 @@
     <ClInclude Include="resource.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="Service_Manager.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\Service_Manager.h">
+      <Filter>Headerdateien\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Service_Cabal_Online.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -156,6 +177,15 @@
     </ClCompile>
     <ClCompile Include="Core\Exception_Manager.cpp">
       <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Service_Manager.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\Service_Manager.cpp">
+      <Filter>Quelldateien\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Service_Cabal_Online.cpp">
+      <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
