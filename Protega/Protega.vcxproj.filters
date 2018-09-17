@@ -104,9 +104,6 @@
     <ClInclude Include="Data\Data_Manager.h">
       <Filter>Headerdateien\Data</Filter>
     </ClInclude>
-    <ClInclude Include="Protection\Target Enviorment\Virtual_Memory_IO.h">
-      <Filter>Headerdateien\Protection\Target Enviorment</Filter>
-    </ClInclude>
     <ClInclude Include="Protection\Target Enviorment\Virtual_Memory_Protection_Cabal_Online.h">
       <Filter>Headerdateien\Protection\Target Enviorment</Filter>
     </ClInclude>
@@ -119,14 +116,14 @@
     <ClInclude Include="resource.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Service_Manager.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="Service\Service_Manager.h">
       <Filter>Headerdateien\Service</Filter>
     </ClInclude>
-    <ClInclude Include="Service_Cabal_Online.h">
-      <Filter>Headerdateien</Filter>
+    <ClInclude Include="Service\Modules\Service_Cabal_Online_Collector.h">
+      <Filter>Headerdateien\Service\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Tools\Virtual_Memory_IO.h">
+      <Filter>Headerdateien\Tools</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -166,9 +163,6 @@
     <ClCompile Include="Data\Data_Manager.cpp">
       <Filter>Quelldateien\Data</Filter>
     </ClCompile>
-    <ClCompile Include="Protection\Target Enviorment\Virtual_Memory_IO.cpp">
-      <Filter>Quelldateien\Protection\Target Enviorment</Filter>
-    </ClCompile>
     <ClCompile Include="Protection\Target Enviorment\Virtual_Memory_Protection_Cabal_Online.cpp">
       <Filter>Quelldateien\Protection\Target Enviorment</Filter>
     </ClCompile>
@@ -178,14 +172,14 @@
     <ClCompile Include="Core\Exception_Manager.cpp">
       <Filter>Quelldateien\Core</Filter>
     </ClCompile>
-    <ClCompile Include="Service_Manager.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="Service\Service_Manager.cpp">
       <Filter>Quelldateien\Service</Filter>
     </ClCompile>
-    <ClCompile Include="Service_Cabal_Online.cpp">
-      <Filter>Quelldateien</Filter>
+    <ClCompile Include="Service\Modules\Service_Cabal_Online_Collector.cpp">
+      <Filter>Quelldateien\Service\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Tools\Virtual_Memory_IO.cpp">
+      <Filter>Quelldateien\Tools</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

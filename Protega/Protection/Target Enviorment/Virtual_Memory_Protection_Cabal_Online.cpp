@@ -398,7 +398,7 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckNoSkillDelay()
 	if (iCurrentAnimationValue == iCabalAnimationSkill)
 	{
 		//Get the current skill cast value
-		int iCurrentSkillCastValue = ReadMemoryInt(hProcessHandle, SkillCastAddress);
+		short iCurrentSkillCastValue = ReadMemoryInt(hProcessHandle, SkillCastAddress);
 		//Check if the value is NOT a skill animation cast
 		if (iCurrentSkillCastValue < iCabalSkillValueLowerLimit)
 		{
@@ -840,7 +840,6 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckKillGate()
 
 	LPCVOID TestAdress = (LPCVOID)((unsigned int)0x400000 + (unsigned int)0x793530);
 
-	const char* test = ReadMemoryString(hProcessHandle, lpcvCabalBaseAddress);
 	if (iCurrentMapValue != iCabalLatestMapValue)
 	{
 		if (iCurrentNoSkillDelayValue < iCabalSkillValueLowerLimit)
@@ -917,7 +916,6 @@ bool Virtual_Memory_Protection_Cabal_Online::VMP_CheckFbDame()
 				filestr.close();
 				//------
 				funcCallbackHandler("CABAL MODULE ADDRESS", "FBDAME", sDetected, sDefault);
-
 			}
 
 			//Cleanup vector if too large

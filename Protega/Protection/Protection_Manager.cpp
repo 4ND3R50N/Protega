@@ -64,7 +64,7 @@ bool Protection_Manager::StartProtectionThreads()
 	}
 
 	//Create threads
-	tHeThread = new std::thread(&Protection_Manager::HE_Thread, this);
+	/*tHeThread = new std::thread(&Protection_Manager::HE_Thread, this);*/
 	tVmpIfThread = new std::thread(&Protection_Manager::VMP_IF_Thread, this);
 	tVmpNifThread = new std::thread(&Protection_Manager::VMP_NIF_Thread, this);
 	tFpThread = new std::thread(&Protection_Manager::FP_Thread, this);
@@ -106,7 +106,7 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 		return false;
 	}
 	//	HE
-	dCurrentDuration = (std::clock() - ctHeResponse) / (double)CLOCKS_PER_SEC;
+	/*dCurrentDuration = (std::clock() - ctHeResponse) / (double)CLOCKS_PER_SEC;
 
 	if (dCurrentDuration > dThreadResponseDelta)
 	{
@@ -114,7 +114,7 @@ bool Protection_Manager::CheckClocks(std::clock_t* ctOwnClock)
 		Exception_Manager::HandleProtegaStandardError(iThreadErrorCode,
 			"Thread Error [HE]. Please restart the application!");
 		return false;
-	}
+	}*/
 	//	VMP 1&2
 
 	dCurrentDuration = (std::clock() - ctVmpIfResponse) / (double)CLOCKS_PER_SEC;

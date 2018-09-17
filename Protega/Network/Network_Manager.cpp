@@ -87,6 +87,13 @@ void Network_Manager::HackDetection_FP_703(std::string sSessionID, unsigned int 
 	//th.join();
 }
 
+void Network_Manager::Service_SendAccount_210(std::string sAccountName)
+{
+	std::stringstream ss;
+	ss << iServiceSendAccountNameID << sDataDelimiter << sAccountName;
+	std::thread* th = new std::thread(&Network_Manager::SendAndGet, this, &bServiceSuccess, &iServiceTries, ss.str());
+}
+
 //Getter
 bool Network_Manager::GetAuthentificationSuccessStatus()
 {

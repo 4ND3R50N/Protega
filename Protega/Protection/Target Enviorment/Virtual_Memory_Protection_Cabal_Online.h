@@ -2,7 +2,7 @@
 #include "../../stdafx.h"
 #include <thread>
 #include "boost\lexical_cast.hpp"
-#include "Virtual_Memory_IO.h"
+#include "../../Tools/Virtual_Memory_IO.h"
 #include <fstream>
 #include <map>
 
@@ -220,11 +220,11 @@ private:
 	//	FB Dame
 	std::vector<unsigned int> FbDameVector;
 	//Value has to be 5, because the FB Buffs stacks the BM State B.
-	int iFbDameBattleModeStateBAnormaly = 5;
-	int iFbDameBattleModeStateBAnormalyForAura = 7;
-	int iFbDameDetectionTolerance = 3;
-	int iFbDameAnormalyWaitTime = 1000;
-	int iFbDameVectorQueueSize = 10;
+	short iFbDameBattleModeStateBAnormaly = 5;
+	short iFbDameBattleModeStateBAnormalyForAura = 7;
+	short iFbDameDetectionTolerance = 3;
+	short iFbDameAnormalyWaitTime = 1000;
+	short iFbDameVectorQueueSize = 10;
 
 	//Vars
 	unsigned int iProcessID;	

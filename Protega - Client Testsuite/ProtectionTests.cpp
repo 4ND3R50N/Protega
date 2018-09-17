@@ -71,6 +71,20 @@ namespace ProtegaClientTestsuite
 			} while (!bDetect);
 		}	
 
+		TEST_METHOD(Service_Algorithm_Template)
+		{
+			//Get process id
+			unsigned int processId = (int)FindProcessId(sProcessName);
+			//init class
+			Service_Manager* ServiceManager = new Service_Manager(std::bind(&ProtectionTests::Service_Callback, this, std::placeholders::_1, std::placeholders::_2), processId);
+			ServiceManager->JobCallbackCurrentCabalAccount();
+		}
+
+		void Service_Callback(unsigned int iType, std::string sDetection)
+		{
+			MessageBoxA(NULL, sDetection.c_str(),"",0);
+		}
+
 		void VMP_S_CallBack(std::string sDetectedBaseAddress, std::string sDetectedOffset, std::string sDetectedValue, std::string sStandartValue)
 		{
 			bDetect = true;

@@ -1,9 +1,14 @@
-#include "../../stdafx.h"
+#include "../stdafx.h"
 #include "Virtual_Memory_IO.h"
 
 
 Virtual_Memory_IO::Virtual_Memory_IO()
 {
+}
+
+Virtual_Memory_IO::Virtual_Memory_IO(int iTargetApplicationId)
+{
+	this->hProcessHandle = OpenProcess(PROCESS_ALL_ACCESS, false, iTargetApplicationId);
 }
 
 
@@ -69,16 +74,12 @@ float Virtual_Memory_IO::ReadMemoryFloat(HANDLE processHandle, LPCVOID address)
 	return buffer;
 }
 
-const char * Virtual_Memory_IO::ReadMemoryString(HANDLE processHandle, LPCVOID address)
+std::string Virtual_Memory_IO::ReadMemoryString(HANDLE processHandle, LPCVOID address, short iLength)
 {
-	//WORKING!!!
 	char value[128];
-	LPCVOID Testaddr = (LPCVOID)ReadMemoryInt(processHandle, (LPCVOID)0x00B93530);
-	Testaddr = (LPCVOID)((unsigned int)Testaddr + (unsigned int)(LPCVOID)0x3FB4);
-
-	BOOL err = ReadProcessMemory(processHandle, Testaddr, &value, 128, 0);
-
-	return "";
+	BOOL err = ReadProcessMemory(processHandle, address, &value, 128, 0);
+	std::string sValue(value);
+	return sValue;
 }
 
 bool Virtual_Memory_IO::WriteIntToMemory(HANDLE processHandle, LPCVOID address, int iValue)

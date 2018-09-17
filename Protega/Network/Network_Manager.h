@@ -25,6 +25,9 @@ private:
 	int iPingTries = 0;
 	bool bPingSuccess = false;
 
+	int iServiceTries = 0;
+	bool bServiceSuccess = false;
+
 	//Only one pair for 3 protocols.
 	int iHackDetectionTries = 0;
 	bool bHackDetectionSuccess = false;
@@ -35,6 +38,8 @@ private:
 	const int iHackDetectionHeID = 701;
 	const int iHackDetectionVmpID = 702;
 	const int iHackDetectionFpID = 703;
+
+	const int iServiceSendAccountNameID = 210;
 
 	//Functions
 	bool SendAndGet(bool * bActualProtocolSuccessVar, int * iActualProtocolTryVar, std::string sMessage);
@@ -53,6 +58,7 @@ public:
 		std::string sDefaultValue);
 	void HackDetection_FP_703(std::string sSessionID, unsigned int iFpSection, std::string sContent);
 
+	void Service_SendAccount_210(std::string sAccountName);
 	//Getter
 	bool GetAuthentificationSuccessStatus();
 	bool GetPingSuccessStatus();

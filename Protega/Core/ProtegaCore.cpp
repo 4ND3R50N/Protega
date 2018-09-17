@@ -92,6 +92,12 @@ void ProtegaCore::StartAntihack()
 	ProtectionManager->StartProtectionThreads();
 #pragma endregion
 
+#pragma region Start Services
+	ServiceManager = new Service_Manager(std::bind(&ProtegaCore::ServiceManagerAnswer, this, std::placeholders::_1, std::placeholders::_2), (int)GetCurrentProcessId());
+	ServiceManager->JobCallbackCurrentCabalAccount();
+#pragma endregion
+
+
 	Splash.CloseSplash();
 	Splash.~SplashDisplayer();
 
@@ -155,6 +161,19 @@ void ProtegaCore::ProtectionManagerAnswer(unsigned int iType, std::vector<std::s
 		break;
 	}
 
+}
+
+void ProtegaCore::ServiceManagerAnswer(unsigned int iType, std::string sData)
+{
+	switch (iType)
+	{
+	case 1:
+		NetworkManager->Service_SendAccount_210(sData);
+		Sleep(1000);
+		break;
+	default:
+		break;
+	}
 }
 
 void ProtegaCore::Update()

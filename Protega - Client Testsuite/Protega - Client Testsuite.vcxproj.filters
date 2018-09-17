@@ -59,9 +59,6 @@
     <ClCompile Include="..\Protega\Protection\Target Enviorment\Virtual_Memory_Protection_Cabal_Online.cpp">
       <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Protega\Protection\Target Enviorment\Virtual_Memory_IO.cpp">
-      <Filter>Quelldateien\Protega CPP Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Protega\Tools\CryptoPP_Converter.cpp">
       <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
@@ -75,6 +72,15 @@
       <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Protega\Core\Exception_Manager.cpp">
+      <Filter>Quelldateien\Protega CPP Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Protega\Tools\Virtual_Memory_IO.cpp">
+      <Filter>Quelldateien\Protega CPP Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Protega\Service\Service_Manager.cpp">
+      <Filter>Quelldateien\Protega CPP Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Protega\Service\Modules\Service_Cabal_Online_Collector.cpp">
       <Filter>Quelldateien\Protega CPP Files</Filter>
     </ClCompile>
   </ItemGroup>
