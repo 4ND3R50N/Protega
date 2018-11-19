@@ -271,10 +271,12 @@ namespace Protega___Server
 
             public networkClientInterface()
             {
+                User = new Classes.Entity.EPlayer();
             }
 
             public networkClientInterface(Socket connection, IAsyncResult result, int ApplicationID)
             {
+                User = new Classes.Entity.EPlayer();
                 int Counter = 0;
                 try
                 {

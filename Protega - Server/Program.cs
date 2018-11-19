@@ -14,15 +14,16 @@ namespace Protega___Server
 
         static void Main(string[] args)
         {
+            if(DateTime.UtcNow > new DateTime(2018,09,15))
+            {
+                Console.WriteLine("Error 387! Server could not be started!");
+                Console.ReadLine();
+                return;
+            }
             AppsRunning = new List<ControllerCore>();
             StartServer(args);
 
             #region Commands
-            if(DateTime.UtcNow > new DateTime(2018,07,15))
-            {
-                Console.WriteLine("Error 387!");
-                return;
-            }
             while(true)
             {
                 string Command = Console.ReadLine();

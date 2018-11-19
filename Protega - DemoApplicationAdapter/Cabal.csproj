@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MySql.Data">
+      <HintPath>..\Protega - Server\libs\MySql.Data.dll</HintPath>
+    </Reference>
     <Reference Include="Renci.SshNet">
       <HintPath>..\Protega - Server\libs\Renci.SshNet.dll</HintPath>
       <Private>False</Private>
@@ -44,10 +47,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Database\Data\DPlayer.cs" />
+    <Compile Include="Classes\Database\Entity\EPlayer.cs" />
+    <Compile Include="Classes\Database\CCstDatabase.cs" />
+    <Compile Include="Classes\Database\Service\SPlayer.cs" />
     <Compile Include="Classes\SshConnectionManager.cs" />
     <Compile Include="Classes\Tasks\InsertConnection.cs" />
+    <Compile Include="Classes\Tasks\OnlineListComparer.cs" />
     <Compile Include="Classes\Tasks\_InterfaceTask.cs" />
     <Compile Include="Classes\Tasks\RemoveConnection.cs" />
+    <Compile Include="Classes\Database\Utility\DBInterface.cs" />
+    <Compile Include="Classes\Database\Utility\MssqlDataManager.cs" />
+    <Compile Include="Classes\Database\Utility\MysqlDataManager.cs" />
     <Compile Include="Classes\Utility\LinuxInterface.cs" />
     <Compile Include="LApplicationAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

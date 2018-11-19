@@ -66,7 +66,9 @@ namespace Protega___Server.Classes.Protocol
                 case 703:
                     return HackDetection_File(NetworkClient, protocol);
                 case 666:
-                    throw new Exception("Critical error! Contact Ferity!");
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.CLIENT, "Critical Error a173, contact Ferity!");
+                    Environment.Exit(1);
+                    return true;
                 default:
                     CCstData.GetInstance(ApplicationID).Logger.writeInLog(1, LogCategory.CRITICAL, Support.LoggerType.CLIENT, "Received invalid protocol: " + protocolString);
                     return false;
@@ -296,7 +298,19 @@ namespace Protega___Server.Classes.Protocol
             }
             dataClient.Application.Hash = prot.ApplicationHash;
             dataClient.GameIP = (prot.IPtoGame.ToString() == "127.0.0.1" ? prot.Client.IP : prot.IPtoGame);
-            Console.WriteLine(String.Format("Original {0}, GameIP {1}", prot.Client.IP, prot.IPtoGame));
+            if (prot.IPtoGame.ToString() == "127.0.0.1")
+            {
+                //The Client sends 127.0.0.1 if the IP cannot be fetched
+                CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, LoggerType.SERVER, String.Format("Auth: Could not get GameIP. User {0}, IP {1}, GameIP {2}", prot.Client.User.ID, prot.Client.IP.ToString(), prot.IPtoGame.ToString()));
+                dataClient.GameIP = prot.Client.IP;
+            }
+            else
+            {
+                dataClient.GameIP = prot.IPtoGame;
+                if (prot.Client.IP.ToString() != prot.IPtoGame.ToString())
+                    CCstData.GetInstance(ApplicationID).Logger.writeInLog(2, LogCategory.OK, LoggerType.SERVER, String.Format("Auth: Different IPs. User {0}, IP {1}, GameIP {2}", prot.Client.User.ID, prot.Client.IP.ToString(), prot.IPtoGame.ToString()));
+            }
+
 
             //Check if user is banned
             if (dataClient.isBanned == true)

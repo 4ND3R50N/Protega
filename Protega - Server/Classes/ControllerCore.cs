@@ -441,5 +441,27 @@ namespace Protega___Server.Classes.Core
             //Environment.Exit(1);
 
         }
+
+
+        #region Check Cabal DB for new Players
+        const string sp_OnlinePlayers_GetList = "select CharacterIdx, Name, A.LastIp, C.[Login] as 'isOnline'"
+                                          + "from Server01.dbo.cabal_character_table C"
+                                          + "join Account.dbo.cabal_auth_table A on C.CharacterIdx between A.UserNum*8 and A.UserNum*8+7"
+                                          + "where C.[Login]= 1";
+
+        private class CabalUser
+        {
+            int? CharacterIdx;
+            string Name;
+            IPAddress LastIP;
+            bool isOnline;
+        }
+
+        void CabalConnectionManager()
+        {
+
+        }
+
+        #endregion
     }
 }
